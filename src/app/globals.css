@@ -1,0 +1,72 @@
+@import url('https://rsms.me/inter/inter.css');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --forest-900: #1b4332;
+  --forest-800: #2d6a4f;
+  --cream-100: #fefae0;
+  --gold-500: #d4a017;
+}
+
+html {
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+body {
+  @apply bg-cream-100 text-gray-900 antialiased;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Print styles for IPS export */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  @page {
+    margin: 1in;
+    size: letter;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #95d5b2;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #52b788;
+}
+
+/* Focus ring */
+*:focus-visible {
+  @apply outline-none ring-2 ring-forest-700 ring-offset-2;
+}
+
+/* Transition defaults */
+a, button {
+  @apply transition-all duration-150;
+}
