@@ -41,7 +41,6 @@ function ScoreGauge({ score, max, label, color, primary = false }: { score: numb
         <div className="h-3 bg-cream-200 rounded-full overflow-hidden">
           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
         </div>
-        <div className="text-sm font-semibold mt-2" style={{ color }}>{pct}%</div>
       </div>
     )
   }
@@ -57,7 +56,6 @@ function ScoreGauge({ score, max, label, color, primary = false }: { score: numb
       <div className="h-2 bg-cream-300 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
-      <div className="text-xs text-forest-400 mt-1.5">{pct}%</div>
     </div>
   )
 }
