@@ -22,7 +22,6 @@ export default function SignupPage() {
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [firmName, setFirmName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,7 +40,6 @@ export default function SignupPage() {
         data: {
           first_name: firstName,
           last_name: lastName,
-          firm_name: firmName,
         },
       },
     })
@@ -154,17 +152,6 @@ export default function SignupPage() {
                   className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 placeholder-forest-700/40 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-forest-800 mb-1.5">Firm name</label>
-              <input
-                type="text"
-                required
-                value={firmName}
-                onChange={e => setFirmName(e.target.value)}
-                placeholder="Westbrook Wealth Management"
-                className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 placeholder-forest-700/40 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
-              />
             </div>
             <div>
               <label className="block text-sm font-medium text-forest-800 mb-1.5">Email address</label>
