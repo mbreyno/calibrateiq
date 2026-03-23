@@ -11,7 +11,9 @@ export default function SettingsPage() {
   const [firmName, setFirmName] = useState('')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [advisorId, setAdvisorId] = useState<string | null>(null)
+  const [masterToken, setMasterToken] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [copiedMaster, setCopiedMaster] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -34,6 +36,7 @@ export default function SettingsPage() {
         setAdvisorId(advisor.id)
         setFirmName(advisor.firm_name ?? '')
         setLogoUrl(advisor.logo_url ?? null)
+        setMasterToken(advisor.master_token ?? null)
       }
     }
     load()
@@ -116,6 +119,39 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-forest-900 mb-1">Firm Settings</h1>
         <p className="text-forest-600 text-sm">Your firm name and logo appear on every client questionnaire and IPS you generate.</p>
       </div>
+
+      {/* Master survey link */}
+      {masterToken && (
+        <div className="bg-forest-900 rounded-2xl p-6 mb-6 text-cream-100">
+          <div className="flex items-start gap-3 mb-3">
+            <svg className="w-5 h-5 text-gold-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd"/>
+            </svg>
+            <div>
+              <h2 className="font-semibold text-cream-100">Your Master Survey Link</h2>
+              <p className="text-sm text-cream-300 mt-0.5">Send this one link to any client. They enter their own details and complete the survey — no setup required on your end.</p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <div className="flex-1 bg-forest-800 border border-forest-700 rounded-xl px-4 py-2.5 text-xs text-cream-300 font-mono truncate">
+              {typeof window !== 'undefined' ? window.location.origin : ''}/survey/{masterToken}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/survey/${masterToken}`)
+                setCopiedMaster(true)
+                setTimeout(() => setCopiedMaster(false), 2000)
+              }}
+              className={`flex-shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all ${
+                copiedMaster ? 'bg-forest-700 text-cream-100' : 'bg-gold-500 text-forest-900 hover:bg-gold-400'
+              }`}
+            >
+              {copiedMaster ? 'Copied!' : 'Copy link'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Logo upload */}

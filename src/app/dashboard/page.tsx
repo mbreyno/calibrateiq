@@ -46,20 +46,20 @@ export default async function DashboardPage() {
           </h1>
         </div>
         <Link
-          href="/dashboard/clients"
+          href="/dashboard/settings"
           className="inline-flex items-center gap-2 bg-forest-900 text-cream-100 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-forest-800 shadow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
+            <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd"/>
           </svg>
-          Add Client
+          Master link
         </Link>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
-          { label: 'Total Clients', value: totalClients, color: 'bg-forest-100 text-forest-800' },
+          { label: 'Total Surveys', value: totalClients, color: 'bg-forest-100 text-forest-800' },
           { label: 'Profiles Complete', value: completedClients, color: 'bg-forest-100 text-forest-800' },
           { label: 'Awaiting Response', value: pendingClients, color: 'bg-gold-300/25 text-gold-800' },
         ].map(stat => (
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
       {/* Clients table */}
       <div className="bg-white rounded-2xl border border-cream-300 shadow-card overflow-hidden">
         <div className="px-6 py-4 border-b border-cream-200 flex items-center justify-between">
-          <h2 className="font-semibold text-forest-900">Recent Clients</h2>
+          <h2 className="font-semibold text-forest-900">Recent Surveys</h2>
           <Link href="/dashboard/clients" className="text-sm text-forest-700 hover:text-forest-900 font-medium">
             View all →
           </Link>
@@ -102,13 +102,13 @@ export default async function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
             </div>
-            <p className="font-semibold text-forest-900 mb-1">No clients yet</p>
-            <p className="text-sm text-forest-600 mb-5">Add your first client and send them their risk questionnaire.</p>
+            <p className="font-semibold text-forest-900 mb-1">No surveys yet</p>
+            <p className="text-sm text-forest-600 mb-5">Share your master link with clients and their completed surveys will appear here.</p>
             <Link
-              href="/dashboard/clients"
+              href="/dashboard/settings"
               className="inline-flex items-center gap-2 bg-forest-900 text-cream-100 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-forest-800"
             >
-              Add your first client
+              Get your master link
             </Link>
           </div>
         ) : (

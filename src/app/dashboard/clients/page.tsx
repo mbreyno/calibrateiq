@@ -117,17 +117,17 @@ export default function ClientsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-forest-900">Clients</h1>
-          <p className="text-sm text-forest-600 mt-0.5">{clients.length} total client{clients.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-bold text-forest-900">Surveys</h1>
+          <p className="text-sm text-forest-600 mt-0.5">{clients.length} total survey{clients.length !== 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-2 bg-forest-900 text-cream-100 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-forest-800 shadow-sm"
+          className="inline-flex items-center gap-2 border border-forest-300 text-forest-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-cream-100"
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
           </svg>
-          Add Client
+          Add manually
         </button>
       </div>
 
@@ -140,7 +140,7 @@ export default function ClientsPage() {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search clients by name or email…"
+          placeholder="Search surveys by name or email…"
           className="w-full pl-11 pr-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 placeholder-forest-700/40 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
         />
       </div>
@@ -152,18 +152,15 @@ export default function ClientsPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 px-4">
             <p className="font-semibold text-forest-900 mb-1">
-              {clients.length === 0 ? 'No clients yet' : 'No results found'}
+              {clients.length === 0 ? 'No surveys yet' : 'No results found'}
             </p>
             <p className="text-sm text-forest-600 mb-5">
-              {clients.length === 0 ? 'Add a client to get started.' : 'Try a different search term.'}
+              {clients.length === 0 ? 'Send your master link to clients to get started.' : 'Try a different search term.'}
             </p>
             {clients.length === 0 && (
-              <button
-                onClick={() => setShowModal(true)}
-                className="inline-flex items-center gap-2 bg-forest-900 text-cream-100 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-forest-800"
-              >
-                Add your first client
-              </button>
+              <Link href="/dashboard/settings" className="inline-flex items-center gap-2 bg-forest-900 text-cream-100 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-forest-800">
+                Get your master link
+              </Link>
             )}
           </div>
         ) : (
@@ -286,8 +283,8 @@ export default function ClientsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-elevated w-full max-w-md p-6">
-            <h2 className="text-lg font-bold text-forest-900 mb-1">Add New Client</h2>
-            <p className="text-sm text-forest-600 mb-5">A unique questionnaire link will be generated automatically.</p>
+            <h2 className="text-lg font-bold text-forest-900 mb-1">Add Survey Manually</h2>
+            <p className="text-sm text-forest-600 mb-5">A unique questionnaire link will be generated for this person.</p>
 
             {formError && (
               <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{formError}</div>
