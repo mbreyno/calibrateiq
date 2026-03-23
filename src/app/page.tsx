@@ -70,9 +70,9 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-forest-900 leading-[1.08] tracking-tight mb-6">
-            Investment Profiles{' '}
+            Simple Risk Tolerance{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-700 to-forest-500">
-              Made Simple.
+              &amp; IPS.
             </span>
           </h1>
 
