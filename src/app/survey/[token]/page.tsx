@@ -279,7 +279,7 @@ export default function MasterSurveyPage() {
 
               <div className="bg-cream-100 rounded-xl p-4 border border-cream-200 mb-6">
                 <div className="grid grid-cols-3 gap-3 text-center">
-                  {[['~5 min', 'Completion time'], ['8', 'Questions'], ['100%', 'Confidential']].map(([val, lbl]) => (
+                  {[['~5 min', 'Completion time'], ['7', 'Questions'], ['100%', 'Confidential']].map(([val, lbl]) => (
                     <div key={lbl}>
                       <div className="text-lg font-bold text-forest-900">{val}</div>
                       <div className="text-xs text-forest-600">{lbl}</div>
