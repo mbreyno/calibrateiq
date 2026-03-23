@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { QUESTIONS } from '@/lib/scoring'
+import { QUESTIONS, calculateAgeScore } from '@/lib/scoring'
 import type { Client, Advisor } from '@/types'
 
 // ─── Progress bar ────────────────────────────────────────────────────────────
@@ -67,10 +67,10 @@ export default function QuestionnairePage() {
   const infoQuestion = QUESTIONS.find(q => q.id === 'q7')!
   const totalSteps = scoredQuestions.length + 1 // +1 for q7 checkbox
 
-  // Build answer array for the questionnaire (q1–q6, then q8, then q7 checkbox)
+  // Build answer array — Q1 is derived from DOB, so excluded here
   const questionOrder = [
-    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio'), // q1–q6, q8
-    QUESTIONS.find(q => q.id === 'q7')!,                           // q7 checkbox last
+    ...QUESTIONS.filter(q => q.id !== 'q1' && q.id !== 'q7' && q.type === 'radio'), // q2–q6, q8
+    QUESTIONS.find(q => q.id === 'q7')!,                                             // q7 checkbox last
   ]
 
   const currentQuestion = questionOrder[currentQ]
@@ -108,7 +108,7 @@ export default function QuestionnairePage() {
 
     const payload = {
       client_id: client.id,
-      q1: answers['q1'] as number ?? null,
+      q1: client.date_of_birth ? calculateAgeScore(client.date_of_birth) : null,
       q2: answers['q2'] as number ?? null,
       q3: answers['q3'] as number ?? null,
       q4: answers['q4'] as number ?? null,

@@ -9,8 +9,26 @@ import type {
 } from '@/types'
 
 // ─────────────────────────────────────────────
+// AGE SCORE (derived from date of birth)
+// Replaces Q1 — score calculated automatically
+// ─────────────────────────────────────────────
+export function calculateAgeScore(dob: string): number {
+  const birth = new Date(dob)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  if (age < 45)  return 50
+  if (age <= 55) return 40
+  if (age <= 65) return 30
+  if (age <= 75) return 20
+  return 10
+}
+
+// ─────────────────────────────────────────────
 // QUESTIONNAIRE DEFINITION
-// Scores for Q1 and Q2: 50 → 10 in steps of 10.
+// Q1 score is now derived from DOB via calculateAgeScore.
+// Scores for Q2: 50 → 10 in steps of 10.
 // Scores for Q3–Q8: 20 → 4 in steps of 4.
 // ─────────────────────────────────────────────
 export const QUESTIONS: Question[] = [

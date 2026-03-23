@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { QUESTIONS } from '@/lib/scoring'
+import { QUESTIONS, calculateAgeScore } from '@/lib/scoring'
 import type { Advisor } from '@/types'
 
 // ─── Progress bar ─────────────────────────────────────────────────────────────
@@ -81,8 +81,8 @@ export default function MasterSurveyPage() {
   }, [token])
 
   const questionOrder = [
-    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio'), // q1–q6, q8
-    QUESTIONS.find(q => q.id === 'q7')!,                           // q7 checkbox last
+    ...QUESTIONS.filter(q => q.id !== 'q1' && q.id !== 'q7' && q.type === 'radio'), // q2–q6, q8
+    QUESTIONS.find(q => q.id === 'q7')!,                                             // q7 checkbox last
   ]
 
   const currentQuestion = questionOrder[currentQ]
@@ -143,7 +143,7 @@ export default function MasterSurveyPage() {
       .from('questionnaire_responses')
       .insert({
         client_id: newClient.id,
-        q1: answers['q1'] as number ?? null,
+        q1: calculateAgeScore(dob),
         q2: answers['q2'] as number ?? null,
         q3: answers['q3'] as number ?? null,
         q4: answers['q4'] as number ?? null,
@@ -220,7 +220,7 @@ export default function MasterSurveyPage() {
 
   // ── Personal details step ────────────────────────────────────────
   if (step === 'details') {
-    const isValid = firstName.trim() && lastName.trim() && email.trim()
+    const isValid = firstName.trim() && lastName.trim() && email.trim() && dob
     return (
       <div className="min-h-screen bg-cream-100 flex flex-col">
         <BrandHeader advisor={advisor} />
@@ -267,9 +267,7 @@ export default function MasterSurveyPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-forest-800 mb-1.5">
-                    Date of birth <span className="text-forest-500 font-normal">(optional)</span>
-                  </label>
+                  <label className="block text-sm font-medium text-forest-800 mb-1.5">Date of birth *</label>
                   <input
                     type="date"
                     value={dob}
