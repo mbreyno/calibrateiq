@@ -190,41 +190,49 @@ function getToleranceCategory(norm: number): ToleranceCategory {
 }
 
 function getOverallCategory(combined: number): RiskCategory {
-  if (combined >= 80) return 'Aggressive'
-  if (combined >= 60) return 'Moderately Aggressive'
-  if (combined >= 40) return 'Moderate'
-  if (combined >= 20) return 'Moderately Conservative'
-  return 'Conservative'
+  if (combined >= 80) return 'Aggressive Growth'
+  if (combined >= 60) return 'Growth'
+  if (combined >= 40) return 'Moderate Growth'
+  if (combined >= 20) return 'Conservative Growth'
+  return 'Income'
 }
 
 // ─────────────────────────────────────────────
 // ASSET ALLOCATION BY RISK CATEGORY
 // ─────────────────────────────────────────────
 export const ASSET_ALLOCATIONS: Record<RiskCategory, AssetAllocation> = {
-  'Conservative':           { equities: 15,  fixed_income: 75, alternatives: 5,  cash: 5  },
-  'Moderately Conservative':{ equities: 35,  fixed_income: 55, alternatives: 7,  cash: 3  },
-  'Moderate':               { equities: 60,  fixed_income: 33, alternatives: 5,  cash: 2  },
-  'Moderately Aggressive':  { equities: 80,  fixed_income: 15, alternatives: 4,  cash: 1  },
-  'Aggressive':             { equities: 95,  fixed_income: 3,  alternatives: 2,  cash: 0  },
+  'Income':             { equities: 15,  fixed_income: 75, alternatives: 5,  cash: 5  },
+  'Conservative Growth':{ equities: 35,  fixed_income: 55, alternatives: 7,  cash: 3  },
+  'Moderate Growth':    { equities: 60,  fixed_income: 33, alternatives: 5,  cash: 2  },
+  'Growth':             { equities: 80,  fixed_income: 15, alternatives: 4,  cash: 1  },
+  'Aggressive Growth':  { equities: 95,  fixed_income: 3,  alternatives: 2,  cash: 0  },
 }
 
 export const CATEGORY_COLORS: Record<RiskCategory, string> = {
-  'Conservative':            '#52b788',
-  'Moderately Conservative': '#74c69d',
-  'Moderate':                '#d4a017',
-  'Moderately Aggressive':   '#e07b26',
-  'Aggressive':              '#c0392b',
+  'Income':             '#52b788',
+  'Conservative Growth':'#74c69d',
+  'Moderate Growth':    '#d4a017',
+  'Growth':             '#e07b26',
+  'Aggressive Growth':  '#c0392b',
+}
+
+export const CATEGORY_SCORE_RANGES: Record<RiskCategory, string> = {
+  'Income':             '0 – 20',
+  'Conservative Growth':'20 – 40',
+  'Moderate Growth':    '40 – 60',
+  'Growth':             '60 – 80',
+  'Aggressive Growth':  '80 – 100',
 }
 
 export const CATEGORY_DESCRIPTIONS: Record<RiskCategory, string> = {
-  'Conservative':
-    'Preservation of capital is the primary objective. The portfolio emphasizes stability and income, accepting minimal volatility and lower long-term growth potential.',
-  'Moderately Conservative':
-    'Capital preservation with modest growth. The portfolio is weighted toward fixed income while allowing limited equity exposure for moderate long-term returns.',
-  'Moderate':
-    'A balanced approach to growth and stability. The portfolio holds a meaningful mix of equities and fixed income, accepting moderate volatility for solid long-term returns.',
-  'Moderately Aggressive':
-    'Growth-oriented with a tolerance for volatility. The portfolio is predominantly equity-focused, seeking above-average long-term returns while accepting periods of significant decline.',
-  'Aggressive':
-    'Maximum long-term growth is the primary objective. The portfolio is overwhelmingly equity-focused, accepting high volatility and potential for significant short-term losses in exchange for superior long-term returns.',
+  'Income':
+    'This portfolio is appropriate for investors whose primary objective is current income. The majority of assets in this portfolio are allocated to short-term and intermediate-term investments such as fixed-income securities (bonds). A portion of this portfolio may also be invested in equities (stocks), which are subject to price fluctuations, as protection against the erosion to purchasing power caused by inflation.',
+  'Conservative Growth':
+    'This portfolio is appropriate for investors who prefer a balanced mix of current income and capital appreciation, and are willing to tolerate some short-term price fluctuations associated with equity (stock) investments. The assets in this portfolio are balanced among equities (stocks) and fixed-income securities (bonds).',
+  'Moderate Growth':
+    'This portfolio is appropriate for investors whose primary objective is capital appreciation and to whom current income is of secondary importance. A moderate growth investor is willing to tolerate short-term price fluctuations. The assets in this portfolio are a mix of equities (stocks) and fixed-income securities (bonds), with a higher weighting towards equities (stocks).',
+  'Growth':
+    'This portfolio is appropriate for investors whose primary objective is long-term capital appreciation and who are willing to tolerate potentially large price fluctuations. Generating current income is not a primary goal. Assets in this portfolio are invested primarily (and in some cases entirely) in equities (stocks).',
+  'Aggressive Growth':
+    'This portfolio is appropriate for investors whose primary objective is maximum long-term capital appreciation and who are willing to tolerate more substantial, potentially large price fluctuations. Generating current income is not a goal. Assets in this portfolio are invested entirely (or almost entirely) in equities (stocks).',
 }

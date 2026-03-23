@@ -53,11 +53,11 @@ export interface RiskProfile {
 }
 
 export type RiskCategory =
-  | 'Conservative'
-  | 'Moderately Conservative'
-  | 'Moderate'
-  | 'Moderately Aggressive'
-  | 'Aggressive'
+  | 'Income'
+  | 'Conservative Growth'
+  | 'Moderate Growth'
+  | 'Growth'
+  | 'Aggressive Growth'
 
 export type CapacityCategory = 'Low' | 'Moderate-Low' | 'Moderate' | 'Moderate-High' | 'High'
 export type ToleranceCategory = 'Low' | 'Moderate-Low' | 'Moderate' | 'Moderate-High' | 'High'

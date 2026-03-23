@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { calculateRiskProfile, ASSET_ALLOCATIONS, CATEGORY_COLORS, CATEGORY_DESCRIPTIONS, QUESTIONS } from '@/lib/scoring'
+import { calculateRiskProfile, ASSET_ALLOCATIONS, CATEGORY_COLORS, CATEGORY_DESCRIPTIONS, CATEGORY_SCORE_RANGES, QUESTIONS } from '@/lib/scoring'
+import type { RiskCategory } from '@/types'
 import { generateIPSContent } from '@/lib/ips-generator'
 import type { Client, Advisor, QuestionnaireResponse, RiskProfile, IPSContent } from '@/types'
 
@@ -257,7 +258,7 @@ export default function ClientDetailPage() {
             {/* Scores */}
             <div className="flex gap-4">
               <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" />
-              <ScoreGauge score={profile.risk_tolerance_score} max={250} label="Risk Tolerance" color="#2d6a4f" />
+              <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Tolerance" color="#2d6a4f" />
             </div>
 
             {/* Asset allocation */}
@@ -334,6 +335,33 @@ export default function ClientDetailPage() {
                   <p className="text-sm text-forest-700 leading-relaxed">"{responses.comments}"</p>
                 </div>
               )}
+            </div>
+
+            {/* Portfolio Category Legend */}
+            <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+              <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
+              <div className="space-y-3">
+                {((['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income'] as RiskCategory[])).map(cat => {
+                  const isActive = profile.overall_category === cat
+                  const color = CATEGORY_COLORS[cat]
+                  return (
+                    <div key={cat} className={`rounded-xl p-4 border transition-all ${isActive ? 'border-2' : 'border'}`}
+                      style={{ borderColor: isActive ? color : '#e8e0cc', backgroundColor: isActive ? `${color}10` : 'transparent' }}>
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-xs font-bold text-forest-500 tabular-nums">{CATEGORY_SCORE_RANGES[cat]}</span>
+                        <span className="text-sm font-bold text-forest-900 uppercase tracking-wide">{cat}</span>
+                        {isActive && (
+                          <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
+                            This client
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-forest-600 leading-relaxed pl-5">{CATEGORY_DESCRIPTIONS[cat]}</p>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="flex gap-3">
