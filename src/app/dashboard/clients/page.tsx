@@ -54,13 +54,28 @@ export default function ClientsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data: advisor } = await supabase
+    let { data: advisor } = await supabase
       .from('advisors')
       .select('id')
       .eq('user_id', user.id)
       .single()
 
-    if (!advisor) { setFormError('Advisor profile not found.'); setSaving(false); return }
+    // If the advisor row doesn't exist yet, create it now
+    if (!advisor) {
+      const { data: newAdvisor, error: createError } = await supabase
+        .from('advisors')
+        .insert({ user_id: user.id, firm_name: '' })
+        .select('id')
+        .single()
+
+      if (createError || !newAdvisor) {
+        setFormError('Could not create advisor profile. Please try refreshing the page.')
+        setSaving(false)
+        return
+      }
+
+      advisor = newAdvisor
+    }
 
     const { error } = await supabase.from('clients').insert({
       advisor_id: advisor.id,
