@@ -67,11 +67,10 @@ export default function QuestionnairePage() {
   const infoQuestion = QUESTIONS.find(q => q.id === 'q7')!
   const totalSteps = scoredQuestions.length + 1 // +1 for q7 checkbox
 
-  // Build answer array for the questionnaire (q1–q6, then q7 checkbox, then q8)
+  // Build answer array for the questionnaire (q1–q6, then q8, then q7 checkbox)
   const questionOrder = [
-    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio').slice(0, 6), // q1–q6
-    QUESTIONS.find(q => q.id === 'q7')!,                                        // q7 checkbox
-    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio').slice(6),    // q8
+    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio'), // q1–q6, q8
+    QUESTIONS.find(q => q.id === 'q7')!,                           // q7 checkbox last
   ]
 
   const currentQuestion = questionOrder[currentQ]

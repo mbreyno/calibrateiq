@@ -81,9 +81,8 @@ export default function MasterSurveyPage() {
   }, [token])
 
   const questionOrder = [
-    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio').slice(0, 6),
-    QUESTIONS.find(q => q.id === 'q7')!,
-    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio').slice(6),
+    ...QUESTIONS.filter(q => q.id !== 'q7' && q.type === 'radio'), // q1–q6, q8
+    QUESTIONS.find(q => q.id === 'q7')!,                           // q7 checkbox last
   ]
 
   const currentQuestion = questionOrder[currentQ]
