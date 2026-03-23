@@ -33,7 +33,6 @@ export default function ClientsPage() {
   const [newDOB, setNewDOB] = useState('')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -101,13 +100,6 @@ export default function ClientsPage() {
     loadClients()
   }
 
-  const copyLink = (token: string, clientId: string) => {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
-    navigator.clipboard.writeText(`${baseUrl}/q/${token}`)
-    setCopiedId(clientId)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
-
   const filtered = clients.filter(c =>
     `${c.first_name} ${c.last_name} ${c.email}`.toLowerCase().includes(search.toLowerCase())
   )
@@ -171,7 +163,6 @@ export default function ClientsPage() {
                   <th className="text-left text-xs font-semibold text-forest-600 uppercase tracking-wider px-6 py-3">Name</th>
                   <th className="text-left text-xs font-semibold text-forest-600 uppercase tracking-wider px-6 py-3">Email</th>
                   <th className="text-left text-xs font-semibold text-forest-600 uppercase tracking-wider px-6 py-3">Status</th>
-                  <th className="text-left text-xs font-semibold text-forest-600 uppercase tracking-wider px-6 py-3">Questionnaire Link</th>
                   <th className="text-left text-xs font-semibold text-forest-600 uppercase tracking-wider px-6 py-3">Added</th>
                   <th className="px-6 py-3" />
                 </tr>
@@ -191,33 +182,6 @@ export default function ClientsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-forest-600">{client.email}</td>
                     <td className="px-6 py-4"><StatusBadge status={client.status} /></td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => copyLink(client.questionnaire_token, client.id)}
-                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all ${
-                          copiedId === client.id
-                            ? 'bg-forest-100 border-forest-300 text-forest-700'
-                            : 'bg-cream-50 border-cream-300 text-forest-700 hover:bg-cream-100'
-                        }`}
-                      >
-                        {copiedId === client.id ? (
-                          <>
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
-                              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
-                            </svg>
-                            Copy link
-                          </>
-                        )}
-                      </button>
-                    </td>
                     <td className="px-6 py-4 text-sm text-forest-600 whitespace-nowrap">
                       {new Date(client.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
