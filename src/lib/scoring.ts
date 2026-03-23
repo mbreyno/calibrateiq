@@ -207,11 +207,11 @@ export const ASSET_ALLOCATIONS: Record<RiskCategory, AssetAllocation> = {
 }
 
 export const CATEGORY_COLORS: Record<RiskCategory, string> = {
-  'Income':             '#52b788',
-  'Conservative Growth':'#74c69d',
-  'Moderate Growth':    '#d4a017',
-  'Growth':             '#e07b26',
-  'Aggressive Growth':  '#c0392b',
+  'Income':             '#4a7fb5',  // calm steel blue
+  'Conservative Growth':'#52b788',  // teal green
+  'Moderate Growth':    '#40916c',  // forest green
+  'Growth':             '#d4a017',  // amber gold
+  'Aggressive Growth':  '#c97c2a',  // warm burnt orange
 }
 
 export const CATEGORY_SCORE_RANGES: Record<RiskCategory, string> = {
