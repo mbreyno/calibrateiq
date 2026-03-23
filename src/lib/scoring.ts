@@ -11,7 +11,7 @@ import type {
 // ─────────────────────────────────────────────
 // QUESTIONNAIRE DEFINITION
 // Scores for Q1 and Q2: 50 → 10 in steps of 10.
-// Scores for Q3–Q8: placeholder 50 → 10 (update with custom scores when provided).
+// Scores for Q3–Q8: 20 → 4 in steps of 4.
 // ─────────────────────────────────────────────
 export const QUESTIONS: Question[] = [
   {
@@ -46,11 +46,11 @@ export const QUESTIONS: Question[] = [
     type: 'radio',
     question: 'For this investment, I intend to take:',
     options: [
-      { label: 'Higher risk in return for potentially superior returns',                    score: 50 },
-      { label: 'Moderate to higher risk in return for potentially greater return',          score: 40 },
-      { label: 'Moderate risk in return for some growth opportunity',                       score: 30 },
-      { label: 'Low risk in return for a little growth opportunity',                        score: 20 },
-      { label: 'Slight to no risk in return for general stability of principal',            score: 10 },
+      { label: 'Higher risk in return for potentially superior returns',                    score: 20 },
+      { label: 'Moderate to higher risk in return for potentially greater return',          score: 16 },
+      { label: 'Moderate risk in return for some growth opportunity',                       score: 12 },
+      { label: 'Low risk in return for a little growth opportunity',                        score: 8  },
+      { label: 'Slight to no risk in return for general stability of principal',            score: 4  },
     ],
   },
   {
@@ -59,11 +59,11 @@ export const QUESTIONS: Question[] = [
     type: 'radio',
     question: 'Assuming normal market conditions, what would you expect from this investment over time?',
     options: [
-      { label: 'To generally keep pace with the stock market',                             score: 50 },
-      { label: 'To slightly trail the stock market, but make a good profit',               score: 40 },
-      { label: 'To trail the stock market, but make a moderate profit',                    score: 30 },
-      { label: 'To have some stability, but make modest profits',                          score: 20 },
-      { label: 'To have a high degree of stability, but make small profits',               score: 10 },
+      { label: 'To generally keep pace with the stock market',                             score: 20 },
+      { label: 'To slightly trail the stock market, but make a good profit',               score: 16 },
+      { label: 'To trail the stock market, but make a moderate profit',                    score: 12 },
+      { label: 'To have some stability, but make modest profits',                          score: 8  },
+      { label: 'To have a high degree of stability, but make small profits',               score: 4  },
     ],
   },
   {
@@ -72,11 +72,11 @@ export const QUESTIONS: Question[] = [
     type: 'radio',
     question: 'Suppose the stock market performs unusually poorly over the next decade. What would you expect from this investment?',
     options: [
-      { label: 'To also perform poorly',                                                   score: 50 },
-      { label: 'To make very little or nothing',                                           score: 40 },
-      { label: 'To make a little gain',                                                    score: 30 },
-      { label: 'To make a modest gain',                                                    score: 20 },
-      { label: "To make gains, regardless of the stock market's performance",              score: 10 },
+      { label: 'To also perform poorly',                                                   score: 20 },
+      { label: 'To make very little or nothing',                                           score: 16 },
+      { label: 'To make a little gain',                                                    score: 12 },
+      { label: 'To make a modest gain',                                                    score: 8  },
+      { label: "To make gains, regardless of the stock market's performance",              score: 4  },
     ],
   },
   {
@@ -85,11 +85,11 @@ export const QUESTIONS: Question[] = [
     type: 'radio',
     question: "Which of these statements would best describe your attitudes about the next THREE YEARS' performance of this investment?",
     options: [
-      { label: 'I understand a loss of principal is a realistic possibility',              score: 50 },
-      { label: 'I can tolerate a loss',                                                    score: 40 },
-      { label: 'I can tolerate a small loss',                                              score: 30 },
-      { label: "I'd have a hard time tolerating any losses",                               score: 20 },
-      { label: 'I need to at least see some return',                                       score: 10 },
+      { label: 'I understand a loss of principal is a realistic possibility',              score: 20 },
+      { label: 'I can tolerate a loss',                                                    score: 16 },
+      { label: 'I can tolerate a small loss',                                              score: 12 },
+      { label: "I'd have a hard time tolerating any losses",                               score: 8  },
+      { label: 'I need to at least see some return',                                       score: 4  },
     ],
   },
   {
@@ -108,24 +108,24 @@ export const QUESTIONS: Question[] = [
     type: 'radio',
     question: "Which of these statements would best describe your attitudes about the next THREE MONTHS' performance of this investment?",
     options: [
-      { label: "I wouldn't worry about market fluctuations in that time frame",            score: 50 },
-      { label: "If my investment declined greater than 20%, I'd be concerned",             score: 40 },
-      { label: "If my investment declined greater than 10%, I'd be concerned",             score: 30 },
-      { label: 'I can only tolerate small short-term fluctuations in my investment',       score: 20 },
-      { label: "I'd have a hard time accepting any investment declines",                   score: 10 },
+      { label: "I wouldn't worry about market fluctuations in that time frame",            score: 20 },
+      { label: "If my investment declined greater than 20%, I'd be concerned",             score: 16 },
+      { label: "If my investment declined greater than 10%, I'd be concerned",             score: 12 },
+      { label: 'I can only tolerate small short-term fluctuations in my investment',       score: 8  },
+      { label: "I'd have a hard time accepting any investment declines",                   score: 4  },
     ],
   },
 ]
 
 // ─────────────────────────────────────────────
 // SCORE RANGES
-// Risk Capacity:  Q1 + Q2  → 20–100
-// Risk Tolerance: Q3+Q4+Q5+Q6+Q8 → 50–250  (placeholder scoring)
+// Risk Capacity:  Q1 + Q2        → 20–100  (each 10–50)
+// Risk Tolerance: Q3+Q4+Q5+Q6+Q8 → 20–100  (each 4–20)
 // ─────────────────────────────────────────────
 const CAPACITY_MIN = 20
 const CAPACITY_MAX = 100
-const TOLERANCE_MIN = 50
-const TOLERANCE_MAX = 250
+const TOLERANCE_MIN = 20
+const TOLERANCE_MAX = 100
 
 export function calculateRiskProfile(r: QuestionnaireResponse): RiskProfile {
   const capacityScore = (r.q1 ?? 0) + (r.q2 ?? 0)
