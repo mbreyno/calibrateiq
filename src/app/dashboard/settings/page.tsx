@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const [firmName, setFirmName] = useState('')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [advisorId, setAdvisorId] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -20,6 +21,8 @@ export default function SettingsPage() {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+
+      setUserId(user.id)
 
       const { data: advisor } = await supabase
         .from('advisors')
@@ -38,7 +41,7 @@ export default function SettingsPage() {
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !advisorId) return
+    if (!file || !advisorId || !userId) return
 
     if (file.size > 2 * 1024 * 1024) {
       setError('Logo must be smaller than 2MB.')
@@ -49,7 +52,7 @@ export default function SettingsPage() {
     setError(null)
 
     const ext = file.name.split('.').pop()
-    const path = `${advisorId}/logo.${ext}`
+    const path = `${userId}/logo.${ext}`
 
     const { error: uploadError } = await supabase.storage
       .from('logos')
