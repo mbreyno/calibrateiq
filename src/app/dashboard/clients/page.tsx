@@ -95,8 +95,6 @@ export default function ClientsPage() {
   const handleDeleteClient = async () => {
     if (!clientToDelete) return
     setDeleting(true)
-    await supabase.from('investment_policy_statements').delete().eq('client_id', clientToDelete.id)
-    await supabase.from('questionnaire_responses').delete().eq('client_id', clientToDelete.id)
     await supabase.from('clients').delete().eq('id', clientToDelete.id)
     setClientToDelete(null)
     setDeleting(false)
