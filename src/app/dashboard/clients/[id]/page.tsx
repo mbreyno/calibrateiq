@@ -11,13 +11,27 @@ import type { Client, Advisor, QuestionnaireResponse, RiskProfile, IPSContent } 
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
+const ShieldIcon = () => (
+  <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clipRule="evenodd"/>
+  </svg>
+)
+
+const SlidersIcon = () => (
+  <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
+  </svg>
+)
+
 function ScoreGauge({ score, max, label, color, primary = false }: { score: number; max: number; label: string; color: string; primary?: boolean }) {
   const pct = Math.round((score / max) * 100)
   if (primary) {
     return (
       <div className="flex-1 bg-white rounded-2xl border-2 shadow-card p-6" style={{ borderColor: color }}>
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>{label}</span>
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
+            <ShieldIcon />{label}
+          </span>
           <span className="text-xs text-forest-500 font-medium">Primary measure</span>
         </div>
         <div className="flex items-end gap-2 mb-4">
@@ -33,7 +47,9 @@ function ScoreGauge({ score, max, label, color, primary = false }: { score: numb
   }
   return (
     <div className="flex-1 bg-cream-50 rounded-2xl border border-cream-300 p-5">
-      <div className="text-xs font-semibold text-forest-400 uppercase tracking-wider mb-3">{label}</div>
+      <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-forest-400 uppercase tracking-wider mb-3">
+        <SlidersIcon />{label}
+      </div>
       <div className="flex items-end gap-2 mb-3">
         <span className="text-3xl font-bold text-forest-600">{score}</span>
         <span className="text-sm text-forest-400 mb-0.5">/ {max}</span>
