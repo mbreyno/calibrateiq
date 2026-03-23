@@ -247,47 +247,50 @@ export default function ClientDetailPage() {
 
         {/* ── PROFILE TAB ──────────────────────────────────────── */}
         {tab === 'profile' && profile && responses && (
-          <div className="space-y-5 max-w-3xl">
-            {/* Category banner */}
+          <div className="space-y-5">
+            {/* Category banner — full width */}
             <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: categoryColor }}>
               <div className="text-sm font-semibold opacity-80 mb-1">Overall Risk Category</div>
               <div className="text-3xl font-bold mb-2">{profile.overall_category}</div>
-              <p className="text-sm opacity-85 leading-relaxed max-w-xl">{CATEGORY_DESCRIPTIONS[profile.overall_category]}</p>
+              <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[profile.overall_category]}</p>
             </div>
 
-            {/* Scores */}
-            <div className="flex gap-4">
-              <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" />
-              <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Tolerance" color="#2d6a4f" />
-            </div>
-
-            {/* Asset allocation */}
-            {alloc && (
-              <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-                <h2 className="font-semibold text-forest-900 mb-4">Recommended Asset Allocation</h2>
-                <div className="space-y-3">
-                  <AllocationBar label="Equities" pct={alloc.equities} color="#1b4332" />
-                  <AllocationBar label="Fixed Income" pct={alloc.fixed_income} color="#2d6a4f" />
-                  <AllocationBar label="Alternatives" pct={alloc.alternatives} color="#40916c" />
-                  <AllocationBar label="Cash" pct={alloc.cash} color="#74c69d" />
-                </div>
-                <div className="grid grid-cols-4 gap-2 mt-5">
-                  {[
-                    ['Equities', alloc.equities],
-                    ['Fixed Income', alloc.fixed_income],
-                    ['Alternatives', alloc.alternatives],
-                    ['Cash', alloc.cash],
-                  ].map(([l, v]) => (
-                    <div key={l} className="text-center bg-forest-50 rounded-xl p-3 border border-forest-100">
-                      <div className="text-xl font-bold text-forest-900">{v}%</div>
-                      <div className="text-xs text-forest-600 mt-0.5">{l}</div>
-                    </div>
-                  ))}
-                </div>
+            {/* Two-column: scores (left) + allocation (right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Scores */}
+              <div className="flex gap-4">
+                <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" />
+                <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Tolerance" color="#2d6a4f" />
               </div>
-            )}
 
-            {/* Preferences */}
+              {/* Asset allocation */}
+              {alloc && (
+                <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+                  <h2 className="font-semibold text-forest-900 mb-4">Recommended Asset Allocation</h2>
+                  <div className="space-y-3">
+                    <AllocationBar label="Equities" pct={alloc.equities} color="#1b4332" />
+                    <AllocationBar label="Fixed Income" pct={alloc.fixed_income} color="#2d6a4f" />
+                    <AllocationBar label="Alternatives" pct={alloc.alternatives} color="#40916c" />
+                    <AllocationBar label="Cash" pct={alloc.cash} color="#74c69d" />
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 mt-5">
+                    {[
+                      ['Equities', alloc.equities],
+                      ['Fixed Income', alloc.fixed_income],
+                      ['Alternatives', alloc.alternatives],
+                      ['Cash', alloc.cash],
+                    ].map(([l, v]) => (
+                      <div key={l} className="text-center bg-forest-50 rounded-xl p-3 border border-forest-100">
+                        <div className="text-xl font-bold text-forest-900">{v}%</div>
+                        <div className="text-xs text-forest-600 mt-0.5">{l}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Preferences — full width if present */}
             {(profile.esg_preference || profile.crypto_preference) && (
               <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
                 <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
@@ -302,65 +305,68 @@ export default function ClientDetailPage() {
               </div>
             )}
 
-            {/* Question responses */}
-            <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-              <h2 className="font-semibold text-forest-900 mb-4">Questionnaire Responses</h2>
-              <div className="space-y-4">
-                {QUESTIONS.filter(q => q.type === 'radio').map((q, i) => {
-                  const key = `q${i + 1}` as keyof QuestionnaireResponse
-                  const score = responses[key]
-                  if (typeof score !== 'number') return null
-                  const selectedOption = 'options' in q && q.type === 'radio'
-                    ? q.options.find(o => o.score === score)
-                    : null
-                  return (
-                    <div key={q.id} className="border-b border-cream-200 pb-4 last:border-0 last:pb-0">
-                      <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1">
-                        {q.category === 'capacity' ? 'Risk Capacity' : 'Risk Tolerance'} · Q{i + 1}
-                      </div>
-                      <div className="text-sm font-medium text-forest-900 mb-1">{q.question}</div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-forest-700">{selectedOption?.label ?? '—'}</span>
-                        <span className="text-xs font-bold text-forest-600 bg-forest-100 px-2 py-0.5 rounded-full">
-                          {score} pts
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              {responses.comments && (
-                <div className="mt-4 bg-cream-100 rounded-xl p-4 border border-cream-200">
-                  <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1">Client Comments</div>
-                  <p className="text-sm text-forest-700 leading-relaxed">"{responses.comments}"</p>
-                </div>
-              )}
-            </div>
-
-            {/* Portfolio Category Legend */}
-            <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-              <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
-              <div className="space-y-3">
-                {((['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income'] as RiskCategory[])).map(cat => {
-                  const isActive = profile.overall_category === cat
-                  const color = CATEGORY_COLORS[cat]
-                  return (
-                    <div key={cat} className={`rounded-xl p-4 border transition-all ${isActive ? 'border-2' : 'border'}`}
-                      style={{ borderColor: isActive ? color : '#e8e0cc', backgroundColor: isActive ? `${color}10` : 'transparent' }}>
-                      <div className="flex items-center gap-3 mb-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                        <span className="text-xs font-bold text-forest-500 tabular-nums">{CATEGORY_SCORE_RANGES[cat]}</span>
-                        <span className="text-sm font-bold text-forest-900 uppercase tracking-wide">{cat}</span>
-                        {isActive && (
-                          <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
-                            This client
+            {/* Two-column: questionnaire responses (left) + category legend (right) */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              {/* Question responses */}
+              <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+                <h2 className="font-semibold text-forest-900 mb-4">Questionnaire Responses</h2>
+                <div className="space-y-4">
+                  {QUESTIONS.filter(q => q.type === 'radio').map((q, i) => {
+                    const key = `q${i + 1}` as keyof QuestionnaireResponse
+                    const score = responses[key]
+                    if (typeof score !== 'number') return null
+                    const selectedOption = 'options' in q && q.type === 'radio'
+                      ? q.options.find(o => o.score === score)
+                      : null
+                    return (
+                      <div key={q.id} className="border-b border-cream-200 pb-4 last:border-0 last:pb-0">
+                        <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1">
+                          {q.category === 'capacity' ? 'Risk Capacity' : 'Risk Tolerance'} · Q{i + 1}
+                        </div>
+                        <div className="text-sm font-medium text-forest-900 mb-1">{q.question}</div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-forest-700">{selectedOption?.label ?? '—'}</span>
+                          <span className="text-xs font-bold text-forest-600 bg-forest-100 px-2 py-0.5 rounded-full">
+                            {score} pts
                           </span>
-                        )}
+                        </div>
                       </div>
-                      <p className="text-xs text-forest-600 leading-relaxed pl-5">{CATEGORY_DESCRIPTIONS[cat]}</p>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
+                {responses.comments && (
+                  <div className="mt-4 bg-cream-100 rounded-xl p-4 border border-cream-200">
+                    <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1">Client Comments</div>
+                    <p className="text-sm text-forest-700 leading-relaxed">"{responses.comments}"</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Portfolio Category Legend */}
+              <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+                <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
+                <div className="space-y-3">
+                  {((['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income'] as RiskCategory[])).map(cat => {
+                    const isActive = profile.overall_category === cat
+                    const color = CATEGORY_COLORS[cat]
+                    return (
+                      <div key={cat} className={`rounded-xl p-4 border transition-all ${isActive ? 'border-2' : 'border'}`}
+                        style={{ borderColor: isActive ? color : '#e8e0cc', backgroundColor: isActive ? `${color}10` : 'transparent' }}>
+                        <div className="flex items-center gap-3 mb-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                          <span className="text-xs font-bold text-forest-500 tabular-nums">{CATEGORY_SCORE_RANGES[cat]}</span>
+                          <span className="text-sm font-bold text-forest-900 uppercase tracking-wide">{cat}</span>
+                          {isActive && (
+                            <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
+                              This client
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-forest-600 leading-relaxed pl-5">{CATEGORY_DESCRIPTIONS[cat]}</p>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
 
