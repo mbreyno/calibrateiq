@@ -1,4 +1,4 @@
-import type { Client, Advisor, RiskProfile, IPSContent } from '@/types'
+import type { Client, Advisor, RiskProfile, IPSContent, AssetAllocation } from '@/types'
 import { ASSET_ALLOCATIONS, CATEGORY_DESCRIPTIONS } from './scoring'
 
 export function generateIPSContent(
