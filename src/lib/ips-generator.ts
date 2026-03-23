@@ -71,11 +71,11 @@ function generateRiskSummary(profile: RiskProfile): string {
   return `Based on the completed risk assessment, ${profile.client_name ?? 'the client'} has been classified as a ${profile.overall_category} investor.
 
 Risk Capacity Score: ${profile.risk_capacity_score} / 100
-Risk Tolerance Score: ${profile.risk_tolerance_score} / 250
+Risk Preference Score: ${profile.risk_tolerance_score} / 100
 
 Risk Capacity reflects the client's objective ability to absorb potential investment losses based on age and investment time horizon. The client's Risk Capacity is classified as ${profile.capacity_category}.
 
-Risk Tolerance reflects the client's subjective comfort with investment risk and market volatility. The client's Risk Tolerance is classified as ${profile.tolerance_category}.
+Risk Preference reflects the client's subjective comfort with investment risk and market volatility. The client's Risk Preference is classified as ${profile.tolerance_category}.
 
 The overall ${profile.overall_category} classification is determined by taking the more conservative of the two measures, ensuring the portfolio recommendation aligns with both the client's financial circumstances and psychological comfort level.`
 }

@@ -3,14 +3,14 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'CalibrateIQ — Risk Tolerance Intelligence for Financial Advisors',
+    default: 'CalibrateIQ — Risk Profiling Intelligence for Financial Advisors',
     template: '%s | CalibrateIQ',
   },
   description:
-    'CalibrateIQ helps financial advisors send branded risk tolerance questionnaires to clients, build accurate risk profiles, and generate professional Investment Policy Statements in minutes.',
+    'CalibrateIQ helps financial advisors send branded risk assessment questionnaires to clients, build accurate risk profiles, and generate professional Investment Policy Statements in minutes.',
   openGraph: {
     title: 'CalibrateIQ',
-    description: 'Risk tolerance intelligence for financial advisors.',
+    description: 'Risk profiling intelligence for financial advisors.',
     type: 'website',
   },
 }

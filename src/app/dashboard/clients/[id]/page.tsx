@@ -11,19 +11,37 @@ import type { Client, Advisor, QuestionnaireResponse, RiskProfile, IPSContent } 
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function ScoreGauge({ score, max, label, color }: { score: number; max: number; label: string; color: string }) {
+function ScoreGauge({ score, max, label, color, primary = false }: { score: number; max: number; label: string; color: string; primary?: boolean }) {
   const pct = Math.round((score / max) * 100)
-  return (
-    <div className="flex-1 bg-white rounded-2xl border border-cream-300 shadow-card p-5">
-      <div className="text-xs font-semibold text-forest-600 uppercase tracking-wider mb-3">{label}</div>
-      <div className="flex items-end gap-3 mb-3">
-        <span className="text-4xl font-bold text-forest-900">{score}</span>
-        <span className="text-sm text-forest-500 mb-1">/ {max}</span>
+  if (primary) {
+    return (
+      <div className="flex-1 bg-white rounded-2xl border-2 shadow-card p-6" style={{ borderColor: color }}>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>{label}</span>
+          <span className="text-xs text-forest-500 font-medium">Primary measure</span>
+        </div>
+        <div className="flex items-end gap-2 mb-4">
+          <span className="text-6xl font-bold text-forest-900 leading-none">{score}</span>
+          <span className="text-base text-forest-400 mb-1">/ {max}</span>
+        </div>
+        <div className="h-3 bg-cream-200 rounded-full overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
+        </div>
+        <div className="text-sm font-semibold mt-2" style={{ color }}>{pct}%</div>
       </div>
-      <div className="h-2.5 bg-cream-200 rounded-full overflow-hidden">
+    )
+  }
+  return (
+    <div className="flex-1 bg-cream-50 rounded-2xl border border-cream-300 p-5">
+      <div className="text-xs font-semibold text-forest-400 uppercase tracking-wider mb-3">{label}</div>
+      <div className="flex items-end gap-2 mb-3">
+        <span className="text-3xl font-bold text-forest-600">{score}</span>
+        <span className="text-sm text-forest-400 mb-0.5">/ {max}</span>
+      </div>
+      <div className="h-2 bg-cream-300 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
-      <div className="text-xs text-forest-500 mt-1.5">{pct}%</div>
+      <div className="text-xs text-forest-400 mt-1.5">{pct}%</div>
     </div>
   )
 }
@@ -259,8 +277,8 @@ export default function ClientDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Scores */}
               <div className="flex gap-4">
-                <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" />
-                <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Tolerance" color="#2d6a4f" />
+                <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" primary={true} />
+                <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
               </div>
 
               {/* Asset allocation */}
@@ -321,7 +339,7 @@ export default function ClientDetailPage() {
                     return (
                       <div key={q.id} className="border-b border-cream-200 pb-4 last:border-0 last:pb-0">
                         <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1">
-                          {q.category === 'capacity' ? 'Risk Capacity' : 'Risk Tolerance'} · Q{i + 1}
+                          {q.category === 'capacity' ? 'Risk Capacity' : 'Risk Preference'} · Q{i + 1}
                         </div>
                         <div className="text-sm font-medium text-forest-900 mb-1">{q.question}</div>
                         <div className="flex items-center justify-between">

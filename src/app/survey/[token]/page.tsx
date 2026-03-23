@@ -406,7 +406,7 @@ export default function MasterSurveyPage() {
                   : 'bg-forest-400'
                 }`} />
                 {currentQuestion.category === 'capacity' ? 'Risk Capacity'
-                  : currentQuestion.category === 'tolerance' ? 'Risk Tolerance'
+                  : currentQuestion.category === 'tolerance' ? 'Risk Preference'
                   : 'Preferences'}
               </div>
 

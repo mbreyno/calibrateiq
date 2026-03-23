@@ -345,7 +345,7 @@ export default function QuestionnairePage() {
               {/* Category tag */}
               <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-forest-600 uppercase tracking-wider mb-4">
                 <span className={`w-1.5 h-1.5 rounded-full ${currentQuestion.category === 'capacity' ? 'bg-forest-700' : currentQuestion.category === 'tolerance' ? 'bg-gold-500' : 'bg-forest-400'}`} />
-                {currentQuestion.category === 'capacity' ? 'Risk Capacity' : currentQuestion.category === 'tolerance' ? 'Risk Tolerance' : 'Preferences'}
+                {currentQuestion.category === 'capacity' ? 'Risk Capacity' : currentQuestion.category === 'tolerance' ? 'Risk Preference' : 'Preferences'}
               </div>
 
               {/* Question */}

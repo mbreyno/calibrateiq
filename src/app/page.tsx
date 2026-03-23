@@ -70,14 +70,14 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-forest-900 leading-[1.08] tracking-tight mb-6">
-            Simple Risk Tolerance{' '}
+            Simple Risk Profiling{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-700 to-forest-500">
               &amp; IPS.
             </span>
           </h1>
 
           <p className="text-xl text-forest-800/80 max-w-2xl mx-auto leading-relaxed mb-10">
-            CalibrateIQ sends branded risk tolerance questionnaires to your clients,
+            CalibrateIQ sends branded risk assessment questionnaires to your clients,
             builds precise risk profiles, and auto-generates professional Investment
             Policy Statements — ready to review and export in minutes.
           </p>
@@ -265,7 +265,7 @@ export default function LandingPage() {
             <p className="text-forest-700/70 leading-relaxed mb-6">
               CalibrateIQ separates <strong className="text-forest-900">Risk Capacity</strong> — a client's
               objective ability to absorb losses based on age and time horizon — from{' '}
-              <strong className="text-forest-900">Risk Tolerance</strong> — their subjective emotional
+              <strong className="text-forest-900">Risk Preference</strong> — their subjective emotional
               comfort with volatility. The final profile always uses the more conservative of the
               two, keeping your recommendations defensible.
             </p>
@@ -292,7 +292,7 @@ export default function LandingPage() {
 
             <div className="space-y-4 mb-5">
               <ScoreBar label="Risk Capacity" score={65} color="#1b4332" />
-              <ScoreBar label="Risk Tolerance" score={72} color="#2d6a4f" />
+              <ScoreBar label="Risk Preference" score={72} color="#2d6a4f" />
             </div>
 
             <div className="bg-cream-100 rounded-xl p-4 text-sm text-forest-700 leading-relaxed border border-cream-200 mb-5">
@@ -498,7 +498,7 @@ const FEATURES = [
     icon: '⚖️',
     title: 'Dual-score risk profiling',
     description:
-      'Separate Risk Capacity from Risk Tolerance scores ensure your recommendations align with both financial reality and client psychology.',
+      'Separate Risk Capacity from Risk Preference scores ensure your recommendations align with both financial reality and client psychology.',
   },
   {
     icon: '📄',
