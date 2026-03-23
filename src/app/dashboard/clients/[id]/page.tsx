@@ -273,39 +273,10 @@ export default function ClientDetailPage() {
               <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[profile.overall_category]}</p>
             </div>
 
-            {/* Two-column: scores (left) + allocation (right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Scores */}
-              <div className="flex gap-4">
-                <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" primary={true} />
-                <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
-              </div>
-
-              {/* Asset allocation */}
-              {alloc && (
-                <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-                  <h2 className="font-semibold text-forest-900 mb-4">Recommended Asset Allocation</h2>
-                  <div className="space-y-3">
-                    <AllocationBar label="Equities" pct={alloc.equities} color="#1b4332" />
-                    <AllocationBar label="Fixed Income" pct={alloc.fixed_income} color="#2d6a4f" />
-                    <AllocationBar label="Alternatives" pct={alloc.alternatives} color="#40916c" />
-                    <AllocationBar label="Cash" pct={alloc.cash} color="#74c69d" />
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 mt-5">
-                    {[
-                      ['Equities', alloc.equities],
-                      ['Fixed Income', alloc.fixed_income],
-                      ['Alternatives', alloc.alternatives],
-                      ['Cash', alloc.cash],
-                    ].map(([l, v]) => (
-                      <div key={l} className="text-center bg-forest-50 rounded-xl p-3 border border-forest-100">
-                        <div className="text-xl font-bold text-forest-900">{v}%</div>
-                        <div className="text-xs text-forest-600 mt-0.5">{l}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {/* Scores */}
+            <div className="flex gap-4">
+              <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" primary={true} />
+              <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
             </div>
 
             {/* Preferences — full width if present */}
