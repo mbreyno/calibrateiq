@@ -54,27 +54,22 @@ export default function ClientsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    let { data: advisor } = await supabase
+    // Upsert the advisor row (creates it if missing, no-ops if it already exists)
+    await supabase
+      .from('advisors')
+      .upsert({ user_id: user.id, firm_name: '' }, { onConflict: 'user_id', ignoreDuplicates: true })
+
+    // Now fetch the advisor row (guaranteed to exist after upsert)
+    const { data: advisor, error: advisorError } = await supabase
       .from('advisors')
       .select('id')
       .eq('user_id', user.id)
       .single()
 
-    // If the advisor row doesn't exist yet, create it now
-    if (!advisor) {
-      const { data: newAdvisor, error: createError } = await supabase
-        .from('advisors')
-        .insert({ user_id: user.id, firm_name: '' })
-        .select('id')
-        .single()
-
-      if (createError || !newAdvisor) {
-        setFormError('Could not create advisor profile. Please try refreshing the page.')
-        setSaving(false)
-        return
-      }
-
-      advisor = newAdvisor
+    if (advisorError || !advisor) {
+      setFormError(`Unable to load advisor profile (${advisorError?.message ?? 'unknown error'}). Please try signing out and back in.`)
+      setSaving(false)
+      return
     }
 
     const { error } = await supabase.from('clients').insert({
