@@ -82,7 +82,7 @@ The overall ${profile.overall_category} classification is determined by taking t
 
 function generateGuidelines(
   profile: RiskProfile,
-  alloc: ReturnType<typeof ASSET_ALLOCATIONS[keyof typeof ASSET_ALLOCATIONS]>
+  alloc: AssetAllocation
 ): string {
   return `Asset Allocation Target:
 • Equities: ${alloc.equities}%
