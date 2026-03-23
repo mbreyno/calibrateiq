@@ -58,6 +58,8 @@ export default function ClientDetailPage() {
   const [ipsExists, setIpsExists] = useState(false)
   const [loading, setLoading] = useState(true)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [showRegenerateModal, setShowRegenerateModal] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
   const [generatingIPS, setGeneratingIPS] = useState(false)
   const [savingIPS, setSavingIPS] = useState(false)
   const [ipsSaved, setIpsSaved] = useState(false)
@@ -113,6 +115,25 @@ export default function ClientDetailPage() {
     navigator.clipboard.writeText(`${base}/q/${client.questionnaire_token}`)
     setCopiedLink(true)
     setTimeout(() => setCopiedLink(false), 2500)
+  }
+
+  const handleRegenerateLink = async () => {
+    if (!client) return
+    setRegenerating(true)
+    const newToken = crypto.randomUUID()
+    // Reset token and status
+    await supabase.from('clients').update({ questionnaire_token: newToken, status: 'pending' }).eq('id', client.id)
+    // Clear old response and IPS so the client starts fresh
+    await supabase.from('questionnaire_responses').delete().eq('client_id', client.id)
+    await supabase.from('investment_policy_statements').delete().eq('client_id', client.id)
+    setShowRegenerateModal(false)
+    setRegenerating(false)
+    // Reload data to reflect new token and cleared state
+    setResponses(null)
+    setProfile(null)
+    setIpsContent(null)
+    setIpsExists(false)
+    await loadData()
   }
 
   const handleGenerateIPS = async () => {
@@ -227,7 +248,7 @@ export default function ClientDetailPage() {
             <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
               <h2 className="font-semibold text-forest-900 mb-2">Questionnaire Link</h2>
               <p className="text-sm text-forest-600 mb-4">Copy this link and send it to your client. No account required on their end.</p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-3">
                 <div className="flex-1 bg-cream-100 border border-cream-300 rounded-xl px-4 py-2.5 text-xs text-forest-600 font-mono truncate">
                   {window?.location?.origin ?? process.env.NEXT_PUBLIC_APP_URL}/q/{client.questionnaire_token}
                 </div>
@@ -240,6 +261,15 @@ export default function ClientDetailPage() {
                   {copiedLink ? 'Copied!' : 'Copy'}
                 </button>
               </div>
+              <button
+                onClick={() => setShowRegenerateModal(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-forest-600 hover:text-forest-900 hover:bg-cream-100 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                </svg>
+                Regenerate link
+              </button>
             </div>
 
             {client.status === 'completed' && profile && (
@@ -422,6 +452,39 @@ export default function ClientDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Regenerate Link Modal */}
+      {showRegenerateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowRegenerateModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-elevated w-full max-w-sm p-6">
+            <div className="w-10 h-10 rounded-full bg-gold-300/30 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-gold-700" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-forest-900 mb-1">Regenerate survey link?</h2>
+            <p className="text-sm text-forest-600 mb-6">
+              This will generate a new link for <span className="font-semibold text-forest-900">{client.first_name} {client.last_name}</span> and clear their previous responses and IPS. The old link will stop working immediately. Use this to send them a fresh annual survey.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRegenerateModal(false)}
+                className="flex-1 border border-cream-300 text-forest-700 font-medium text-sm py-3 rounded-xl hover:bg-cream-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRegenerateLink}
+                disabled={regenerating}
+                className="flex-1 bg-forest-900 text-cream-100 font-semibold text-sm py-3 rounded-xl hover:bg-forest-800 disabled:opacity-60"
+              >
+                {regenerating ? 'Regenerating…' : 'Regenerate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
