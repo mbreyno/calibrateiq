@@ -199,6 +199,35 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
   )
 }
 
+// ─── Investor Understanding & Acceptance ─────────────────────────────────────
+
+function InvestorAcceptance({ members }: { members: MemberData[] }) {
+  return (
+    <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+      <h2 className="font-semibold text-forest-900 mb-3">Investor Understanding &amp; Acceptance</h2>
+      <p className="text-sm text-forest-700 leading-relaxed mb-8">
+        Receipt of this Investment Policy Statement certifies the following: I have discussed my current financial situation, including my assets, debts, income sources and expenses, and my financial objectives with my advisor. I understand the risks inherent in investing. Investments are not guaranteed and may lose value. I agree to inform my financial advisor whenever my circumstances or preferences regarding these accounts change in order to determine if a revised Investment Policy Statement should be prepared.
+      </p>
+      <div className={`grid gap-8 ${members.length === 2 ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 max-w-sm'}`}>
+        {members.map(({ client }) => (
+          <div key={client.id} className="space-y-4">
+            <div className="border-b border-forest-300 pb-1" style={{ minHeight: '40px' }} />
+            <div className="text-xs text-forest-500 uppercase tracking-wider">
+              {client.first_name} {client.last_name} — Signature &amp; Date
+            </div>
+          </div>
+        ))}
+        <div className="space-y-4">
+          <div className="border-b border-forest-300 pb-1" style={{ minHeight: '40px' }} />
+          <div className="text-xs text-forest-500 uppercase tracking-wider">
+            Advisor Signature &amp; Date
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Portfolio Legend ─────────────────────────────────────────────────────────
 
 function PortfolioLegend({ members, category }: { members: MemberData[]; category: RiskCategory }) {
@@ -282,6 +311,8 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes }: {
       )}
 
       <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+
+      <InvestorAcceptance members={[member]} />
 
       <PortfolioLegend members={[member]} category={category} />
 
@@ -369,6 +400,8 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes }: {
       </div>
 
       <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+
+      <InvestorAcceptance members={members} />
 
       <PortfolioLegend members={members} category={category} />
 
