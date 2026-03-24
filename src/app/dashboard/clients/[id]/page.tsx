@@ -286,11 +286,11 @@ export default function ClientDetailPage() {
             <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
               <h2 className="font-semibold text-forest-900 mb-5">Survey Responses</h2>
               <div className="space-y-5">
-                {QUESTIONS.filter(q => q.type === 'radio').map((q, i) => {
-                  const key = `q${i + 1}` as keyof QuestionnaireResponse
+                {QUESTIONS.filter(q => q.type === 'radio').map((q) => {
+                  const key = q.id as keyof QuestionnaireResponse
                   const score = responses[key]
                   if (typeof score !== 'number') return null
-                  const selectedOption = 'options' in q && q.type === 'radio'
+                  const selectedOption = q.type === 'radio'
                     ? q.options.find(o => o.score === score)
                     : null
                   return (
