@@ -357,7 +357,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes }: {
                   </div>
                   <div>
                     <div className="font-semibold text-forest-900">{client.first_name} {client.last_name}</div>
-                    <div className="text-xs text-forest-500">{client.email} · {calcAge(client.date_of_birth)}</div>
+                    <div className="text-xs text-forest-500">{calcAge(client.date_of_birth)}</div>
                   </div>
                 </div>
                 <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: catColor }}>
