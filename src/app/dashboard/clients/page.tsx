@@ -18,14 +18,11 @@ function StatusBadge({ status }: { status: Client['status'] }) {
   )
 }
 
-type ClientWithResponse = Client & {
-  questionnaire_responses: { created_at: string }[] | null
-}
-
 export default function ClientsPage() {
   const supabase = createClient()
 
-  const [clients, setClients] = useState<ClientWithResponse[]>([])
+  const [clients, setClients] = useState<Client[]>([])
+  const [completedAtMap, setCompletedAtMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [search, setSearch] = useState('')
@@ -36,15 +33,20 @@ export default function ClientsPage() {
   const [newDOB, setNewDOB] = useState('')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-  const [clientToDelete, setClientToDelete] = useState<ClientWithResponse | null>(null)
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   const loadClients = async () => {
-    const { data } = await supabase
-      .from('clients')
-      .select('*, questionnaire_responses(created_at)')
-      .order('created_at', { ascending: false })
-    setClients((data ?? []) as ClientWithResponse[])
+    const [{ data: clientsData }, { data: responsesData }] = await Promise.all([
+      supabase.from('clients').select('*').order('created_at', { ascending: false }),
+      supabase.from('questionnaire_responses').select('client_id, created_at'),
+    ])
+    setClients(clientsData ?? [])
+    const map: Record<string, string> = {}
+    for (const r of (responsesData ?? [])) {
+      map[r.client_id] = r.created_at
+    }
+    setCompletedAtMap(map)
     setLoading(false)
   }
 
@@ -105,8 +107,8 @@ export default function ClientsPage() {
     `${c.first_name} ${c.last_name} ${c.email}`.toLowerCase().includes(search.toLowerCase())
   )
 
-  const formatCompletedAt = (client: ClientWithResponse) => {
-    const ts = client.questionnaire_responses?.[0]?.created_at
+  const formatCompletedAt = (client: Client) => {
+    const ts = completedAtMap[client.id]
     if (!ts) return '—'
     const d = new Date(ts)
     return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
