@@ -295,6 +295,36 @@ export default function HouseholdDetailPage() {
           })}
         </div>
 
+        {/* Investment Preferences — per member */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          {[m1, m2].map(({ client, profile }) => {
+            const hasESG = profile.esg_preference
+            const hasCrypto = profile.crypto_preference
+            return (
+              <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                    {client.first_name[0]}{client.last_name[0]}
+                  </div>
+                  <h2 className="font-semibold text-forest-900">{client.first_name} {client.last_name}</h2>
+                </div>
+                {hasESG || hasCrypto ? (
+                  <div className="flex gap-2 flex-wrap">
+                    {hasESG && (
+                      <span className="bg-forest-100 text-forest-800 text-sm font-medium px-3 py-1.5 rounded-full">🌱 ESG / Socially Responsible</span>
+                    )}
+                    {hasCrypto && (
+                      <span className="bg-purple-50 text-purple-800 text-sm font-medium px-3 py-1.5 rounded-full border border-purple-100">₿ Digital Assets / Crypto</span>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-forest-400 italic">No special investment preferences indicated.</p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
         {/* Advisor Notes */}
         <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
 
