@@ -260,15 +260,22 @@ export default function HouseholdDetailPage() {
           </div>
         </div>
 
-        {/* Survey Q&A — one section per member */}
-        {[m1, m2].map(({ client, responses }) => (
-          <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <h2 className="font-semibold text-forest-900 mb-5">
-              Survey Responses — {client.first_name} {client.last_name}
-            </h2>
-            <MemberSurveyResponses responses={responses} />
-          </div>
-        ))}
+        {/* Survey Q&A — side by side */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          {[m1, m2].map(({ client, responses }) => (
+            <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                  {client.first_name[0]}{client.last_name[0]}
+                </div>
+                <h2 className="font-semibold text-forest-900">
+                  {client.first_name} {client.last_name} — Survey Responses
+                </h2>
+              </div>
+              <MemberSurveyResponses responses={responses} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
