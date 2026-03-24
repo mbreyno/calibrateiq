@@ -295,6 +295,9 @@ export default function HouseholdDetailPage() {
           })}
         </div>
 
+        {/* Advisor Notes */}
+        <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
+
         {/* Portfolio Category Legend */}
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
@@ -323,9 +326,6 @@ export default function HouseholdDetailPage() {
             })}
           </div>
         </div>
-
-        {/* Advisor Notes */}
-        <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
 
         {/* Survey Q&A — side by side */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">

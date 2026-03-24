@@ -319,6 +319,9 @@ export default function ClientDetailPage() {
               </div>
             )}
 
+            {/* Advisor Notes */}
+            <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
+
             {/* Portfolio Category Legend — full width */}
             <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
               <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
@@ -345,9 +348,6 @@ export default function ClientDetailPage() {
                 })}
               </div>
             </div>
-
-            {/* Advisor Notes */}
-            <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
 
             {/* Survey Q&A — full width at the bottom */}
             <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
