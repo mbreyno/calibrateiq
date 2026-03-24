@@ -150,9 +150,6 @@ export function calculateRiskProfile(r: QuestionnaireResponse): RiskProfile {
   const capacityNorm = normalize(capacityScore, CAPACITY_MIN, CAPACITY_MAX)
   const toleranceNorm = normalize(toleranceScore, TOLERANCE_MIN, TOLERANCE_MAX)
 
-  // Final category uses the more conservative of the two scores
-  const combined = Math.min(capacityNorm, toleranceNorm)
-
   return {
     risk_capacity_score: capacityScore,
     risk_tolerance_score: toleranceScore,
@@ -160,7 +157,7 @@ export function calculateRiskProfile(r: QuestionnaireResponse): RiskProfile {
     tolerance_normalized: Math.round(toleranceNorm),
     capacity_category: getCapacityCategory(capacityNorm),
     tolerance_category: getToleranceCategory(toleranceNorm),
-    overall_category: getOverallCategory(combined),
+    overall_category: getOverallCategory(capacityNorm), // category driven by capacity only; preference is for reference
     esg_preference: r.q7_esg,
     crypto_preference: r.q7_crypto,
     comments: r.comments,

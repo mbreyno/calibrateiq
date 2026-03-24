@@ -19,7 +19,7 @@ import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory } from '@
 function combinedCategory(members: MemberData[]): RiskCategory {
   if (members.length === 1) return members[0].profile.overall_category
   const [p1, p2] = members.map(m => m.profile)
-  return getOverallCategory(Math.min(p1.capacity_normalized, p1.tolerance_normalized, p2.capacity_normalized, p2.tolerance_normalized))
+  return getOverallCategory((p1.capacity_normalized + p2.capacity_normalized) / 2)
 }
 
 interface MemberData {
@@ -300,7 +300,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes }: {
         <div className="text-sm font-semibold opacity-80 mb-1">Combined Household Category</div>
         <div className="text-3xl font-bold mb-2">{category}</div>
         <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
-        <p className="text-xs opacity-70 mt-2">Determined by taking the most conservative score across both members&apos; Risk Capacity and Risk Preference.</p>
+        <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
       </div>
 
       {/* Side-by-side member score cards */}
