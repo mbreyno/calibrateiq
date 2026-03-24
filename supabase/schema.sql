@@ -210,3 +210,7 @@ CREATE POLICY "Advisors manage household IPS"
 --   UPDATE: auth.uid()::text = (storage.foldername(name))[1]
 --   DELETE: auth.uid()::text = (storage.foldername(name))[1]
 --   SELECT: true (public read)
+
+-- ── ADVISOR NOTES ──────────────────────────────────────────────
+ALTER TABLE clients    ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
+ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;

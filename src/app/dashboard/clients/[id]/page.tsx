@@ -59,6 +59,63 @@ function ScoreGauge({ score, max, label, color, primary = false }: { score: numb
   )
 }
 
+// ─── Advisor Notes ────────────────────────────────────────────────────────────
+
+function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: (notes: string) => Promise<void> }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(initialNotes)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    await onSave(value)
+    setSaving(false)
+    setSaved(true)
+    setEditing(false)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-forest-900">Advisor Notes</h2>
+        {!editing ? (
+          <button onClick={() => setEditing(true)}
+            className="text-xs font-semibold text-forest-600 hover:text-forest-900 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
+            Edit
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <button onClick={() => { setEditing(false); setValue(initialNotes) }}
+              className="text-xs font-semibold text-forest-500 hover:text-forest-700 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving}
+              className="text-xs font-semibold bg-forest-900 text-cream-100 px-3 py-1.5 rounded-lg hover:bg-forest-800 disabled:opacity-60 transition-colors">
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        )}
+      </div>
+      {editing ? (
+        <textarea
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          rows={5}
+          placeholder="Add notes about this client's investment goals, special circumstances, or anything relevant to their profile…"
+          className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent resize-none"
+        />
+      ) : value ? (
+        <p className="text-sm text-forest-700 leading-relaxed whitespace-pre-wrap">{value}</p>
+      ) : (
+        <p className="text-sm text-forest-400 italic">No notes yet. Click Edit to add advisor notes.</p>
+      )}
+      {saved && <p className="text-xs text-forest-500 mt-2">✓ Notes saved</p>}
+    </div>
+  )
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 type Tab = 'overview' | 'profile'
@@ -74,6 +131,7 @@ export default function ClientDetailPage() {
   const [profile, setProfile] = useState<RiskProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [household, setHousehold] = useState<{ id: string; name: string } | null>(null)
+  const [advisorNotes, setAdvisorNotes] = useState('')
 
   const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -83,12 +141,13 @@ export default function ClientDetailPage() {
       { data: clientData },
       { data: advisorData },
     ] = await Promise.all([
-      supabase.from('clients').select('*').eq('id', id).single(),
+      supabase.from('clients').select('*, advisor_notes').eq('id', id).single(),
       supabase.from('advisors').select('*').eq('user_id', user.id).single(),
     ])
 
     setClient(clientData)
     setAdvisor(advisorData)
+    setAdvisorNotes((clientData as { advisor_notes?: string | null })?.advisor_notes ?? '')
 
     if (clientData?.status === 'completed') {
       const { data: resp } = await supabase
@@ -135,6 +194,11 @@ export default function ClientDetailPage() {
   )
 
   const categoryColor = profile ? CATEGORY_COLORS[profile.overall_category] : '#52b788'
+
+  const handleSaveNotes = async (notes: string) => {
+    await supabase.from('clients').update({ advisor_notes: notes } as never).eq('id', id)
+    setAdvisorNotes(notes)
+  }
 
   return (
     <div className="p-6 lg:p-8 pt-20 lg:pt-8">
@@ -281,6 +345,9 @@ export default function ClientDetailPage() {
                 })}
               </div>
             </div>
+
+            {/* Advisor Notes */}
+            <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
 
             {/* Survey Q&A — full width at the bottom */}
             <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
