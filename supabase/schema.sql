@@ -153,6 +153,53 @@ CREATE POLICY "Advisors can update IPS"
     )
   );
 
+-- ── HOUSEHOLDS ────────────────────────────────────────────────
+CREATE TABLE households (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  advisor_id  UUID REFERENCES advisors(id) ON DELETE CASCADE NOT NULL,
+  name        TEXT NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE household_members (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id  UUID REFERENCES households(id) ON DELETE CASCADE NOT NULL,
+  client_id     UUID REFERENCES clients(id) ON DELETE CASCADE NOT NULL,
+  UNIQUE(household_id, client_id)
+);
+
+CREATE TABLE household_ips (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id  UUID REFERENCES households(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  content       JSONB NOT NULL,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE households       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE household_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE household_ips    ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Advisors manage own households"
+  ON households FOR ALL
+  USING (advisor_id = (SELECT id FROM advisors WHERE user_id = auth.uid()));
+
+CREATE POLICY "Advisors manage household members"
+  ON household_members FOR ALL
+  USING (
+    household_id IN (
+      SELECT id FROM households WHERE advisor_id = (SELECT id FROM advisors WHERE user_id = auth.uid())
+    )
+  );
+
+CREATE POLICY "Advisors manage household IPS"
+  ON household_ips FOR ALL
+  USING (
+    household_id IN (
+      SELECT id FROM households WHERE advisor_id = (SELECT id FROM advisors WHERE user_id = auth.uid())
+    )
+  );
+
 -- ── STORAGE BUCKET (run separately in Supabase dashboard) ─────
 -- Create a public bucket called "logos" in Storage → New bucket
 -- Settings: Public bucket = ON, allowed MIME types: image/png, image/jpeg, image/svg+xml, image/webp

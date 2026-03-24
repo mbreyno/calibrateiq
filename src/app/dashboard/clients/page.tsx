@@ -36,6 +36,13 @@ export default function ClientsPage() {
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const [showHouseholdModal, setShowHouseholdModal] = useState(false)
+  const [householdName, setHouseholdName] = useState('')
+  const [householdMember1, setHouseholdMember1] = useState('')
+  const [householdMember2, setHouseholdMember2] = useState('')
+  const [savingHousehold, setSavingHousehold] = useState(false)
+  const [householdError, setHouseholdError] = useState<string | null>(null)
+
   const loadClients = async () => {
     const { data } = await supabase
       .from('clients')
@@ -91,6 +98,51 @@ export default function ClientsPage() {
     setSaving(false)
   }
 
+  const handleCreateHousehold = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (householdMember1 === householdMember2) {
+      setHouseholdError('Please select two different surveys.')
+      return
+    }
+    setSavingHousehold(true)
+    setHouseholdError(null)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: advisor } = await supabase.from('advisors').select('id').eq('user_id', user.id).single()
+    if (!advisor) { setSavingHousehold(false); return }
+
+    const { data: household, error: hhError } = await supabase
+      .from('households')
+      .insert({ advisor_id: advisor.id, name: householdName })
+      .select()
+      .single()
+
+    if (hhError || !household) {
+      setHouseholdError(hhError?.message ?? 'Failed to create household.')
+      setSavingHousehold(false)
+      return
+    }
+
+    const { error: membersError } = await supabase.from('household_members').insert([
+      { household_id: household.id, client_id: householdMember1 },
+      { household_id: household.id, client_id: householdMember2 },
+    ])
+
+    if (membersError) {
+      setHouseholdError(membersError.message)
+      await supabase.from('households').delete().eq('id', household.id)
+      setSavingHousehold(false)
+      return
+    }
+
+    setShowHouseholdModal(false)
+    setHouseholdName(''); setHouseholdMember1(''); setHouseholdMember2('')
+    window.location.href = `/dashboard/households/${household.id}`
+    setSavingHousehold(false)
+  }
+
   const handleDeleteClient = async () => {
     if (!clientToDelete) return
     setDeleting(true)
@@ -112,15 +164,26 @@ export default function ClientsPage() {
           <h1 className="text-2xl font-bold text-forest-900">Surveys</h1>
           <p className="text-sm text-forest-600 mt-0.5">{clients.length} total survey{clients.length !== 1 ? 's' : ''}</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-2 border border-forest-300 text-forest-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-cream-100"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
-          </svg>
-          Add manually
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHouseholdModal(true)}
+            className="inline-flex items-center gap-2 border border-forest-300 text-forest-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-cream-100"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h3a1 1 0 001-1v-3h2v3a1 1 0 001 1h3a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+            </svg>
+            Create Household
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 border border-forest-300 text-forest-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-cream-100"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
+            </svg>
+            Add manually
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -238,6 +301,60 @@ export default function ClientsPage() {
                 {deleting ? 'Deleting…' : 'Delete'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Household Modal */}
+      {showHouseholdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowHouseholdModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-elevated w-full max-w-md p-6">
+            <h2 className="text-lg font-bold text-forest-900 mb-1">Create Household</h2>
+            <p className="text-sm text-forest-600 mb-5">Link two completed surveys to generate a combined household IPS.</p>
+
+            {householdError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{householdError}</div>
+            )}
+
+            <form onSubmit={handleCreateHousehold} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-forest-800 mb-1.5">Household name *</label>
+                <input type="text" required value={householdName} onChange={e => setHouseholdName(e.target.value)}
+                  placeholder="e.g. The Reynolds Household"
+                  className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 placeholder-forest-700/40 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-forest-800 mb-1.5">First member *</label>
+                <select required value={householdMember1} onChange={e => setHouseholdMember1(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent">
+                  <option value="">Select a completed survey…</option>
+                  {clients.filter(c => c.status === 'completed').map(c => (
+                    <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-forest-800 mb-1.5">Second member *</label>
+                <select required value={householdMember2} onChange={e => setHouseholdMember2(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent">
+                  <option value="">Select a completed survey…</option>
+                  {clients.filter(c => c.status === 'completed' && c.id !== householdMember1).map(c => (
+                    <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowHouseholdModal(false)}
+                  className="flex-1 border border-cream-300 text-forest-700 font-medium text-sm py-3 rounded-xl hover:bg-cream-50">
+                  Cancel
+                </button>
+                <button type="submit" disabled={savingHousehold}
+                  className="flex-1 bg-forest-900 text-cream-100 font-semibold text-sm py-3 rounded-xl hover:bg-forest-800 disabled:opacity-60">
+                  {savingHousehold ? 'Creating…' : 'Create Household'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

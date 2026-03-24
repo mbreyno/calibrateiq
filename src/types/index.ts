@@ -91,6 +91,27 @@ export interface InvestmentPolicyStatement {
   updated_at: string
 }
 
+export interface Household {
+  id: string
+  advisor_id: string
+  name: string
+  created_at: string
+}
+
+export interface HouseholdMember {
+  id: string
+  household_id: string
+  client_id: string
+}
+
+export interface HouseholdIPS {
+  id: string
+  household_id: string
+  content: IPSContent
+  created_at: string
+  updated_at: string
+}
+
 export interface QuestionOption {
   label: string
   score: number

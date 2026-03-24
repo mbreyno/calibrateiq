@@ -93,6 +93,7 @@ export default function ClientDetailPage() {
   const [generatingIPS, setGeneratingIPS] = useState(false)
   const [savingIPS, setSavingIPS] = useState(false)
   const [ipsSaved, setIpsSaved] = useState(false)
+  const [household, setHousehold] = useState<{ id: string; name: string } | null>(null)
 
   const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -132,6 +133,17 @@ export default function ClientDetailPage() {
         setIpsContent(ips.content as IPSContent)
         setIpsExists(true)
       }
+    }
+
+    // Check if this client is part of a household
+    const { data: memberRow } = await supabase
+      .from('household_members')
+      .select('household_id, households(id, name)')
+      .eq('client_id', id)
+      .single()
+    if (memberRow?.households) {
+      const hh = memberRow.households as { id: string; name: string }
+      setHousehold(hh)
     }
 
     setLoading(false)
@@ -207,6 +219,15 @@ export default function ClientDetailPage() {
               )}
             </div>
             <p className="text-sm text-forest-600 mt-0.5">{client.email}</p>
+            {household && (
+              <Link href={`/dashboard/households/${household.id}`}
+                className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-forest-600 hover:text-forest-900 bg-forest-50 border border-forest-200 px-2.5 py-1 rounded-full transition-colors">
+                <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h3a1 1 0 001-1v-3h2v3a1 1 0 001 1h3a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                {household.name}
+              </Link>
+            )}
           </div>
         </div>
 

@@ -187,7 +187,7 @@ function getToleranceCategory(norm: number): ToleranceCategory {
   return 'Low'
 }
 
-function getOverallCategory(combined: number): RiskCategory {
+export function getOverallCategory(combined: number): RiskCategory {
   if (combined >= 80) return 'Aggressive Growth'
   if (combined >= 60) return 'Growth'
   if (combined >= 40) return 'Moderate Growth'
