@@ -16,6 +16,15 @@ import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory } from '@
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function calcAge(dob: string | null | undefined): string {
+  if (!dob) return 'Age unknown'
+  const birth = new Date(dob)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  if (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate())) age--
+  return `Age ${age}`
+}
+
 function combinedCategory(members: MemberData[]): RiskCategory {
   if (members.length === 1) return members[0].profile.overall_category
   const [p1, p2] = members.map(m => m.profile)
@@ -250,6 +259,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes }: {
         <div className="text-sm font-semibold opacity-80 mb-1">Overall Risk Category</div>
         <div className="text-3xl font-bold mb-2">{category}</div>
         <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+        <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
       </div>
 
       <div className="flex gap-4">
@@ -316,7 +326,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes }: {
                   </div>
                   <div>
                     <div className="font-semibold text-forest-900">{client.first_name} {client.last_name}</div>
-                    <div className="text-xs text-forest-500">{client.email}</div>
+                    <div className="text-xs text-forest-500">{client.email} · {calcAge(client.date_of_birth)}</div>
                   </div>
                 </div>
                 <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: catColor }}>
@@ -462,7 +472,7 @@ export default function ReportDetailPage() {
             </span>
           </div>
           <p className="text-sm text-forest-600 mt-0.5">
-            {members.map(m => `${m.client.first_name} ${m.client.last_name}`).join(' & ')}
+            {members.map(m => `${m.client.first_name} ${m.client.last_name} (${calcAge(m.client.date_of_birth)})`).join(' & ')}
           </p>
         </div>
       </div>
