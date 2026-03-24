@@ -141,8 +141,8 @@ export default function ClientDetailPage() {
       .select('household_id, households(id, name)')
       .eq('client_id', id)
       .single()
-    if (memberRow?.households) {
-      const hh = memberRow.households as { id: string; name: string }
+    if (Array.isArray(memberRow?.households) && memberRow.households.length > 0) {
+      const [hh] = memberRow.households as { id: string; name: string }[]
       setHousehold(hh)
     }
 
