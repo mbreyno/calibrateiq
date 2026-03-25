@@ -3,15 +3,26 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'CalibrateIQ — Risk Profiling Intelligence for Financial Advisors',
+    default: 'CalibrateIQ — Simple Risk Profile & IPS for Financial Advisors',
     template: '%s | CalibrateIQ',
   },
   description:
-    'CalibrateIQ helps financial advisors send branded risk assessment questionnaires to clients, build accurate risk profiles, and generate professional Investment Policy Statements in minutes.',
+    'Send branded risk surveys to clients, automatically score their Risk Capacity and Risk Preference, and generate a professional Investment Policy Statement — ready to export as a PDF in minutes.',
+  metadataBase: new URL('https://calibrateiq.netlify.app'),
   openGraph: {
-    title: 'CalibrateIQ',
-    description: 'Risk profiling intelligence for financial advisors.',
+    title: 'CalibrateIQ — Simple Risk Profile & IPS',
+    description:
+      'Send branded risk surveys to clients, score their Risk Capacity and Risk Preference, and generate a professional IPS — ready to export as a PDF in minutes.',
+    url: 'https://calibrateiq.netlify.app',
+    siteName: 'CalibrateIQ',
     type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CalibrateIQ — Simple Risk Profile & IPS',
+    description:
+      'Send branded risk surveys to clients, score their Risk Capacity and Risk Preference, and generate a professional IPS — ready to export as a PDF in minutes.',
   },
 }
 
