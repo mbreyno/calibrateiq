@@ -15,7 +15,7 @@ function LogoMark({ className = '' }: { className?: string }) {
 
 function CheckIcon() {
   return (
-    <svg className="w-5 h-5 text-forest-700" viewBox="0 0 20 20" fill="currentColor">
+    <svg className="w-5 h-5 text-forest-700 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
     </svg>
   )
@@ -37,7 +37,6 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-forest-800">
             <a href="#features" className="hover:text-forest-900">Features</a>
             <a href="#how-it-works" className="hover:text-forest-900">How It Works</a>
-            <a href="#pricing" className="hover:text-forest-900">Pricing</a>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -58,7 +57,6 @@ export default function LandingPage() {
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
       <section className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-forest-900/5 to-transparent pointer-events-none" />
         <div className="absolute top-20 right-0 w-96 h-96 bg-forest-300/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-gold-400/10 rounded-full blur-3xl pointer-events-none" />
@@ -70,16 +68,16 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-forest-900 leading-[1.08] tracking-tight mb-6">
-            Simple Risk Profiling{' '}
+            Risk Profiling &amp; IPS{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-700 to-forest-500">
-              &amp; IPS.
+              Done Right.
             </span>
           </h1>
 
           <p className="text-xl text-forest-800/80 max-w-2xl mx-auto leading-relaxed mb-10">
-            CalibrateIQ sends branded risk assessment questionnaires to your clients,
-            builds precise risk profiles, and auto-generates professional Investment
-            Policy Statements — ready to review and export in minutes.
+            Send branded risk assessment surveys to your clients, automatically score their
+            Risk Capacity and Risk Preference, and generate a polished Investment Policy
+            Statement — ready to review, annotate, and export as a PDF.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -101,11 +99,11 @@ export default function LandingPage() {
           </div>
 
           <p className="text-sm text-forest-700/60 mt-5">
-            Free forever for advisors · No credit card required
+            Free for advisors · No credit card required
           </p>
         </div>
 
-        {/* ── App preview mockup ────────────────── */}
+        {/* ── Dashboard mockup ──────────────────────────────────── */}
         <div className="max-w-5xl mx-auto mt-20 relative">
           <div className="rounded-2xl bg-forest-900 shadow-elevated overflow-hidden border border-forest-800">
             {/* Window chrome */}
@@ -115,57 +113,65 @@ export default function LandingPage() {
               <span className="w-3 h-3 rounded-full bg-green-400/70" />
               <span className="ml-3 text-xs text-forest-400 font-mono">app.calibrateiq.com/dashboard</span>
             </div>
-            {/* Dashboard mockup */}
-            <div className="bg-cream-50 flex" style={{ height: 360 }}>
+            {/* Dashboard */}
+            <div className="bg-cream-50 flex" style={{ height: 380 }}>
               {/* Sidebar */}
-              <div className="w-56 bg-forest-900 p-4 flex flex-col gap-1">
+              <div className="w-52 bg-forest-900 p-4 flex flex-col gap-1 flex-shrink-0">
                 <div className="flex items-center gap-2 mb-6">
                   <LogoMark className="w-7 h-7" />
                   <span className="text-xs font-bold text-cream-200">CalibrateIQ</span>
                 </div>
-                {['Dashboard','Clients','Settings'].map((item, i) => (
-                  <div key={item} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${i === 0 ? 'bg-forest-700 text-cream-100' : 'text-forest-300 hover:text-cream-200'}`}>
+                {[
+                  { label: 'Dashboard', active: true },
+                  { label: 'Surveys', active: false },
+                  { label: 'Reports', active: false },
+                  { label: 'Firm Settings', active: false },
+                ].map(item => (
+                  <div key={item.label} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${item.active ? 'bg-forest-700 text-cream-100' : 'text-forest-300'}`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                    {item}
+                    {item.label}
                   </div>
                 ))}
               </div>
-              {/* Main */}
-              <div className="flex-1 p-6 overflow-hidden">
+              {/* Main content */}
+              <div className="flex-1 p-5 overflow-hidden">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <div className="text-xs text-forest-700 font-medium mb-0.5">Good morning</div>
-                    <div className="text-lg font-bold text-forest-900">Westbrook Wealth Mgmt.</div>
+                    <div className="text-xs text-forest-600 font-medium mb-0.5">Wednesday, March 25</div>
+                    <div className="text-base font-bold text-forest-900">Westbrook Wealth Management</div>
                   </div>
-                  <div className="bg-forest-900 text-cream-100 text-xs font-semibold px-4 py-2 rounded-lg">+ Add Client</div>
+                  <div className="bg-forest-900 text-cream-100 text-xs font-semibold px-3 py-1.5 rounded-lg">Master link</div>
                 </div>
-                {/* Stats row */}
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  {[['12','Total Clients'],['8','Profiles Complete'],['4','Awaiting Response']].map(([n, l]) => (
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {[['14','Total Surveys'],['9','Profiles Complete'],['5','Awaiting Response']].map(([n, l]) => (
                     <div key={l} className="bg-white rounded-xl p-3 border border-cream-300 shadow-card">
-                      <div className="text-2xl font-bold text-forest-900">{n}</div>
-                      <div className="text-xs text-forest-700/70 mt-0.5">{l}</div>
+                      <div className="text-xl font-bold text-forest-900">{n}</div>
+                      <div className="text-xs text-forest-600 mt-0.5">{l}</div>
                     </div>
                   ))}
                 </div>
                 {/* Client rows */}
                 <div className="bg-white rounded-xl border border-cream-300 shadow-card overflow-hidden">
+                  <div className="px-4 py-2 border-b border-cream-200 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-forest-900">Recent Surveys</span>
+                    <span className="text-xs text-forest-500">View all</span>
+                  </div>
                   {[
-                    ['Sarah Mitchell','Moderate','Complete'],
-                    ['James Thornton','Aggressive','Complete'],
-                    ['Linda Park','Pending questionnaire','Pending'],
-                  ].map(([name, cat, status]) => (
-                    <div key={name} className="flex items-center justify-between px-4 py-2.5 border-b border-cream-200 last:border-0">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800">
+                    ['Sarah Mitchell','Complete','#52b788'],
+                    ['James &amp; Laura Thornton','Complete','#52b788'],
+                    ['David Park','Pending','#d4a017'],
+                    ['Carol Nguyen','Pending','#d4a017'],
+                  ].map(([name, status, dot]) => (
+                    <div key={name} className="flex items-center justify-between px-4 py-2 border-b border-cream-100 last:border-0">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
                           {name[0]}
                         </div>
-                        <div>
-                          <div className="text-xs font-semibold text-forest-900">{name}</div>
-                          <div className="text-xs text-forest-600">{cat}</div>
-                        </div>
+                        <span className="text-xs font-medium text-forest-900" dangerouslySetInnerHTML={{ __html: name }} />
                       </div>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status === 'Complete' ? 'bg-forest-100 text-forest-800' : 'bg-gold-300/30 text-gold-700'}`}>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${status === 'Complete' ? 'bg-forest-100 text-forest-800' : 'bg-gold-300/30 text-gold-700'}`}>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: dot }} />
                         {status}
                       </span>
                     </div>
@@ -228,10 +234,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto relative">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-cream-100 mb-4">
-              From zero to IPS in four steps
+              From signup to IPS in four steps
             </h2>
             <p className="text-lg text-forest-300 max-w-xl mx-auto">
-              Your client gets a polished, personalized experience. You get a
+              Your client gets a polished, branded experience. You get a
               compliant, exportable deliverable.
             </p>
           </div>
@@ -252,7 +258,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── RISK PROFILE PREVIEW ────────────────────────────────────────── */}
+      {/* ── DUAL-SCORE SECTION ───────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-14 items-center">
           <div>
@@ -263,14 +269,19 @@ export default function LandingPage() {
               Two scores. One clear picture.
             </h2>
             <p className="text-forest-700/70 leading-relaxed mb-6">
-              CalibrateIQ separates <strong className="text-forest-900">Risk Capacity</strong> — a client's
-              objective ability to absorb losses based on age and time horizon — from{' '}
+              CalibrateIQ separates <strong className="text-forest-900">Risk Capacity</strong> — a client&apos;s
+              objective ability to absorb losses based on age, time horizon, and financial situation — from{' '}
               <strong className="text-forest-900">Risk Preference</strong> — their subjective emotional
-              comfort with volatility. The final profile always uses the more conservative of the
-              two, keeping your recommendations defensible.
+              comfort with volatility. The final profile uses the more conservative of the two,
+              keeping your recommendations defensible.
             </p>
             <ul className="space-y-3">
-              {['5 risk categories from Conservative to Aggressive','Asset allocation targets for every profile','Automatic IPS generation from profile data','Full audit trail of client responses'].map(item => (
+              {[
+                '5 risk categories: Income through Aggressive Growth',
+                'Separate capacity and preference scores, 0–100',
+                'Household reports average both partners\' capacity scores',
+                'Full audit trail of every client response',
+              ].map(item => (
                 <li key={item} className="flex items-start gap-2.5 text-sm text-forest-800">
                   <CheckIcon />
                   {item}
@@ -278,85 +289,160 @@ export default function LandingPage() {
               ))}
             </ul>
           </div>
-          {/* Profile card mockup */}
-          <div className="bg-white rounded-2xl border border-cream-300 shadow-elevated p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <div className="text-xs font-medium text-forest-600 mb-0.5">Risk Profile</div>
-                <div className="text-xl font-bold text-forest-900">Sarah Mitchell</div>
-              </div>
-              <span className="bg-gold-400/20 text-gold-700 text-sm font-bold px-3 py-1 rounded-full border border-gold-400/30">
-                Moderate
-              </span>
+
+          {/* Accurate risk profile card mockup */}
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-elevated overflow-hidden">
+            {/* Category banner — matches actual colored header */}
+            <div className="p-5 text-white" style={{ backgroundColor: '#2d6a4f' }}>
+              <div className="text-xs font-semibold opacity-75 mb-0.5">Overall Risk Category</div>
+              <div className="text-2xl font-bold mb-1">Moderate Growth</div>
+              <p className="text-xs opacity-80 leading-relaxed">
+                A growth-oriented portfolio that accepts moderate short-term fluctuations in pursuit of solid long-term capital appreciation.
+              </p>
             </div>
 
-            <div className="space-y-4 mb-5">
-              <ScoreBar label="Risk Capacity" score={65} color="#1b4332" />
-              <ScoreBar label="Risk Preference" score={72} color="#2d6a4f" />
-            </div>
-
-            <div className="bg-cream-100 rounded-xl p-4 text-sm text-forest-700 leading-relaxed border border-cream-200 mb-5">
-              A balanced approach to growth and stability. The portfolio holds a meaningful mix of
-              equities and fixed income, accepting moderate volatility for solid long-term returns.
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              {[['60%','Equities'],['33%','Fixed Income'],['5%','Alt.'],['2%','Cash']].map(([val, lbl]) => (
-                <div key={lbl} className="text-center bg-forest-50 rounded-xl p-2.5">
-                  <div className="text-base font-bold text-forest-900">{val}</div>
-                  <div className="text-xs text-forest-600 mt-0.5">{lbl}</div>
+            <div className="p-5 space-y-4">
+              {/* Risk Capacity — primary gauge */}
+              <div className="bg-white rounded-xl border-2 p-4" style={{ borderColor: '#1b4332' }}>
+                <div className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#1b4332' }}>
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clipRule="evenodd"/>
+                  </svg>
+                  Risk Capacity
                 </div>
-              ))}
+                <div className="flex items-end gap-1.5 mb-2">
+                  <span className="text-3xl font-bold text-forest-900 leading-none">68</span>
+                  <span className="text-xs text-forest-400 mb-0.5">/ 100</span>
+                </div>
+                <div className="h-2 bg-cream-200 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '68%', backgroundColor: '#1b4332' }} />
+                </div>
+              </div>
+
+              {/* Risk Preference — secondary gauge */}
+              <div className="bg-cream-50 rounded-xl border p-4" style={{ borderColor: '#e8e0cc' }}>
+                <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#6b7d6a' }}>
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
+                  </svg>
+                  Risk Preference
+                </div>
+                <div className="flex items-end gap-1.5 mb-2">
+                  <span className="text-2xl font-bold text-forest-600 leading-none">75</span>
+                  <span className="text-xs text-forest-400 mb-0.5">/ 100</span>
+                </div>
+                <div className="h-1.5 bg-cream-200 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '75%', backgroundColor: '#74c69d' }} />
+                </div>
+              </div>
+
+              <p className="text-xs text-forest-500 text-center">
+                Final category uses the more conservative of the two scores
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── IPS PREVIEW ─────────────────────────────────────────────────── */}
+      {/* ── REPORTS SECTION ──────────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-cream-200/60">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-14 items-center">
-          {/* IPS doc mockup */}
-          <div className="order-2 lg:order-1 bg-white rounded-2xl border border-cream-300 shadow-elevated p-6 font-serif">
-            <div className="text-center mb-5 pb-4 border-b border-cream-200">
-              <div className="text-xs font-sans font-semibold text-forest-600 uppercase tracking-widest mb-1">Investment Policy Statement</div>
-              <div className="text-lg font-bold text-forest-900">Sarah Mitchell</div>
-              <div className="text-xs text-forest-600 font-sans mt-0.5">Prepared by Westbrook Wealth Management · {new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</div>
+
+          {/* Report mockup */}
+          <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-cream-300 shadow-elevated">
+            {/* Report header */}
+            <div className="bg-white px-5 py-4 border-b border-cream-200 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-forest-600 font-medium mb-0.5">Household Report</div>
+                <div className="text-sm font-bold text-forest-900">James &amp; Laura Thornton</div>
+              </div>
+              <div className="flex gap-2">
+                <div className="bg-forest-900 text-cream-100 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="currentColor" opacity="0.9"/>
+                    <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+                    <text x="5" y="19.5" fontSize="5.5" fontWeight="900" fill="#1b4332" fontFamily="Arial, sans-serif" letterSpacing="0.5">PDF</text>
+                  </svg>
+                  Export PDF
+                </div>
+              </div>
             </div>
-            <div className="space-y-3 text-sm text-forest-800 leading-relaxed">
-              <div>
-                <div className="font-sans text-xs font-bold text-forest-600 uppercase tracking-wider mb-1">Investment Objectives</div>
-                <p className="text-xs text-forest-700">The primary investment objective for Sarah Mitchell is consistent with a Moderate risk profile. A balanced approach to growth and stability, accepting moderate volatility for solid long-term returns...</p>
-              </div>
-              <div>
-                <div className="font-sans text-xs font-bold text-forest-600 uppercase tracking-wider mb-1">Asset Allocation</div>
-                <p className="text-xs text-forest-700">Equities 60% · Fixed Income 33% · Alternatives 5% · Cash 2%</p>
-              </div>
-              <div>
-                <div className="font-sans text-xs font-bold text-forest-600 uppercase tracking-wider mb-1">Investment Guidelines</div>
-                <p className="text-xs text-forest-700">The portfolio should be reviewed at least annually and rebalanced when any asset class drifts more than 5% from target...</p>
-              </div>
+
+            {/* Combined category */}
+            <div className="p-4 text-white text-sm" style={{ backgroundColor: '#2d6a4f' }}>
+              <div className="text-xs opacity-75 mb-0.5">Combined Household Category</div>
+              <div className="text-lg font-bold">Moderate Growth</div>
+              <div className="text-xs opacity-70 mt-1">Determined by averaging both members&apos; Risk Capacity scores.</div>
             </div>
-            <div className="mt-5 flex gap-2">
-              <div className="flex-1 bg-forest-900 text-cream-100 text-xs font-sans font-semibold text-center py-2 rounded-lg">Export PDF</div>
-              <div className="flex-1 border border-forest-300 text-forest-800 text-xs font-sans font-medium text-center py-2 rounded-lg">Edit</div>
+
+            {/* Side-by-side member cards */}
+            <div className="bg-cream-50 p-4 grid grid-cols-2 gap-3">
+              {[
+                { name: 'James T.', capacity: 68, preference: 75, cat: 'Moderate Growth', color: '#2d6a4f' },
+                { name: 'Laura T.', capacity: 55, preference: 60, cat: 'Conservative Growth', color: '#52b788' },
+              ].map(m => (
+                <div key={m.name} className="bg-white rounded-xl border border-cream-200 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-forest-900">{m.name}</span>
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-full text-white" style={{ backgroundColor: m.color, fontSize: 9 }}>
+                      {m.cat}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div>
+                      <div className="flex justify-between text-xs mb-0.5">
+                        <span className="text-forest-600">Capacity</span>
+                        <span className="font-semibold text-forest-900">{m.capacity}</span>
+                      </div>
+                      <div className="h-1.5 bg-cream-200 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${m.capacity}%`, backgroundColor: '#1b4332' }} />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs mb-0.5">
+                        <span className="text-forest-600">Preference</span>
+                        <span className="font-semibold text-forest-900">{m.preference}</span>
+                      </div>
+                      <div className="h-1.5 bg-cream-200 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${m.preference}%`, backgroundColor: '#74c69d' }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Advisor notes preview */}
+            <div className="bg-white border-t border-cream-200 p-4">
+              <div className="text-xs font-semibold text-forest-900 mb-1.5">Advisor Notes</div>
+              <p className="text-xs text-forest-600 leading-relaxed">
+                James retires in 8 years; Laura continues working for 12. Prioritizing growth while maintaining capacity to weather short-term drawdowns...
+              </p>
             </div>
           </div>
 
           <div className="order-1 lg:order-2">
             <div className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 bg-forest-100 px-3 py-1 rounded-full mb-4">
-              IPS Generation
+              IPS &amp; Reports
             </div>
             <h2 className="text-4xl font-bold text-forest-900 mb-5">
-              A complete IPS, drafted in seconds.
+              A complete IPS, generated instantly.
             </h2>
             <p className="text-forest-700/70 leading-relaxed mb-6">
-              Once a client completes their questionnaire, CalibrateIQ generates a full Investment
-              Policy Statement pre-populated with their objectives, risk profile, and recommended
-              asset allocation. You can edit any section before exporting a beautiful, branded PDF
-              for your client's file.
+              Once your client completes their survey, CalibrateIQ generates a full Investment
+              Policy Statement with their risk profile, scores, and all survey responses. Add your
+              own advisor notes, then export a branded, print-ready PDF in one click.
+              Couple and household reports show side-by-side profiles for joint accounts.
             </p>
             <ul className="space-y-3">
-              {['Auto-populated from risk profile data','All sections fully editable by the advisor','Export to print-ready PDF in one click','Your firm logo and branding on every document'].map(item => (
+              {[
+                'Individual and joint household reports',
+                'Advisor notes field on every report',
+                'Investor Understanding & Acceptance section built in',
+                'Portfolio Category Legend with all 5 risk categories',
+                'Full survey Q&A printed with the report',
+                'Your firm logo and name on every exported PDF',
+              ].map(item => (
                 <li key={item} className="flex items-start gap-2.5 text-sm text-forest-800">
                   <CheckIcon />
                   {item}
@@ -367,50 +453,77 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING ─────────────────────────────────────────────────────── */}
-      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-forest-900 mb-4">Simple, transparent pricing</h2>
-          <p className="text-forest-700/70 mb-12">Start free. Upgrade when you're ready.</p>
-
-          <div className="grid sm:grid-cols-2 gap-6 text-left">
-            {/* Free */}
-            <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-7">
-              <div className="text-xs font-bold uppercase tracking-widest text-forest-600 mb-3">Starter</div>
-              <div className="text-4xl font-bold text-forest-900 mb-1">Free</div>
-              <div className="text-sm text-forest-600 mb-6">Forever, for individual advisors</div>
-              <ul className="space-y-2.5 mb-7">
-                {['Unlimited client questionnaires','Risk profile generation','IPS auto-generation','PDF export','Firm branding (logo + name)'].map(item => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-forest-800">
-                    <CheckIcon />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/auth/signup" className="block text-center bg-forest-900 text-cream-100 font-semibold text-sm py-3 rounded-xl hover:bg-forest-800">
-                Get started free
-              </Link>
+      {/* ── SURVEY EXPERIENCE ────────────────────────────────────────────── */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-14 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 bg-forest-100 px-3 py-1 rounded-full mb-4">
+              Client Experience
             </div>
-            {/* Pro coming soon */}
-            <div className="bg-forest-900 rounded-2xl border border-forest-700 shadow-elevated p-7 relative overflow-hidden">
-              <div className="absolute top-4 right-4 bg-gold-500/20 text-gold-400 text-xs font-bold px-2.5 py-1 rounded-full border border-gold-500/30">
-                Coming soon
+            <h2 className="text-4xl font-bold text-forest-900 mb-5">
+              A survey your clients will actually complete.
+            </h2>
+            <p className="text-forest-700/70 leading-relaxed mb-6">
+              Share a unique link for each client — or use your master link to collect surveys
+              from multiple clients at once. The survey is clean, mobile-friendly, and branded
+              with your firm logo and name. No client account needed, ever.
+            </p>
+            <ul className="space-y-3">
+              {[
+                'Unique per-client links, or a single master survey link',
+                'No login or account required for clients',
+                'Mobile-friendly, fully branded to your firm',
+                'Only 8 focused questions — takes under 5 minutes',
+              ].map(item => (
+                <li key={item} className="flex items-start gap-2.5 text-sm text-forest-800">
+                  <CheckIcon />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Survey mockup */}
+          <div className="bg-cream-100 rounded-2xl border border-cream-300 shadow-elevated overflow-hidden">
+            {/* Survey header */}
+            <div className="bg-white border-b border-cream-300 px-5 py-5 flex flex-col items-center gap-3 text-center">
+              <div className="w-14 h-14 rounded-xl bg-forest-900 flex items-center justify-center">
+                <LogoMark className="w-10 h-10" />
               </div>
-              <div className="text-xs font-bold uppercase tracking-widest text-forest-400 mb-3">Pro</div>
-              <div className="text-4xl font-bold text-cream-100 mb-1">$29<span className="text-xl font-medium text-forest-400">/mo</span></div>
-              <div className="text-sm text-forest-400 mb-6">For growing advisory teams</div>
-              <ul className="space-y-2.5 mb-7">
-                {['Everything in Starter','Multi-advisor team access','Email questionnaire delivery','Client portal & history','Priority support','CRM integration (coming)'].map(item => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-forest-300">
-                    <svg className="w-5 h-5 text-gold-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
-                    {item}
-                  </li>
+              <div>
+                <div className="text-sm font-bold text-forest-900">Westbrook Wealth Management</div>
+                <div className="text-xs text-forest-500">Investment Profile Questionnaire</div>
+              </div>
+            </div>
+
+            {/* Question */}
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-bold text-forest-500 uppercase tracking-wider">Question 3 of 8</span>
+                <div className="flex-1 h-1.5 bg-cream-300 rounded-full overflow-hidden">
+                  <div className="h-full bg-forest-700 rounded-full" style={{ width: '37.5%' }} />
+                </div>
+              </div>
+              <p className="text-sm font-semibold text-forest-900 mb-4 leading-relaxed">
+                If your investments dropped 20% in value over six months, what would you most likely do?
+              </p>
+              <div className="space-y-2">
+                {[
+                  { label: 'Sell everything to avoid further losses', selected: false },
+                  { label: 'Move to more conservative investments', selected: false },
+                  { label: 'Hold and wait for recovery', selected: true },
+                  { label: 'Buy more while prices are lower', selected: false },
+                ].map(opt => (
+                  <div key={opt.label} className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm cursor-pointer ${opt.selected ? 'border-forest-700 bg-forest-50 font-semibold text-forest-900' : 'border-cream-300 bg-white text-forest-700'}`}>
+                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${opt.selected ? 'border-forest-700 bg-forest-700' : 'border-cream-400'}`}>
+                      {opt.selected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    {opt.label}
+                  </div>
                 ))}
-              </ul>
-              <button disabled className="w-full text-center bg-white/10 text-forest-300 font-semibold text-sm py-3 rounded-xl cursor-not-allowed">
-                Notify me
+              </div>
+              <button className="mt-4 w-full bg-forest-900 text-cream-100 text-sm font-semibold py-3 rounded-xl">
+                Next question →
               </button>
             </div>
           </div>
@@ -422,10 +535,10 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-forest-700/50 via-transparent to-transparent pointer-events-none" />
         <div className="max-w-3xl mx-auto text-center relative">
           <h2 className="text-4xl font-bold text-cream-100 mb-4">
-            Ready to get to know your clients better?
+            Ready to know your clients&apos; risk profile?
           </h2>
           <p className="text-forest-300 mb-8 text-lg">
-            Create your free account and send your first questionnaire in under five minutes.
+            Create your free account and send your first survey in under five minutes.
           </p>
           <Link
             href="/auth/signup"
@@ -460,63 +573,44 @@ export default function LandingPage() {
   )
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-function ScoreBar({ label, score, color }: { label: string; score: number; color: string }) {
-  return (
-    <div>
-      <div className="flex justify-between text-xs font-medium text-forest-700 mb-1.5">
-        <span>{label}</span>
-        <span>{score}%</span>
-      </div>
-      <div className="h-2.5 bg-cream-200 rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${score}%`, backgroundColor: color }}
-        />
-      </div>
-    </div>
-  )
-}
-
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const FEATURES = [
   {
     icon: '🔗',
-    title: 'Shareable questionnaire links',
+    title: 'Per-client & master survey links',
     description:
-      'Generate a unique, secure link for each client. No account needed on their end — just click and answer.',
+      'Generate a unique link for each client, or share your master link to collect surveys from multiple clients at once. No client account needed.',
   },
   {
     icon: '🎨',
     title: 'Your brand, front and center',
     description:
-      'Upload your firm logo and name. Every questionnaire and IPS your clients see carries your identity.',
+      'Upload your firm logo and name in Firm Settings. Your branding appears on every survey your clients see and on every PDF you export.',
   },
   {
     icon: '⚖️',
     title: 'Dual-score risk profiling',
     description:
-      'Separate Risk Capacity from Risk Preference scores ensure your recommendations align with both financial reality and client psychology.',
+      'Risk Capacity (objective ability to absorb losses) and Risk Preference (emotional comfort with volatility) are scored separately, 0–100 each.',
+  },
+  {
+    icon: '👥',
+    title: 'Individual & household reports',
+    description:
+      'Create single-client reports or combine two clients into a joint household report. Combined category is based on the average of both members\' Risk Capacity scores.',
+  },
+  {
+    icon: '📝',
+    title: 'Advisor notes on every report',
+    description:
+      'Add your own notes to each report — context about goals, special circumstances, or anything relevant. Notes are saved and included in the exported PDF.',
   },
   {
     icon: '📄',
-    title: 'Auto-generated IPS drafts',
+    title: 'Branded PDF export',
     description:
-      'Investment Policy Statements are created automatically from each client\'s risk profile — fully editable before you export.',
-  },
-  {
-    icon: '📊',
-    title: 'Asset allocation targets',
-    description:
-      'Each risk category maps to a recommended asset allocation. Adjust to fit your investment philosophy.',
-  },
-  {
-    icon: '🔒',
-    title: 'Secure and compliant',
-    description:
-      'All client data is stored securely. Responses are tied to your account only, never shared.',
+      'Export any report as a print-ready PDF with your firm logo, name, and all survey responses included. Three clean pages, professionally formatted.',
   },
 ]
 
@@ -524,21 +618,21 @@ const STEPS = [
   {
     title: 'Set up your firm profile',
     description:
-      'Add your firm name and upload your logo. Your branding will appear on every questionnaire and IPS you send.',
+      'Add your firm name and logo in Firm Settings. Your branding will appear on every survey and IPS you generate.',
   },
   {
-    title: 'Add a client and copy their link',
+    title: 'Add a client and share their survey link',
     description:
-      'Enter the client\'s name and email. CalibrateIQ generates a unique questionnaire link you can share by email, text, or any channel you choose.',
+      'Enter the client\'s name and date of birth. CalibrateIQ generates a unique survey link. Copy it and share by email, text, or however you communicate.',
   },
   {
-    title: 'Client completes the questionnaire',
+    title: 'Client completes the survey',
     description:
-      'Your client answers 8 questions at their own pace. No account required. The experience is clean, mobile-friendly, and branded to your firm.',
+      'Your client answers 8 questions at their own pace on any device. No account required. The experience is clean, mobile-friendly, and shows your firm branding.',
   },
   {
-    title: 'Review the profile and export the IPS',
+    title: 'Review the report and export the IPS',
     description:
-      'Once submitted, view the full risk profile breakdown. Generate the IPS, make any edits, and export a beautiful, print-ready PDF for your client file.',
+      'Once submitted, view the full risk profile. Create a report, add advisor notes, and export a branded, three-page PDF with the full IPS and survey Q&A.',
   },
 ]
