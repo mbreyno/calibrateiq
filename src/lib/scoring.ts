@@ -108,16 +108,7 @@ export const QUESTIONS: Question[] = [
       { label: 'I need to at least see some return',                                       score: 4  },
     ],
   },
-  {
-    id: 'q7',
-    category: 'informational',
-    type: 'checkbox',
-    question: 'Please select if any of the following areas are important to you:',
-    options: [
-      { label: 'Socially Responsible / ESG Investing', value: 'esg' },
-      { label: 'Digital assets / crypto investing',    value: 'crypto' },
-    ],
-  },
+  // q7 is now dynamic (advisor-configured investment preferences) — rendered separately in survey UI
   {
     id: 'q8',
     category: 'tolerance',
@@ -158,8 +149,7 @@ export function calculateRiskProfile(r: QuestionnaireResponse): RiskProfile {
     capacity_category: getCapacityCategory(capacityNorm),
     tolerance_category: getToleranceCategory(toleranceNorm),
     overall_category: getOverallCategory(capacityNorm), // category driven by capacity only; preference is for reference
-    esg_preference: r.q7_esg,
-    crypto_preference: r.q7_crypto,
+    selected_preferences: r.selected_preferences?.filter(Boolean) ?? [],
     comments: r.comments,
   }
 }

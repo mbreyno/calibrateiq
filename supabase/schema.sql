@@ -214,3 +214,28 @@ CREATE POLICY "Advisors manage household IPS"
 -- ── ADVISOR NOTES ──────────────────────────────────────────────
 ALTER TABLE clients    ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
+
+-- ── INVESTMENT PREFERENCES ────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS investment_preferences (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  advisor_id UUID REFERENCES advisors(id) ON DELETE CASCADE NOT NULL,
+  label      TEXT NOT NULL,
+  icon       TEXT NOT NULL DEFAULT '⭐',
+  sort_order INT  NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE investment_preferences ENABLE ROW LEVEL SECURITY;
+
+-- Advisors manage their own
+CREATE POLICY "Advisors manage own investment preferences"
+  ON investment_preferences FOR ALL
+  USING (advisor_id = (SELECT id FROM advisors WHERE user_id = auth.uid()));
+
+-- Public read (survey page is unauthenticated)
+CREATE POLICY "Public can read investment preferences"
+  ON investment_preferences FOR SELECT
+  USING (true);
+
+-- Store selected preference IDs on responses
+ALTER TABLE questionnaire_responses
+  ADD COLUMN IF NOT EXISTS selected_preferences UUID[] DEFAULT '{}';

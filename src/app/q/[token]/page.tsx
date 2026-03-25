@@ -114,8 +114,7 @@ export default function QuestionnairePage() {
       q4: answers['q4'] as number ?? null,
       q5: answers['q5'] as number ?? null,
       q6: answers['q6'] as number ?? null,
-      q7_esg: answers['esg'] as boolean ?? false,
-      q7_crypto: answers['crypto'] as boolean ?? false,
+      selected_preferences: [],
       q8: answers['q8'] as number ?? null,
       comments,
     }

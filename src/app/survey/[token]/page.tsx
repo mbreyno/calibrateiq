@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { QUESTIONS, calculateAgeScore } from '@/lib/scoring'
-import type { Advisor } from '@/types'
+import type { Advisor, InvestmentPreference } from '@/types'
 
 // ─── Progress bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ current, total }: { current: number; total: number }) {
@@ -38,15 +38,18 @@ function BrandHeader({ advisor }: { advisor: Advisor | null }) {
   )
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Synthetic question type ─────────────────────────────────────────────────
+const PREFS_QUESTION_ID = '__preferences__'
 
 type Step = 'details' | 'questions' | 'review'
 
+// ─── Main page ────────────────────────────────────────────────────────────────
 export default function MasterSurveyPage() {
   const { token } = useParams<{ token: string }>()
   const supabase = createClient()
 
   const [advisor, setAdvisor] = useState<Advisor | null>(null)
+  const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -62,7 +65,8 @@ export default function MasterSurveyPage() {
   // Questionnaire state
   const [step, setStep] = useState<Step>('details')
   const [currentQ, setCurrentQ] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, number | boolean>>({})
+  const [answers, setAnswers] = useState<Record<string, number>>({})
+  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([])
   const [comments, setComments] = useState('')
 
   useEffect(() => {
@@ -75,14 +79,32 @@ export default function MasterSurveyPage() {
 
       if (!advisorData) { setNotFound(true); setLoading(false); return }
       setAdvisor(advisorData)
+
+      // Load this advisor's investment preferences
+      const { data: prefs } = await supabase
+        .from('investment_preferences')
+        .select('*')
+        .eq('advisor_id', advisorData.id)
+        .order('sort_order', { ascending: true })
+      setPreferences(prefs ?? [])
+
       setLoading(false)
     }
     load()
   }, [token])
 
-  const questionOrder = [
-    ...QUESTIONS.filter(q => q.id !== 'q1' && q.id !== 'q7' && q.type === 'radio'), // q2–q6, q8
-    QUESTIONS.find(q => q.id === 'q7')!,                                             // q7 checkbox last
+  // Build the ordered list of radio questions from QUESTIONS (q2–q8, skip q1 which uses DOB)
+  // Then append the dynamic preferences question at the end if any preferences exist
+  const radioQuestions = QUESTIONS.filter(q => q.type === 'radio' && q.id !== 'q1')
+
+  const questionOrder: Array<{ id: string; category: string; type: string; question: string }> = [
+    ...radioQuestions,
+    ...(preferences.length > 0 ? [{
+      id: PREFS_QUESTION_ID,
+      category: 'informational',
+      type: 'preferences',
+      question: 'Please select if any of the following areas are important to you:',
+    }] : []),
   ]
 
   const currentQuestion = questionOrder[currentQ]
@@ -91,8 +113,10 @@ export default function MasterSurveyPage() {
     setAnswers(prev => ({ ...prev, [qId]: score }))
   }
 
-  const handleCheckbox = (value: string, checked: boolean) => {
-    setAnswers(prev => ({ ...prev, [value]: checked }))
+  const handleTogglePreference = (prefId: string) => {
+    setSelectedPreferences(prev =>
+      prev.includes(prefId) ? prev.filter(id => id !== prefId) : [...prev, prefId]
+    )
   }
 
   const handleNext = () => {
@@ -109,7 +133,7 @@ export default function MasterSurveyPage() {
   }
 
   const canContinue = () => {
-    if (currentQuestion.type === 'checkbox') return true
+    if (currentQuestion.type === 'preferences') return true // optional
     return answers[currentQuestion.id] !== undefined
   }
 
@@ -118,7 +142,7 @@ export default function MasterSurveyPage() {
     setSubmitting(true)
     setError(null)
 
-    // Create the survey (client) record
+    // Create the client record
     const { data: newClient, error: clientError } = await supabase
       .from('clients')
       .insert({
@@ -144,19 +168,17 @@ export default function MasterSurveyPage() {
       .insert({
         client_id: newClient.id,
         q1: calculateAgeScore(dob),
-        q2: answers['q2'] as number ?? null,
-        q3: answers['q3'] as number ?? null,
-        q4: answers['q4'] as number ?? null,
-        q5: answers['q5'] as number ?? null,
-        q6: answers['q6'] as number ?? null,
-        q7_esg: answers['esg'] as boolean ?? false,
-        q7_crypto: answers['crypto'] as boolean ?? false,
-        q8: answers['q8'] as number ?? null,
+        q2: answers['q2'] ?? null,
+        q3: answers['q3'] ?? null,
+        q4: answers['q4'] ?? null,
+        q5: answers['q5'] ?? null,
+        q6: answers['q6'] ?? null,
+        q8: answers['q8'] ?? null,
+        selected_preferences: selectedPreferences,
         comments,
       })
 
     if (respError) {
-      // Clean up the client record if response insert failed
       await supabase.from('clients').delete().eq('id', newClient.id)
       setError('Something went wrong saving your responses. Please try again.')
       setSubmitting(false)
@@ -221,6 +243,7 @@ export default function MasterSurveyPage() {
   // ── Personal details step ────────────────────────────────────────
   if (step === 'details') {
     const isValid = firstName.trim() && lastName.trim() && email.trim() && dob
+    const totalQs = radioQuestions.length + (preferences.length > 0 ? 1 : 0)
     return (
       <div className="min-h-screen bg-cream-100 flex flex-col">
         <BrandHeader advisor={advisor} />
@@ -279,7 +302,7 @@ export default function MasterSurveyPage() {
 
               <div className="bg-cream-100 rounded-xl p-4 border border-cream-200 mb-6">
                 <div className="grid grid-cols-3 gap-3 text-center">
-                  {[['~5 min', 'Completion time'], ['7', 'Questions'], ['100%', 'Confidential']].map(([val, lbl]) => (
+                  {[['~5 min', 'Completion time'], [String(totalQs), 'Questions'], ['100%', 'Confidential']].map(([val, lbl]) => (
                     <div key={lbl}>
                       <div className="text-lg font-bold text-forest-900">{val}</div>
                       <div className="text-xs text-forest-600">{lbl}</div>
@@ -381,6 +404,8 @@ export default function MasterSurveyPage() {
   }
 
   // ── Questions step ───────────────────────────────────────────────
+  const isPrefsQuestion = currentQuestion?.id === PREFS_QUESTION_ID
+
   return (
     <div className="min-h-screen bg-cream-100 flex flex-col">
       <BrandHeader advisor={advisor} />
@@ -407,16 +432,17 @@ export default function MasterSurveyPage() {
                 }`} />
                 {currentQuestion.category === 'capacity' ? 'Risk Capacity'
                   : currentQuestion.category === 'tolerance' ? 'Risk Preference'
-                  : 'Preferences'}
+                  : 'Investment Preferences'}
               </div>
 
               <h2 className="text-lg sm:text-xl font-bold text-forest-900 mb-6 leading-snug">
                 {currentQuestion.question}
               </h2>
 
-              {currentQuestion.type === 'radio' && (
+              {/* Radio question */}
+              {currentQuestion.type === 'radio' && 'options' in currentQuestion && (
                 <div className="space-y-2.5">
-                  {currentQuestion.options.map((opt) => {
+                  {(currentQuestion as typeof QUESTIONS[0] & { options: { label: string; score: number }[] }).options.map((opt) => {
                     const isSelected = answers[currentQuestion.id] === opt.score
                     return (
                       <button
@@ -440,15 +466,16 @@ export default function MasterSurveyPage() {
                 </div>
               )}
 
-              {currentQuestion.type === 'checkbox' && (
+              {/* Dynamic preferences question */}
+              {isPrefsQuestion && (
                 <div className="space-y-2.5">
                   <p className="text-sm text-forest-600 mb-3">Select all that apply (optional).</p>
-                  {currentQuestion.options.map((opt) => {
-                    const isChecked = !!answers[opt.value]
+                  {preferences.map((pref) => {
+                    const isChecked = selectedPreferences.includes(pref.id)
                     return (
                       <button
-                        key={opt.value}
-                        onClick={() => handleCheckbox(opt.value, !isChecked)}
+                        key={pref.id}
+                        onClick={() => handleTogglePreference(pref.id)}
                         className={`w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all ${
                           isChecked
                             ? 'bg-forest-900 border-forest-900 text-cream-100'
@@ -459,12 +486,13 @@ export default function MasterSurveyPage() {
                           isChecked ? 'border-cream-300 bg-cream-100' : 'border-forest-400'
                         }`}>
                           {isChecked && (
-                            <svg className="w-3 h-3 text-forest-900" viewBox="0 0 12 12" fill="currentColor">
-                              <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                            <svg className="w-3 h-3 text-forest-900" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M2 6l3 3 5-5"/>
                             </svg>
                           )}
                         </div>
-                        <span className="text-sm font-medium">{opt.label}</span>
+                        <span className="text-xl mr-1">{pref.icon}</span>
+                        <span className="text-sm font-medium">{pref.label}</span>
                       </button>
                     )
                   })}

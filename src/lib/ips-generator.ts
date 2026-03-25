@@ -17,14 +17,10 @@ export function generateIPSContent(
   const timeHorizonText = getTimeHorizonText(profile.risk_capacity_score)
 
   const specialParts: string[] = []
-  if (profile.esg_preference) {
+  // Investment preferences are now dynamic (advisor-configured) — handled in reports view
+  if (profile.selected_preferences && profile.selected_preferences.length > 0) {
     specialParts.push(
-      'The client has expressed interest in Socially Responsible / ESG (Environmental, Social, and Governance) investing. Where appropriate, ESG-screened securities and funds should be considered as part of the investment strategy.'
-    )
-  }
-  if (profile.crypto_preference) {
-    specialParts.push(
-      'The client has expressed interest in digital assets and cryptocurrency. Any allocation to digital assets should be considered speculative and limited to a small portion of the overall portfolio, commensurate with the client\'s overall risk profile.'
+      'The client has expressed specific investment preferences as noted in their questionnaire. Please refer to the Investment Preferences section of the report for details.'
     )
   }
 
@@ -125,13 +121,12 @@ export function generateHouseholdIPSContent(
   const name2 = `${client2.first_name} ${client2.last_name}`
 
   const specialParts: string[] = []
-  if (profile1.esg_preference || profile2.esg_preference) {
-    const who = profile1.esg_preference && profile2.esg_preference ? 'Both clients have' : `${profile1.esg_preference ? name1 : name2} has`
-    specialParts.push(`${who} expressed interest in Socially Responsible / ESG investing. Where appropriate, ESG-screened securities and funds should be considered as part of the investment strategy.`)
-  }
-  if (profile1.crypto_preference || profile2.crypto_preference) {
-    const who = profile1.crypto_preference && profile2.crypto_preference ? 'Both clients have' : `${profile1.crypto_preference ? name1 : name2} has`
-    specialParts.push(`${who} expressed interest in digital assets and cryptocurrency. Any allocation to digital assets should be considered speculative and limited to a small portion of the overall portfolio.`)
+  // Investment preferences are now dynamic (advisor-configured) — handled in reports view
+  const hasPrefs1 = profile1.selected_preferences && profile1.selected_preferences.length > 0
+  const hasPrefs2 = profile2.selected_preferences && profile2.selected_preferences.length > 0
+  if (hasPrefs1 || hasPrefs2) {
+    const who = hasPrefs1 && hasPrefs2 ? 'Both clients have' : `${hasPrefs1 ? name1 : name2} has`
+    specialParts.push(`${who} expressed specific investment preferences. Please refer to the Investment Preferences section of the report for details.`)
   }
 
   const comments: string[] = []

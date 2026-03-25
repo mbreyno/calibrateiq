@@ -12,7 +12,7 @@ import {
   QUESTIONS,
   getOverallCategory,
 } from '@/lib/scoring'
-import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory } from '@/types'
+import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory, InvestmentPreference } from '@/types'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -255,13 +255,32 @@ function PortfolioLegend({ members, category }: { members: MemberData[]; categor
   )
 }
 
+// ─── Investment Preferences display ───────────────────────────────────────────
+
+function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: string[] | null; allPreferences: InvestmentPreference[] }) {
+  const selected = allPreferences.filter(p => selectedIds?.includes(p.id))
+  if (selected.length === 0) {
+    return <p className="text-sm text-forest-400 italic">No investment preferences indicated.</p>
+  }
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {selected.map(p => (
+        <span key={p.id} className="bg-forest-100 text-forest-800 text-sm font-medium px-3 py-1.5 rounded-full">
+          {p.icon} {p.label}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, advisorNotes, onSaveNotes }: {
+function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences }: {
   member: MemberData
   category: RiskCategory
   advisorNotes: string
   onSaveNotes: (n: string) => Promise<void>
+  preferences: InvestmentPreference[]
 }) {
   const { profile, responses } = member
   const color = CATEGORY_COLORS[category]
@@ -280,17 +299,10 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes }: {
         <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
       </div>
 
-      {(profile.esg_preference || profile.crypto_preference) && (
+      {preferences.length > 0 && (
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
-          <div className="flex gap-2 flex-wrap">
-            {profile.esg_preference && (
-              <span className="bg-forest-100 text-forest-800 text-sm font-medium px-3 py-1.5 rounded-full">🌱 ESG / Socially Responsible</span>
-            )}
-            {profile.crypto_preference && (
-              <span className="bg-purple-50 text-purple-800 text-sm font-medium px-3 py-1.5 rounded-full border border-purple-100">₿ Digital Assets / Crypto</span>
-            )}
-          </div>
+          <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
         </div>
       )}
 
@@ -310,11 +322,12 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes }: {
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, advisorNotes, onSaveNotes }: {
+function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences }: {
   members: MemberData[]
   category: RiskCategory
   advisorNotes: string
   onSaveNotes: (n: string) => Promise<void>
+  preferences: InvestmentPreference[]
 }) {
   const [m1, m2] = members
   const color = CATEGORY_COLORS[category]
@@ -358,33 +371,24 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes }: {
       </div>
 
       {/* Investment preferences — per member */}
-      <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-        <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {members.map(({ client, profile }) => (
-          <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
-                {client.first_name[0]}{client.last_name[0]}
+      {preferences.length > 0 && (
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {members.map(({ client, profile }) => (
+              <div key={client.id} className="bg-cream-50 rounded-xl border border-cream-200 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                    {client.first_name[0]}{client.last_name[0]}
+                  </div>
+                  <span className="font-semibold text-forest-900 text-sm">{client.first_name} {client.last_name}</span>
+                </div>
+                <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
               </div>
-              <h2 className="font-semibold text-forest-900">{client.first_name} {client.last_name}</h2>
-            </div>
-            {profile.esg_preference || profile.crypto_preference ? (
-              <div className="flex gap-2 flex-wrap">
-                {profile.esg_preference && (
-                  <span className="bg-forest-100 text-forest-800 text-sm font-medium px-3 py-1.5 rounded-full">🌱 ESG / Socially Responsible</span>
-                )}
-                {profile.crypto_preference && (
-                  <span className="bg-purple-50 text-purple-800 text-sm font-medium px-3 py-1.5 rounded-full border border-purple-100">₿ Digital Assets / Crypto</span>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-forest-400 italic">No special investment preferences indicated.</p>
-            )}
+            ))}
           </div>
-        ))}
         </div>
-      </div>
+      )}
 
       <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
 
@@ -419,6 +423,7 @@ export default function ReportDetailPage() {
   const [reportName, setReportName] = useState('')
   const [members, setMembers] = useState<MemberData[]>([])
   const [advisorNotes, setAdvisorNotes] = useState('')
+  const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [loading, setLoading] = useState(true)
 
   const loadData = useCallback(async () => {
@@ -431,6 +436,14 @@ export default function ReportDetailPage() {
     if (!hh) { setLoading(false); return }
     setReportName(hh.name)
     setAdvisorNotes((hh as { advisor_notes?: string | null }).advisor_notes ?? '')
+
+    // Load advisor's investment preferences
+    const { data: prefs } = await supabase
+      .from('investment_preferences')
+      .select('*')
+      .eq('advisor_id', (hh as { advisor_id: string }).advisor_id)
+      .order('sort_order', { ascending: true })
+    setPreferences(prefs ?? [])
 
     const memberRows: MemberData[] = []
     for (const m of (hh.household_members as { client_id: string }[])) {
@@ -503,6 +516,7 @@ export default function ReportDetailPage() {
           category={category}
           advisorNotes={advisorNotes}
           onSaveNotes={handleSaveNotes}
+          preferences={preferences}
         />
       ) : (
         <SingleClientReport
@@ -510,6 +524,7 @@ export default function ReportDetailPage() {
           category={category}
           advisorNotes={advisorNotes}
           onSaveNotes={handleSaveNotes}
+          preferences={preferences}
         />
       )}
     </div>

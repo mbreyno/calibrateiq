@@ -304,20 +304,7 @@ export default function ClientDetailPage() {
               <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
             </div>
 
-            {/* Preferences — full width if present */}
-            {(profile.esg_preference || profile.crypto_preference) && (
-              <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-                <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
-                <div className="flex gap-2 flex-wrap">
-                  {profile.esg_preference && (
-                    <span className="bg-forest-100 text-forest-800 text-sm font-medium px-3 py-1.5 rounded-full">🌱 ESG / Socially Responsible</span>
-                  )}
-                  {profile.crypto_preference && (
-                    <span className="bg-purple-50 text-purple-800 text-sm font-medium px-3 py-1.5 rounded-full border border-purple-100">₿ Digital Assets / Crypto</span>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Preferences shown in Reports view */}
 
             {/* Advisor Notes */}
             <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />

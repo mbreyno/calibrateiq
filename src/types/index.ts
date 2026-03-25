@@ -29,9 +29,8 @@ export interface QuestionnaireResponse {
   q4: number | null  // Normal market expectations
   q5: number | null  // Poor market performance expectations
   q6: number | null  // 3-year performance attitude
-  // Informational (not scored)
-  q7_esg: boolean
-  q7_crypto: boolean
+  // Investment preferences (dynamic, advisor-configured)
+  selected_preferences?: string[] | null  // array of InvestmentPreference IDs
   // Risk Tolerance continued
   q8: number | null  // 3-month performance attitude
   comments: string
@@ -46,8 +45,7 @@ export interface RiskProfile {
   overall_category: RiskCategory
   capacity_normalized: number       // 0–100
   tolerance_normalized: number      // 0–100
-  esg_preference: boolean
-  crypto_preference: boolean
+  selected_preferences?: string[]   // array of InvestmentPreference IDs selected by client
   comments: string
   client_name?: string              // Set by the dashboard after loading client data
 }
@@ -139,3 +137,12 @@ export interface InfoQuestion {
 }
 
 export type Question = ScoredQuestion | InfoQuestion
+
+export interface InvestmentPreference {
+  id: string
+  advisor_id: string
+  label: string
+  icon: string
+  sort_order: number
+  created_at: string
+}
