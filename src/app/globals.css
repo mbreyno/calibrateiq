@@ -23,21 +23,89 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Print styles for IPS export */
+/* Print styles for report export */
 @media print {
-  .no-print {
-    display: none !important;
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+
+  /* Zero @page margins = full-bleed cream background on every page */
+  @page { margin: 0; size: letter; }
+
+  /* Cream fills the full page surface on every page */
+  html, body {
+    background: #fefae0 !important;
+    color: #1b4332 !important;
+    font-size: 11pt !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
-  .print-only {
-    display: block !important;
+
+  .min-h-screen { min-height: 0 !important; height: auto !important; }
+
+  /* Sidebar gone; main owns all page padding */
+  main { margin-left: 0 !important; padding: 0 !important; }
+
+  /* Strip the page component's own padding (pt-20 mobile nav offset) */
+  main > div:first-child { padding: 0 !important; margin: 0 !important; }
+
+  /* xl: breakpoint (1280px) never fires — Chrome prints at ~816px */
+  .xl\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  body {
-    background: white !important;
-    color: black !important;
+
+  /* Force colored backgrounds to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  @page {
-    margin: 1in;
-    size: letter;
+
+  .shadow-card, .shadow-elevated { box-shadow: none !important; }
+
+  /* Medium-sized cards: avoid splitting across pages */
+  .rounded-2xl:not(.survey-card):not(.portfolio-legend-card) {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Small boxes (individual category tiles, gauge boxes): never split */
+  .rounded-xl {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Score gauge rows: keep together */
+  .flex.gap-3, .flex.gap-4 {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Individual Q&A blocks: avoid mid-question splits */
+  .border-b.border-cream-100 {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Explicit print-page sections */
+  /* Page 1: no forced break, just inner padding */
+  .print-page-1 {
+    padding: 0.55in 0.65in;
+  }
+
+  /* Pages 2+: forced page break, fill one letter-size sheet, flex-center content */
+  .print-center-page {
+    break-before: page;
+    height: 11in;
+    box-sizing: border-box;
+    padding: 0.55in 0.65in;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  /* Suppress space-y margins inside flex-centered print pages */
+  .print-center-page > * + * {
+    margin-top: 0 !important;
   }
 }
 

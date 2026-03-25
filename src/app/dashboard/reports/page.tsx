@@ -17,6 +17,8 @@ export default function ReportsPage() {
 
   const [reports, setReports] = useState<Report[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [completedAtMap, setCompletedAtMap] = useState<Record<string, string>>({})
+  const [advisorTimezone, setAdvisorTimezone] = useState('America/New_York')
   const [loading, setLoading] = useState(true)
 
   // Create report modal state
@@ -34,9 +36,33 @@ export default function ReportsPage() {
   // Client name lookup
   const clientMap = Object.fromEntries(clients.map(c => [c.id, `${c.first_name} ${c.last_name}`]))
 
+  const formatSurveyDate = (clientId: string) => {
+    const ts = completedAtMap[clientId]
+    if (!ts) return ''
+    const d = new Date(ts)
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: advisorTimezone }) +
+      ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: advisorTimezone })
+  }
+
+  // Sort completed clients by most recent survey first
+  const sortedCompletedClients = [...clients]
+    .filter(c => c.status === 'completed')
+    .sort((a, b) => {
+      const ta = completedAtMap[a.id] ? new Date(completedAtMap[a.id]).getTime() : 0
+      const tb = completedAtMap[b.id] ? new Date(completedAtMap[b.id]).getTime() : 0
+      return tb - ta
+    })
+
   const loadData = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    const { data: advisor } = await supabase
+      .from('advisors')
+      .select('timezone')
+      .eq('user_id', user.id)
+      .single()
+    if (advisor?.timezone) setAdvisorTimezone(advisor.timezone)
 
     const [{ data: rpts }, { data: cls }] = await Promise.all([
       supabase.from('households').select('id, name, created_at, household_members(client_id)').order('created_at', { ascending: false }),
@@ -45,12 +71,25 @@ export default function ReportsPage() {
 
     setReports((rpts ?? []) as Report[])
     setClients(cls ?? [])
+
+    // Fetch survey completion dates filtered by known client IDs to avoid RLS issues
+    const completedIds = (cls ?? []).filter(c => c.status === 'completed').map(c => c.id)
+    if (completedIds.length > 0) {
+      const { data: resps } = await supabase
+        .from('questionnaire_responses')
+        .select('client_id, completed_at')
+        .in('client_id', completedIds)
+      const map: Record<string, string> = {}
+      for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
+      setCompletedAtMap(map)
+    }
+
     setLoading(false)
   }
 
   useEffect(() => { loadData() }, [])
 
-  const completedClients = clients.filter(c => c.status === 'completed')
+  const completedClients = clients.filter(c => c.status === 'completed') // used for empty-state check only
 
   const handleCreateReport = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -215,8 +254,8 @@ export default function ReportsPage() {
                 <select required value={member1} onChange={e => setMember1(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent">
                   <option value="">Select a completed survey…</option>
-                  {completedClients.map(c => (
-                    <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                  {sortedCompletedClients.map(c => (
+                    <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {formatSurveyDate(c.id)}</option>
                   ))}
                 </select>
               </div>
@@ -227,8 +266,8 @@ export default function ReportsPage() {
                 <select value={member2} onChange={e => setMember2(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent">
                   <option value="">Individual report (no second client)</option>
-                  {completedClients.filter(c => c.id !== member1).map(c => (
-                    <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                  {sortedCompletedClients.filter(c => c.id !== member1).map(c => (
+                    <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {formatSurveyDate(c.id)}</option>
                   ))}
                 </select>
               </div>

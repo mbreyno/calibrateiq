@@ -125,12 +125,12 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-60 bg-forest-900 flex-col z-30">
+      <aside className="no-print hidden lg:flex fixed inset-y-0 left-0 w-60 bg-forest-900 flex-col z-30">
         <NavContent />
       </aside>
 
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 inset-x-0 z-30 bg-forest-900 flex items-center justify-between px-4 h-14 border-b border-forest-800">
+      <div className="no-print lg:hidden fixed top-0 inset-x-0 z-30 bg-forest-900 flex items-center justify-between px-4 h-14 border-b border-forest-800">
         <div className="flex items-center gap-2">
           <LogoMark />
           <span className="text-sm font-bold text-cream-100">{advisor?.firm_name || 'CalibrateIQ'}</span>

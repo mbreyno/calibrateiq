@@ -20,17 +20,17 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 // ─── Brand header ─────────────────────────────────────────────────────────────
 function BrandHeader({ advisor }: { advisor: Advisor | null }) {
   return (
-    <header className="bg-white border-b border-cream-300 px-5 py-4">
-      <div className="max-w-lg mx-auto flex items-center gap-3">
+    <header className="bg-white border-b border-cream-300 px-5 py-6">
+      <div className="max-w-lg mx-auto flex flex-col items-center gap-3 text-center">
         {advisor?.logo_url ? (
-          <Image src={advisor.logo_url} alt={`${advisor.firm_name} logo`} width={36} height={36} className="rounded-lg object-contain" />
+          <Image src={advisor.logo_url} alt={`${advisor.firm_name} logo`} width={80} height={80} className="rounded-xl object-contain" />
         ) : (
-          <div className="w-9 h-9 rounded-lg bg-forest-200 flex items-center justify-center text-sm font-bold text-forest-800">
+          <div className="w-20 h-20 rounded-xl bg-forest-200 flex items-center justify-center text-2xl font-bold text-forest-800">
             {advisor?.firm_name?.[0] ?? 'A'}
           </div>
         )}
         <div>
-          <div className="text-sm font-bold text-forest-900">{advisor?.firm_name ?? 'Investment Questionnaire'}</div>
+          <div className="text-base font-bold text-forest-900">{advisor?.firm_name ?? 'Investment Questionnaire'}</div>
           <div className="text-xs text-forest-500">Investment Profile Questionnaire</div>
         </div>
       </div>

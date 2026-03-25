@@ -5,6 +5,24 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import type { InvestmentPreference } from '@/types'
 
+// Timezone options
+const TIMEZONES = [
+  { value: 'America/New_York',    label: 'Eastern Time (ET) — New York' },
+  { value: 'America/Chicago',     label: 'Central Time (CT) — Chicago' },
+  { value: 'America/Denver',      label: 'Mountain Time (MT) — Denver' },
+  { value: 'America/Phoenix',     label: 'Mountain Time — Phoenix (no DST)' },
+  { value: 'America/Los_Angeles', label: 'Pacific Time (PT) — Los Angeles' },
+  { value: 'America/Anchorage',   label: 'Alaska Time (AKT) — Anchorage' },
+  { value: 'Pacific/Honolulu',    label: 'Hawaii Time (HST) — Honolulu' },
+  { value: 'America/Puerto_Rico', label: 'Atlantic Time (AT) — Puerto Rico' },
+  { value: 'Europe/London',       label: 'Greenwich Mean Time (GMT) — London' },
+  { value: 'Europe/Paris',        label: 'Central European Time (CET) — Paris' },
+  { value: 'Asia/Dubai',          label: 'Gulf Standard Time (GST) — Dubai' },
+  { value: 'Asia/Singapore',      label: 'Singapore Time (SGT) — Singapore' },
+  { value: 'Asia/Tokyo',          label: 'Japan Standard Time (JST) — Tokyo' },
+  { value: 'Australia/Sydney',    label: 'Australian Eastern Time (AET) — Sydney' },
+]
+
 // Common emoji options for investment preference icons
 const EMOJI_OPTIONS = [
   '🌱', '📈', '₿', '🏠', '💰', '🛡️', '🌍', '🎯', '💎', '⚡',
@@ -59,6 +77,7 @@ export default function SettingsPage() {
 
   // Firm settings
   const [firmName, setFirmName] = useState('')
+  const [timezone, setTimezone] = useState('America/New_York')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [advisorId, setAdvisorId] = useState<string | null>(null)
   const [masterToken, setMasterToken] = useState<string | null>(null)
@@ -97,6 +116,7 @@ export default function SettingsPage() {
       if (advisor) {
         setAdvisorId(advisor.id)
         setFirmName(advisor.firm_name ?? '')
+        setTimezone(advisor.timezone ?? 'America/New_York')
         setLogoUrl(advisor.logo_url ?? null)
         setMasterToken(advisor.master_token ?? null)
         loadPreferences(advisor.id)
@@ -245,7 +265,7 @@ export default function SettingsPage() {
 
     const { error: updateError } = await supabase
       .from('advisors')
-      .update({ firm_name: firmName })
+      .update({ firm_name: firmName, timezone })
       .eq('id', advisorId)
 
     if (updateError) {
@@ -366,6 +386,21 @@ export default function SettingsPage() {
             />
             <p className="text-xs text-forest-500 mt-2">This name appears on your client questionnaires and reports.</p>
           </div>
+        </div>
+
+        {/* Timezone */}
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="font-semibold text-forest-900 mb-1">Time Zone</h2>
+          <p className="text-xs text-forest-500 mb-4">Used to display survey completion times throughout the app.</p>
+          <select
+            value={timezone}
+            onChange={e => setTimezone(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
+          >
+            {TIMEZONES.map(tz => (
+              <option key={tz.value} value={tz.value}>{tz.label}</option>
+            ))}
+          </select>
         </div>
 
         {/* Preview */}

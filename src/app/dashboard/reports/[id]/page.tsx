@@ -14,6 +14,15 @@ import {
 } from '@/lib/scoring'
 import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory, InvestmentPreference } from '@/types'
 
+// ─── Date helper ──────────────────────────────────────────────────────────────
+
+function formatSurveyDate(ts: string | undefined, tz: string): string {
+  if (!ts) return ''
+  const d = new Date(ts)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: tz }) +
+    ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz })
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function calcAge(dob: string | null | undefined): string {
@@ -94,15 +103,14 @@ function MiniGauge({ score, max, label, primary }: { score: number; max: number;
   const pct = Math.round((score / max) * 100)
   const color = primary ? '#1b4332' : '#74c69d'
   return (
-    <div className={`flex-1 rounded-xl p-4 ${primary ? 'bg-white border-2' : 'bg-cream-50 border'}`}
+    <div className={`flex-1 rounded-xl p-4 print:p-3 ${primary ? 'bg-white border-2' : 'bg-cream-50 border'}`}
       style={{ borderColor: primary ? color : '#e8e0cc' }}>
-      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: primary ? color : '#6b7d6a' }}>
+      <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide print:tracking-normal mb-2" style={{ color: primary ? color : '#6b7d6a' }}>
         {primary ? <ShieldIcon /> : <SlidersIcon />}
-        {label}
-        {primary && <span className="ml-1 text-xs font-medium opacity-60 normal-case tracking-normal">Primary</span>}
+        <span className="truncate">{label}</span>
       </div>
       <div className="flex items-end gap-1.5 mb-2">
-        <span className={`font-bold leading-none ${primary ? 'text-4xl text-forest-900' : 'text-2xl text-forest-600'}`}>{score}</span>
+        <span className={`font-bold leading-none ${primary ? 'text-4xl print:text-2xl text-forest-900' : 'text-2xl print:text-xl text-forest-600'}`}>{score}</span>
         <span className="text-xs text-forest-400 mb-0.5">/ {max}</span>
       </div>
       <div className="h-1.5 bg-cream-200 rounded-full overflow-hidden">
@@ -116,30 +124,30 @@ function MiniGauge({ score, max, label, primary }: { score: number; max: number;
 
 function SurveyResponses({ responses }: { responses: QuestionnaireResponse }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 print:space-y-2">
       {QUESTIONS.filter(q => q.type === 'radio').map((q) => {
         const key = q.id as keyof QuestionnaireResponse
         const score = responses[key]
         if (typeof score !== 'number') return null
         const selectedOption = q.type === 'radio' ? q.options.find(o => o.score === score) : null
         return (
-          <div key={q.id} className="border-b border-cream-100 pb-5 last:border-0 last:pb-0">
-            <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-2"
+          <div key={q.id} className="border-b border-cream-100 pb-5 print:pb-2 last:border-0 last:pb-0">
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-2 print:mb-0.5"
               style={{ color: q.category === 'capacity' ? '#1b4332' : '#74c69d' }}>
               <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: q.category === 'capacity' ? '#1b4332' : '#74c69d' }} />
               {q.category === 'capacity' ? 'Risk Capacity' : 'Risk Preference'}
             </div>
-            <p className="text-sm font-medium text-forest-900 mb-1.5">{q.question}</p>
-            <p className="text-sm text-forest-700 bg-cream-50 rounded-lg px-3 py-2 border border-cream-200 inline-block">
+            <p className="text-sm print:text-xs font-medium text-forest-900 mb-1.5 print:mb-0.5">{q.question}</p>
+            <p className="text-sm print:text-xs text-forest-700 bg-cream-50 rounded-lg px-3 print:px-2 py-2 print:py-1 border border-cream-200 inline-block">
               {selectedOption?.label ?? '—'}
             </p>
           </div>
         )
       })}
       {responses.comments && (
-        <div className="bg-cream-100 rounded-xl p-4 border border-cream-200">
-          <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1.5">Additional Comments</div>
-          <p className="text-sm text-forest-700 leading-relaxed">&ldquo;{responses.comments}&rdquo;</p>
+        <div className="bg-cream-100 rounded-xl p-4 print:p-2 border border-cream-200">
+          <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1.5 print:mb-0.5">Additional Comments</div>
+          <p className="text-sm print:text-xs text-forest-700 leading-relaxed">&ldquo;{responses.comments}&rdquo;</p>
         </div>
       )}
     </div>
@@ -169,11 +177,11 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
         <h2 className="font-semibold text-forest-900">Advisor Notes</h2>
         {!editing ? (
           <button onClick={() => setEditing(true)}
-            className="text-xs font-semibold text-forest-600 hover:text-forest-900 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
+            className="no-print text-xs font-semibold text-forest-600 hover:text-forest-900 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
             Edit
           </button>
         ) : (
-          <div className="flex gap-2">
+          <div className="no-print flex gap-2">
             <button onClick={() => { setEditing(false); setValue(initialNotes) }}
               className="text-xs font-semibold text-forest-500 hover:text-forest-700 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
               Cancel
@@ -217,7 +225,7 @@ function InvestorAcceptance() {
 function PortfolioLegend({ members, category }: { members: MemberData[]; category: RiskCategory }) {
   const isCouple = members.length === 2
   return (
-    <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+    <div className="portfolio-legend-card bg-white rounded-2xl border border-cream-300 shadow-card p-6">
       <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         {(['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income'] as RiskCategory[]).map(cat => {
@@ -275,141 +283,220 @@ function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: strin
 
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences }: {
+function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName }: {
   member: MemberData
   category: RiskCategory
   advisorNotes: string
   onSaveNotes: (n: string) => Promise<void>
   preferences: InvestmentPreference[]
+  advisorFirmName: string
+  advisorLogoUrl: string | null
+  reportName: string
 }) {
   const { profile, responses } = member
   const color = CATEGORY_COLORS[category]
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-        <div className="text-sm font-semibold opacity-80 mb-1">Overall Risk Category</div>
-        <div className="text-3xl font-bold mb-2">{category}</div>
-        <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
-        <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
-      </div>
+    <div className="space-y-5 print:space-y-0">
 
-      <div className="flex gap-4">
-        <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" primary={true} />
-        <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
-      </div>
+      {/* ── Print Page 1: category banner + scores + prefs + notes ── */}
+      <div className="print-page-1 space-y-5">
 
-      {preferences.length > 0 && (
-        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-          <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
-          <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
+        {/* Print-only branded header */}
+        <div className="print-only mb-6 pb-4 border-b-2 border-forest-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {advisorLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={advisorLogoUrl} alt="Firm logo" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
+              ) : (
+                <svg style={{ width: 40, height: 40 }} viewBox="0 0 40 40" fill="none">
+                  <rect width="40" height="40" rx="10" fill="#1b4332" />
+                  <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="30" cy="13" r="3" fill="#d4a017"/>
+                </svg>
+              )}
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#1b4332' }}>{advisorFirmName || 'CalibrateIQ'}</div>
+                <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#1b4332' }}>{reportName}</div>
+              <div>Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+            </div>
+          </div>
         </div>
-      )}
 
-      <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
+          <div className="text-sm font-semibold opacity-80 mb-1">Overall Risk Category</div>
+          <div className="text-3xl font-bold mb-2">{category}</div>
+          <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
+        </div>
 
-      <InvestorAcceptance />
+        <div className="flex gap-4">
+          <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" primary={true} />
+          <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
+        </div>
 
-      <PortfolioLegend members={[member]} category={category} />
+        {preferences.length > 0 && (
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+            <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
+            <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
+          </div>
+        )}
 
-      <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-        <h2 className="font-semibold text-forest-900 mb-5">Survey Responses</h2>
-        <SurveyResponses responses={responses} />
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
+
+      {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
+      <div className="print-center-page space-y-5">
+        <InvestorAcceptance />
+        <PortfolioLegend members={[member]} category={category} />
+      </div>
+
+      {/* ── Print Page 3: Survey responses, centered ── */}
+      <div className="print-center-page">
+        <div className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
+          <h2 className="font-semibold text-forest-900 mb-5 print:mb-3">Survey Responses</h2>
+          <SurveyResponses responses={responses} />
+        </div>
+      </div>
+
     </div>
   )
 }
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences }: {
+function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName }: {
   members: MemberData[]
   category: RiskCategory
   advisorNotes: string
   onSaveNotes: (n: string) => Promise<void>
   preferences: InvestmentPreference[]
+  advisorFirmName: string
+  advisorLogoUrl: string | null
+  reportName: string
 }) {
   const [m1, m2] = members
   const color = CATEGORY_COLORS[category]
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-        <div className="text-sm font-semibold opacity-80 mb-1">Combined Household Category</div>
-        <div className="text-3xl font-bold mb-2">{category}</div>
-        <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
-        <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
-      </div>
+    <div className="space-y-5 print:space-y-0">
 
-      {/* Side-by-side member score cards */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        {members.map(({ client, profile }) => {
-          const catColor = CATEGORY_COLORS[profile.overall_category]
-          return (
-            <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-forest-200 flex items-center justify-center text-sm font-bold text-forest-800 flex-shrink-0">
-                    {client.first_name[0]}{client.last_name[0]}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-forest-900">{client.first_name} {client.last_name}</div>
-                    <div className="text-xs text-forest-500">{calcAge(client.date_of_birth)}</div>
-                  </div>
-                </div>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: catColor }}>
-                  {profile.overall_category}
-                </span>
-              </div>
-              <div className="flex gap-3">
-                <MiniGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" primary={true} />
-                <MiniGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" primary={false} />
+      {/* ── Print Page 1: category banner + member cards + prefs + notes ── */}
+      <div className="print-page-1 space-y-5">
+
+        {/* Print-only branded header */}
+        <div className="print-only mb-6 pb-4 border-b-2 border-forest-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {advisorLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={advisorLogoUrl} alt="Firm logo" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
+              ) : (
+                <svg style={{ width: 40, height: 40 }} viewBox="0 0 40 40" fill="none">
+                  <rect width="40" height="40" rx="10" fill="#1b4332" />
+                  <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="30" cy="13" r="3" fill="#d4a017"/>
+                </svg>
+              )}
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#1b4332' }}>{advisorFirmName || 'CalibrateIQ'}</div>
+                <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
               </div>
             </div>
-          )
-        })}
-      </div>
-
-      {/* Investment preferences — per member */}
-      {preferences.length > 0 && (
-        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-          <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            {members.map(({ client, profile }) => (
-              <div key={client.id} className="bg-cream-50 rounded-xl border border-cream-200 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
-                    {client.first_name[0]}{client.last_name[0]}
-                  </div>
-                  <span className="font-semibold text-forest-900 text-sm">{client.first_name} {client.last_name}</span>
-                </div>
-                <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
-              </div>
-            ))}
+            <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#1b4332' }}>{reportName}</div>
+              <div>Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+            </div>
           </div>
         </div>
-      )}
 
-      <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
+          <div className="text-sm font-semibold opacity-80 mb-1">Combined Household Category</div>
+          <div className="text-3xl font-bold mb-2">{category}</div>
+          <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
+        </div>
 
-      <InvestorAcceptance />
-
-      <PortfolioLegend members={members} category={category} />
-
-      {/* Survey Q&A — side by side */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        {[m1, m2].map(({ client, responses }) => (
-          <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
-                {client.first_name[0]}{client.last_name[0]}
+        {/* Side-by-side member score cards */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          {members.map(({ client, profile }) => {
+            const catColor = CATEGORY_COLORS[profile.overall_category]
+            return (
+              <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4 space-y-4 print:space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-forest-200 flex items-center justify-center text-sm font-bold text-forest-800 flex-shrink-0">
+                      {client.first_name[0]}{client.last_name[0]}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-forest-900">{client.first_name} {client.last_name}</div>
+                      <div className="text-xs text-forest-500">{calcAge(client.date_of_birth)}</div>
+                    </div>
+                  </div>
+                  <span className="text-xs print:text-[10px] font-bold px-2.5 print:px-2 py-1 rounded-full text-white flex-shrink-0" style={{ backgroundColor: catColor }}>
+                    {profile.overall_category}
+                  </span>
+                </div>
+                <div className="flex gap-3 print:gap-2">
+                  <MiniGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" primary={true} />
+                  <MiniGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" primary={false} />
+                </div>
               </div>
-              <h2 className="font-semibold text-forest-900">{client.first_name} {client.last_name} — Survey Responses</h2>
+            )
+          })}
+        </div>
+
+        {/* Investment preferences — per member */}
+        {preferences.length > 0 && (
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+            <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              {members.map(({ client, profile }) => (
+                <div key={client.id} className="bg-cream-50 rounded-xl border border-cream-200 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                      {client.first_name[0]}{client.last_name[0]}
+                    </div>
+                    <span className="font-semibold text-forest-900 text-sm">{client.first_name} {client.last_name}</span>
+                  </div>
+                  <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
+                </div>
+              ))}
             </div>
-            <SurveyResponses responses={responses} />
           </div>
-        ))}
+        )}
+
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
+
+      {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
+      <div className="print-center-page space-y-5">
+        <InvestorAcceptance />
+        <PortfolioLegend members={members} category={category} />
+      </div>
+
+      {/* ── Print Page 3: Survey Q&A side-by-side, centered ── */}
+      <div className="print-center-page">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          {[m1, m2].map(({ client, responses }) => (
+            <div key={client.id} className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
+              <div className="flex items-center gap-2 mb-5 print:mb-3">
+                <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                  {client.first_name[0]}{client.last_name[0]}
+                </div>
+                <h2 className="font-semibold print:text-sm text-forest-900">{client.first_name} {client.last_name} — Survey Responses</h2>
+              </div>
+              <SurveyResponses responses={responses} />
+            </div>
+          ))}
+        </div>
+      </div>
+
     </div>
   )
 }
@@ -425,6 +512,19 @@ export default function ReportDetailPage() {
   const [advisorNotes, setAdvisorNotes] = useState('')
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [loading, setLoading] = useState(true)
+  const [advisorFirmName, setAdvisorFirmName] = useState('')
+  const [advisorLogoUrl, setAdvisorLogoUrl] = useState<string | null>(null)
+
+  // Edit modal
+  const [allClients, setAllClients] = useState<Client[]>([])
+  const [completedAtMap, setCompletedAtMap] = useState<Record<string, string>>({})
+  const [advisorTimezone, setAdvisorTimezone] = useState('America/New_York')
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editMember1, setEditMember1] = useState('')
+  const [editMember2, setEditMember2] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
     const { data: hh } = await supabase
@@ -437,13 +537,23 @@ export default function ReportDetailPage() {
     setReportName(hh.name)
     setAdvisorNotes((hh as { advisor_notes?: string | null }).advisor_notes ?? '')
 
-    // Load advisor's investment preferences
-    const { data: prefs } = await supabase
-      .from('investment_preferences')
-      .select('*')
-      .eq('advisor_id', (hh as { advisor_id: string }).advisor_id)
-      .order('sort_order', { ascending: true })
+    const advisorId = (hh as { advisor_id: string }).advisor_id
+
+    // Load advisor preferences, timezone, and all completed clients in parallel
+    const [{ data: prefs }, { data: advisorRow }, { data: allCls }, { data: resps }] = await Promise.all([
+      supabase.from('investment_preferences').select('*').eq('advisor_id', advisorId).order('sort_order', { ascending: true }),
+      supabase.from('advisors').select('timezone, firm_name, logo_url').eq('id', advisorId).single(),
+      supabase.from('clients').select('*').eq('advisor_id', advisorId).eq('status', 'completed').order('first_name'),
+      supabase.from('questionnaire_responses').select('client_id, completed_at'),
+    ])
     setPreferences(prefs ?? [])
+    if (advisorRow?.timezone) setAdvisorTimezone(advisorRow.timezone)
+    if (advisorRow?.firm_name) setAdvisorFirmName(advisorRow.firm_name)
+    setAdvisorLogoUrl(advisorRow?.logo_url ?? null)
+    setAllClients(allCls ?? [])
+    const map: Record<string, string> = {}
+    for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
+    setCompletedAtMap(map)
 
     const memberRows: MemberData[] = []
     for (const m of (hh.household_members as { client_id: string }[])) {
@@ -461,6 +571,52 @@ export default function ReportDetailPage() {
   }, [id])
 
   useEffect(() => { loadData() }, [loadData])
+
+  const sortedClients = [...allClients].sort((a, b) => {
+    const ta = completedAtMap[a.id] ? new Date(completedAtMap[a.id]).getTime() : 0
+    const tb = completedAtMap[b.id] ? new Date(completedAtMap[b.id]).getTime() : 0
+    return tb - ta
+  })
+
+  const handleOpenEdit = () => {
+    setEditName(reportName)
+    setEditMember1(members[0]?.client.id ?? '')
+    setEditMember2(members[1]?.client.id ?? '')
+    setEditError(null)
+    setShowEditModal(true)
+  }
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (editMember2 && editMember1 === editMember2) {
+      setEditError('Please select two different clients.')
+      return
+    }
+    setEditSaving(true)
+    setEditError(null)
+
+    // Update report name
+    const { error: nameErr } = await supabase
+      .from('households')
+      .update({ name: editName })
+      .eq('id', id)
+
+    if (nameErr) { setEditError(nameErr.message); setEditSaving(false); return }
+
+    // Replace members: delete existing, insert new
+    await supabase.from('household_members').delete().eq('household_id', id)
+
+    const newMembers = [{ household_id: id, client_id: editMember1 }]
+    if (editMember2) newMembers.push({ household_id: id, client_id: editMember2 })
+
+    const { error: membersErr } = await supabase.from('household_members').insert(newMembers)
+
+    if (membersErr) { setEditError(membersErr.message); setEditSaving(false); return }
+
+    setShowEditModal(false)
+    setEditSaving(false)
+    loadData()
+  }
 
   const handleSaveNotes = async (notes: string) => {
     await supabase.from('households').update({ advisor_notes: notes } as never).eq('id', id)
@@ -486,8 +642,8 @@ export default function ReportDetailPage() {
 
   return (
     <div className="p-6 lg:p-8 pt-20 lg:pt-8">
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-6">
+      {/* Screen header */}
+      <div className="no-print flex items-start gap-4 mb-6">
         <Link href="/dashboard/reports" className="mt-1 text-forest-600 hover:text-forest-900">
           <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd"/>
@@ -508,7 +664,91 @@ export default function ReportDetailPage() {
             {members.map(m => `${m.client.first_name} ${m.client.last_name} (${calcAge(m.client.date_of_birth)})`).join(' & ')}
           </p>
         </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 text-sm font-medium bg-forest-900 text-cream-100 px-4 py-2 rounded-xl hover:bg-forest-800 transition-colors"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+              {/* Document body */}
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="currentColor" opacity="0.9"/>
+              {/* Folded corner */}
+              <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+              {/* PDF label */}
+              <text x="5" y="19.5" fontSize="5.5" fontWeight="900" fill="#1b4332" fontFamily="Arial, sans-serif" letterSpacing="0.5">PDF</text>
+            </svg>
+            Export PDF
+          </button>
+          <button
+            onClick={handleOpenEdit}
+            className="inline-flex items-center gap-1.5 text-sm font-medium border border-cream-300 text-forest-700 px-4 py-2 rounded-xl hover:bg-cream-50 transition-colors"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+            </svg>
+            Edit Report
+          </button>
+        </div>
       </div>
+
+      {/* Edit Report Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-elevated w-full max-w-md p-6">
+            <h2 className="text-lg font-bold text-forest-900 mb-1">Edit Report</h2>
+            <p className="text-sm text-forest-600 mb-5">Update the report name or change which surveys are included.</p>
+
+            {editError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{editError}</div>
+            )}
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-forest-800 mb-1.5">Report name *</label>
+                <input type="text" required value={editName} onChange={e => setEditName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-forest-800 mb-1.5">Client *</label>
+                <select required value={editMember1} onChange={e => setEditMember1(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent">
+                  <option value="">Select a completed survey…</option>
+                  {sortedClients.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.first_name} {c.last_name} — {formatSurveyDate(completedAtMap[c.id], advisorTimezone)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-forest-800 mb-1.5">
+                  Second client <span className="text-forest-500 font-normal">(optional — for couples)</span>
+                </label>
+                <select value={editMember2} onChange={e => setEditMember2(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent">
+                  <option value="">Individual report (no second client)</option>
+                  {sortedClients.filter(c => c.id !== editMember1).map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.first_name} {c.last_name} — {formatSurveyDate(completedAtMap[c.id], advisorTimezone)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowEditModal(false)}
+                  className="flex-1 border border-cream-300 text-forest-700 font-medium text-sm py-3 rounded-xl hover:bg-cream-50">
+                  Cancel
+                </button>
+                <button type="submit" disabled={editSaving}
+                  className="flex-1 bg-forest-900 text-cream-100 font-semibold text-sm py-3 rounded-xl hover:bg-forest-800 disabled:opacity-60">
+                  {editSaving ? 'Saving…' : 'Save changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {isCouple ? (
         <CoupleReport
@@ -517,6 +757,9 @@ export default function ReportDetailPage() {
           advisorNotes={advisorNotes}
           onSaveNotes={handleSaveNotes}
           preferences={preferences}
+          advisorFirmName={advisorFirmName}
+          advisorLogoUrl={advisorLogoUrl}
+          reportName={reportName}
         />
       ) : (
         <SingleClientReport
@@ -525,6 +768,9 @@ export default function ReportDetailPage() {
           advisorNotes={advisorNotes}
           onSaveNotes={handleSaveNotes}
           preferences={preferences}
+          advisorFirmName={advisorFirmName}
+          advisorLogoUrl={advisorLogoUrl}
+          reportName={reportName}
         />
       )}
     </div>

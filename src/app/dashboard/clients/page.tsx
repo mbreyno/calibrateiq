@@ -39,12 +39,12 @@ export default function ClientsPage() {
   const loadClients = async () => {
     const [{ data: clientsData }, { data: responsesData }] = await Promise.all([
       supabase.from('clients').select('*').order('created_at', { ascending: false }),
-      supabase.from('questionnaire_responses').select('client_id, created_at'),
+      supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
     setClients(clientsData ?? [])
     const map: Record<string, string> = {}
     for (const r of (responsesData ?? [])) {
-      map[r.client_id] = r.created_at
+      map[r.client_id] = r.completed_at
     }
     setCompletedAtMap(map)
     setLoading(false)
