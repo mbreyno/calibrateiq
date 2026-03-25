@@ -483,49 +483,87 @@ export default function LandingPage() {
             </ul>
           </div>
 
-          {/* Survey mockup */}
-          <div className="bg-cream-100 rounded-2xl border border-cream-300 shadow-elevated overflow-hidden">
-            {/* Survey header */}
-            <div className="bg-white border-b border-cream-300 px-5 py-5 flex flex-col items-center gap-3 text-center">
-              <div className="w-14 h-14 rounded-xl bg-forest-900 flex items-center justify-center">
-                <LogoMark className="w-10 h-10" />
+          {/* Survey mockup — two stacked question previews */}
+          <div className="space-y-3">
+
+            {/* Question 2 — Risk Capacity */}
+            <div className="bg-white rounded-2xl border border-cream-300 shadow-card overflow-hidden">
+              <div className="bg-white border-b border-cream-200 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-forest-900 flex items-center justify-center flex-shrink-0">
+                    <LogoMark className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-forest-900 leading-tight">Westbrook Wealth Management</div>
+                    <div className="text-xs text-forest-500">Investment Profile Questionnaire</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-forest-500">2 of 8</span>
+                  <div className="w-16 h-1.5 bg-cream-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-forest-700 rounded-full" style={{ width: '25%' }} />
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm font-bold text-forest-900">Westbrook Wealth Management</div>
-                <div className="text-xs text-forest-500">Investment Profile Questionnaire</div>
+              <div className="p-4">
+                <div className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#1b4332' }}>
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#1b4332' }} />
+                  Risk Capacity
+                </div>
+                <p className="text-sm font-semibold text-forest-900 mb-3 leading-snug">
+                  When do you expect to start drawing income from your investments?
+                </p>
+                <div className="space-y-1.5">
+                  {[
+                    { label: 'Not for at least 20 years', selected: false },
+                    { label: 'In 11 to 19 years', selected: true },
+                    { label: 'In 6 to 10 years', selected: false },
+                    { label: 'In 1 to 5 years', selected: false },
+                    { label: 'Within 1 year', selected: false },
+                  ].map(opt => (
+                    <div key={opt.label} className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-xs cursor-pointer ${opt.selected ? 'border-forest-700 bg-forest-50 font-semibold text-forest-900' : 'border-cream-200 bg-cream-50 text-forest-700'}`}>
+                      <div className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${opt.selected ? 'border-forest-700 bg-forest-700' : 'border-cream-400'}`}>
+                        {opt.selected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                      {opt.label}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Question */}
-            <div className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold text-forest-500 uppercase tracking-wider">Question 3 of 8</span>
-                <div className="flex-1 h-1.5 bg-cream-300 rounded-full overflow-hidden">
-                  <div className="h-full bg-forest-700 rounded-full" style={{ width: '37.5%' }} />
+            {/* Question 6 — Risk Preference */}
+            <div className="bg-white rounded-2xl border border-cream-300 shadow-card overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider" style={{ color: '#52b788' }}>
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#52b788' }} />
+                    Risk Preference
+                  </div>
+                  <span className="text-xs text-forest-400">6 of 8</span>
+                </div>
+                <p className="text-sm font-semibold text-forest-900 mb-3 leading-snug">
+                  Which best describes your attitudes about this investment&apos;s performance over the next three years?
+                </p>
+                <div className="space-y-1.5">
+                  {[
+                    { label: 'I understand a loss of principal is a realistic possibility', selected: false },
+                    { label: 'I can tolerate a loss', selected: false },
+                    { label: 'I can tolerate a small loss', selected: true },
+                    { label: "I'd have a hard time tolerating any losses", selected: false },
+                    { label: 'I need to at least see some return', selected: false },
+                  ].map(opt => (
+                    <div key={opt.label} className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-xs cursor-pointer ${opt.selected ? 'border-forest-600 bg-forest-50 font-semibold text-forest-900' : 'border-cream-200 bg-cream-50 text-forest-700'}`}>
+                      <div className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${opt.selected ? 'border-forest-600 bg-forest-600' : 'border-cream-400'}`}>
+                        {opt.selected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                      {opt.label}
+                    </div>
+                  ))}
                 </div>
               </div>
-              <p className="text-sm font-semibold text-forest-900 mb-4 leading-relaxed">
-                If your investments dropped 20% in value over six months, what would you most likely do?
-              </p>
-              <div className="space-y-2">
-                {[
-                  { label: 'Sell everything to avoid further losses', selected: false },
-                  { label: 'Move to more conservative investments', selected: false },
-                  { label: 'Hold and wait for recovery', selected: true },
-                  { label: 'Buy more while prices are lower', selected: false },
-                ].map(opt => (
-                  <div key={opt.label} className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm cursor-pointer ${opt.selected ? 'border-forest-700 bg-forest-50 font-semibold text-forest-900' : 'border-cream-300 bg-white text-forest-700'}`}>
-                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${opt.selected ? 'border-forest-700 bg-forest-700' : 'border-cream-400'}`}>
-                      {opt.selected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                    </div>
-                    {opt.label}
-                  </div>
-                ))}
-              </div>
-              <button className="mt-4 w-full bg-forest-900 text-cream-100 text-sm font-semibold py-3 rounded-xl">
-                Next question →
-              </button>
             </div>
+
           </div>
         </div>
       </section>
