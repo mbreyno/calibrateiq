@@ -67,11 +67,12 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
   const brandColor = advisor?.brand_color ?? '#1b4332'
   const brandAccent = advisor?.brand_accent ?? '#d4a017'
   const brandSurface = advisor?.brand_surface ?? '#fefae0'
+  const brandText = advisor?.brand_text ?? advisor?.brand_color ?? '#1b4332'
 
   // Apply full palette CSS variables so Tailwind classes reflect brand colors
   useEffect(() => {
-    applyBrandColors(brandColor, brandAccent, brandSurface)
-  }, [brandColor, brandAccent, brandSurface])
+    applyBrandColors(brandColor, brandAccent, brandSurface, brandText)
+  }, [brandColor, brandAccent, brandSurface, brandText])
 
   const handleSignout = async () => {
     await supabase.auth.signOut()

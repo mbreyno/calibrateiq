@@ -147,6 +147,7 @@ export default function SettingsPage() {
   const brandColorDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const brandAccentDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const brandSurfaceDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const brandTextDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Firm settings
   const [firmName, setFirmName] = useState('')
@@ -160,6 +161,7 @@ export default function SettingsPage() {
   const [brandColor, setBrandColor] = useState('#1b4332')
   const [brandAccent, setBrandAccent] = useState('#d4a017')
   const [brandSurface, setBrandSurface] = useState('#fefae0')
+  const [brandText, setBrandText] = useState('#1b4332')
   const [advisorId, setAdvisorId] = useState<string | null>(null)
   const [masterToken, setMasterToken] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
@@ -202,6 +204,7 @@ export default function SettingsPage() {
         setBrandColor(advisor.brand_color ?? '#1b4332')
         setBrandAccent(advisor.brand_accent ?? '#d4a017')
         setBrandSurface(advisor.brand_surface ?? '#fefae0')
+        setBrandText(advisor.brand_text ?? advisor.brand_color ?? '#1b4332')
         setMasterToken(advisor.master_token ?? null)
         loadPreferences(advisor.id)
       }
@@ -248,7 +251,7 @@ export default function SettingsPage() {
 
   const handleBrandColorChange = (color: string) => {
     setBrandColor(color)
-    applyBrandColors(color, brandAccent, brandSurface)
+    applyBrandColors(color, brandAccent, brandSurface, brandText)
     if (brandColorDebounce.current) clearTimeout(brandColorDebounce.current)
     brandColorDebounce.current = setTimeout(async () => {
       if (!advisorId) return
@@ -258,7 +261,7 @@ export default function SettingsPage() {
 
   const handleBrandAccentChange = (accent: string) => {
     setBrandAccent(accent)
-    applyBrandColors(brandColor, accent, brandSurface)
+    applyBrandColors(brandColor, accent, brandSurface, brandText)
     if (brandAccentDebounce.current) clearTimeout(brandAccentDebounce.current)
     brandAccentDebounce.current = setTimeout(async () => {
       if (!advisorId) return
@@ -268,11 +271,21 @@ export default function SettingsPage() {
 
   const handleBrandSurfaceChange = (surface: string) => {
     setBrandSurface(surface)
-    applyBrandColors(brandColor, brandAccent, surface)
+    applyBrandColors(brandColor, brandAccent, surface, brandText)
     if (brandSurfaceDebounce.current) clearTimeout(brandSurfaceDebounce.current)
     brandSurfaceDebounce.current = setTimeout(async () => {
       if (!advisorId) return
       await supabase.from('advisors').update({ brand_surface: surface }).eq('id', advisorId)
+    }, 500)
+  }
+
+  const handleBrandTextChange = (text: string) => {
+    setBrandText(text)
+    applyBrandColors(brandColor, brandAccent, brandSurface, text)
+    if (brandTextDebounce.current) clearTimeout(brandTextDebounce.current)
+    brandTextDebounce.current = setTimeout(async () => {
+      if (!advisorId) return
+      await supabase.from('advisors').update({ brand_text: text }).eq('id', advisorId)
     }, 500)
   }
 
@@ -587,14 +600,22 @@ export default function SettingsPage() {
               defaultValue="#fefae0"
               onChange={handleBrandSurfaceChange}
             />
+            <ColorField
+              label="Text Color"
+              description="Headings, body copy, labels, and UI text throughout the dashboard and reports."
+              value={brandText}
+              defaultValue="#1b4332"
+              onChange={handleBrandTextChange}
+            />
           </div>
           <div className="mt-5 flex items-center gap-2">
             <div className="h-8 rounded-lg flex-1" style={{ backgroundColor: brandColor }} />
-            <div className="h-8 rounded-lg w-20" style={{ backgroundColor: brandAccent }} />
-            <div className="h-8 rounded-lg w-20 border border-cream-300" style={{ backgroundColor: brandSurface }} />
+            <div className="h-8 rounded-lg w-16" style={{ backgroundColor: brandAccent }} />
+            <div className="h-8 rounded-lg w-16 border border-cream-300" style={{ backgroundColor: brandSurface }} />
+            <div className="h-8 rounded-lg w-16 flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: brandSurface, color: brandText }}>Aa</div>
             <div className="text-xs text-forest-400 flex-shrink-0">Preview</div>
           </div>
-          <p className="text-xs text-forest-400 mt-3">Tip: dark primary, warm accent, and a light neutral background work best for readability.</p>
+          <p className="text-xs text-forest-400 mt-3">Tip: keep text dark and high-contrast against the background for readability.</p>
         </div>
 
         {/* Signature Block */}

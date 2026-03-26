@@ -7,6 +7,7 @@ export interface Advisor {
   brand_color?: string | null
   brand_accent?: string | null
   brand_surface?: string | null
+  brand_text?: string | null
   created_at: string
 }
 

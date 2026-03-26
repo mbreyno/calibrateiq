@@ -2,6 +2,11 @@
  * colorUtils.ts
  * Generates full color palettes from base hex colors and applies them
  * as CSS custom properties, enabling dynamic re-theming of the entire app.
+ *
+ * Palette split strategy:
+ *   forest-950 → forest-700  controlled by `text`    (headings, body copy, buttons)
+ *   forest-600 → forest-50   controlled by `primary`  (tints, light backgrounds)
+ *   --brand-color             controlled by `primary`  (sidebar, used via inline style)
  */
 
 /** Parse a #rrggbb hex string into [r, g, b] (0–255) */
@@ -26,23 +31,31 @@ function mixWithBlack(r: number, g: number, b: number, t: number): string {
 }
 
 /**
- * Generate the "forest" (primary) palette — 11 shades from 950 (very dark) to 50 (very light).
- * The base color maps to shade 900. Darker shades mix with black; lighter shades mix with white.
+ * Generate the "forest" (primary) palette — 11 shades from 950 to 50.
+ *
+ * If `textHex` is provided, dark shades (950–700) derive from the text color
+ * so headings and body copy can be a neutral charcoal while the sidebar and
+ * tints still reflect the brand primary.
+ * Light shades (600–50) always derive from `primaryHex`.
  */
-export function generatePrimary(hex: string): Record<string, string> {
-  const [r, g, b] = hexToRgb(hex)
+export function generatePrimary(primaryHex: string, textHex?: string): Record<string, string> {
+  const [pr, pg, pb] = hexToRgb(primaryHex)
+  const [tr, tg, tb] = textHex ? hexToRgb(textHex) : [pr, pg, pb]
+
   return {
-    '950': mixWithBlack(r, g, b, 0.45),
-    '900': `${r} ${g} ${b}`,                // base = 900
-    '800': mixWithWhite(r, g, b, 0.13),
-    '700': mixWithWhite(r, g, b, 0.26),
-    '600': mixWithWhite(r, g, b, 0.40),
-    '500': mixWithWhite(r, g, b, 0.54),
-    '400': mixWithWhite(r, g, b, 0.65),
-    '300': mixWithWhite(r, g, b, 0.74),
-    '200': mixWithWhite(r, g, b, 0.83),
-    '100': mixWithWhite(r, g, b, 0.91),
-    '50':  mixWithWhite(r, g, b, 0.96),
+    // Dark shades — driven by text color
+    '950': mixWithBlack(tr, tg, tb, 0.45),
+    '900': `${tr} ${tg} ${tb}`,
+    '800': mixWithWhite(tr, tg, tb, 0.13),
+    '700': mixWithWhite(tr, tg, tb, 0.26),
+    // Light shades — driven by primary brand color
+    '600': mixWithWhite(pr, pg, pb, 0.40),
+    '500': mixWithWhite(pr, pg, pb, 0.54),
+    '400': mixWithWhite(pr, pg, pb, 0.65),
+    '300': mixWithWhite(pr, pg, pb, 0.74),
+    '200': mixWithWhite(pr, pg, pb, 0.83),
+    '100': mixWithWhite(pr, pg, pb, 0.91),
+    '50':  mixWithWhite(pr, pg, pb, 0.96),
   }
 }
 
@@ -55,7 +68,7 @@ export function generateAccent(hex: string): Record<string, string> {
   return {
     '700': mixWithBlack(r, g, b, 0.35),
     '600': mixWithBlack(r, g, b, 0.15),
-    '500': `${r} ${g} ${b}`,               // base = 500
+    '500': `${r} ${g} ${b}`,
     '400': mixWithWhite(r, g, b, 0.22),
     '300': mixWithWhite(r, g, b, 0.44),
   }
@@ -69,7 +82,7 @@ export function generateSurface(hex: string): Record<string, string> {
   const [r, g, b] = hexToRgb(hex)
   return {
     '50':  mixWithWhite(r, g, b, 0.5),
-    '100': `${r} ${g} ${b}`,               // base = 100
+    '100': `${r} ${g} ${b}`,
     '200': mixWithBlack(r, g, b, 0.04),
     '300': mixWithBlack(r, g, b, 0.10),
     '400': mixWithBlack(r, g, b, 0.19),
@@ -77,21 +90,33 @@ export function generateSurface(hex: string): Record<string, string> {
 }
 
 /**
- * Apply all three palettes to the document as CSS custom properties.
+ * Apply all palettes to the document as CSS custom properties.
  * Call this whenever brand colors change (on mount and on color picker change).
+ *
+ * @param primary  Hex color for the sidebar and light tint shades
+ * @param accent   Hex color for highlights and decorative elements
+ * @param surface  Hex color for page backgrounds and card fills
+ * @param text     Hex color for headings, body copy, and UI text (optional;
+ *                 defaults to primary if omitted)
  */
-export function applyBrandColors(primary: string, accent: string, surface: string): void {
+export function applyBrandColors(
+  primary: string,
+  accent: string,
+  surface: string,
+  text?: string,
+): void {
   if (typeof document === 'undefined') return
 
   const root = document.documentElement
 
-  // Legacy single-value vars (used by sidebar inline styles)
+  // Single-value vars used by sidebar inline styles
   root.style.setProperty('--brand-color', primary)
   root.style.setProperty('--brand-accent', accent)
   root.style.setProperty('--brand-surface', surface)
+  root.style.setProperty('--brand-text', text ?? primary)
 
-  // Primary (forest) palette
-  const pShades = generatePrimary(primary)
+  // Primary (forest) palette — text color controls dark shades, primary controls light shades
+  const pShades = generatePrimary(primary, text)
   Object.entries(pShades).forEach(([shade, rgb]) => {
     root.style.setProperty(`--forest-${shade}`, rgb)
   })
