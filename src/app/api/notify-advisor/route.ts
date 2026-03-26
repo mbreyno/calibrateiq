@@ -33,8 +33,11 @@ export async function POST(req: NextRequest) {
 
     const advisorEmail = authData.user.email
     const firmName = advisor.firm_name || 'Your Firm'
-    const fromEmail = process.env.NOTIFY_FROM_EMAIL || 'notifications@resend.dev'
+    const fromEmail = process.env.NOTIFY_FROM_EMAIL || 'onboarding@resend.dev'
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.com'
+
+    // Strip characters that would break the RFC 5321 "Display Name <email>" format
+    const safeDisplayName = firmName.replace(/[<>"\\]/g, '').trim()
 
     // ── 3. Send the notification email via Resend REST API ─────────────────
     const resendKey = process.env.RESEND_API_KEY
@@ -136,7 +139,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `${firmName} via CalibrateIQ <${fromEmail}>`,
+        from: `${safeDisplayName} via CalibrateIQ <${fromEmail}>`,
         to: [advisorEmail],
         subject: `New survey completed — ${client_name}`,
         html,

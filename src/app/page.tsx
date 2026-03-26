@@ -659,14 +659,14 @@ const STEPS = [
       'Add your firm name and logo in Firm Settings. Your branding will appear on every survey and IPS you generate.',
   },
   {
-    title: 'Add a client and share their survey link',
+    title: 'Share your master survey link',
     description:
-      'Enter the client\'s name and date of birth. CalibrateIQ generates a unique survey link. Copy it and share by email, text, or however you communicate.',
+      'CalibrateIQ gives you one link to share with any client. Send it by email, text, or however you communicate — no setup needed for each client.',
   },
   {
     title: 'Client completes the survey',
     description:
-      'Your client answers 8 questions at their own pace on any device. No account required. The experience is clean, mobile-friendly, and shows your firm branding.',
+      'Your client answers 7 questions at their own pace on any device. No account required. The experience is clean, mobile-friendly, and shows your firm branding.',
   },
   {
     title: 'Review the report and export the IPS',
