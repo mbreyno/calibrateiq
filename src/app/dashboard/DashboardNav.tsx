@@ -82,18 +82,18 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
   const NavContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-5 flex items-center gap-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+      <div className="px-5 pt-7 pb-5 flex flex-col items-center text-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
         {advisor?.logo_url ? (
-          <Image src={advisor.logo_url} alt="Firm logo" width={32} height={32} className="rounded-lg object-contain bg-white" />
+          <Image src={advisor.logo_url} alt="Firm logo" width={64} height={64} className="rounded-xl object-contain bg-white p-1 mb-3" style={{ width: 64, height: 64 }} />
         ) : (
-          <LogoMark accentColor={brandAccent} />
-        )}
-        <div className="min-w-0">
-          <div className="text-xs font-bold text-white truncate">
-            {advisor?.firm_name || 'CalibrateIQ'}
+          <div className="mb-3">
+            <LogoMark accentColor={brandAccent} />
           </div>
-          <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Advisor Portal</div>
+        )}
+        <div className="text-sm font-bold text-white leading-snug">
+          {advisor?.firm_name || 'CalibrateIQ'}
         </div>
+        <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Advisor Portal</div>
       </div>
 
       {/* Nav items */}
