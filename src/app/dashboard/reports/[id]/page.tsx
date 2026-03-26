@@ -267,22 +267,20 @@ function PortfolioLegend({ members, category }: { members: MemberData[]; categor
 
 function SignatureBlock({ members }: { members: MemberData[] }) {
   return (
-    <div className="print-only !mt-auto">
-      <div className="border-t border-cream-300 pt-3">
-        <div className="text-[10px] font-semibold text-forest-400 uppercase tracking-wider mb-3">
-          Client Acknowledgment
-        </div>
-        <div className={`grid gap-6 ${members.length >= 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-xs'}`}>
-          {members.map(({ client }) => (
-            <div key={client.id}>
-              <div className="border-b border-forest-400 mb-1.5 pb-3" />
-              <div className="text-[10px] font-medium text-forest-700">
-                {client.first_name} {client.last_name}
-              </div>
-              <div className="text-[10px] text-forest-400">Signature &amp; Date</div>
+    <div>
+      <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-8">
+        Client Acknowledgment
+      </div>
+      <div className={`grid gap-12 ${members.length >= 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-sm'}`}>
+        {members.map(({ client }) => (
+          <div key={client.id}>
+            <div className="border-b border-forest-400 mb-2 pb-10" />
+            <div className="text-xs font-medium text-forest-700">
+              {client.first_name} {client.last_name}
             </div>
-          ))}
-        </div>
+            <div className="text-xs text-forest-400 mt-0.5">Signature &amp; Date</div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -374,8 +372,6 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
         )}
 
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
-
-        {signatureBlock && <SignatureBlock members={[member]} />}
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -391,6 +387,13 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
           <SurveyResponses responses={responses} />
         </div>
       </div>
+
+      {/* ── Print Page 4 (optional): Signature block ── */}
+      {signatureBlock && (
+        <div className="print-only print-sig-page">
+          <SignatureBlock members={[member]} />
+        </div>
+      )}
 
     </div>
   )
@@ -501,8 +504,6 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
         )}
 
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
-
-        {signatureBlock && <SignatureBlock members={members} />}
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -527,6 +528,13 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
           ))}
         </div>
       </div>
+
+      {/* ── Print Page 4 (optional): Signature block ── */}
+      {signatureBlock && (
+        <div className="print-only print-sig-page">
+          <SignatureBlock members={members} />
+        </div>
+      )}
 
     </div>
   )

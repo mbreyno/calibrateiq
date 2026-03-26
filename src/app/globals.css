@@ -89,10 +89,12 @@ html {
   /* Page 1: no forced break, just inner padding */
   .print-page-1 {
     padding: 0.55in 0.65in;
-    min-height: 11in;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+  }
+
+  /* Signature page: forced break, top-anchored, same padding as page 1 */
+  .print-sig-page {
+    break-before: page;
+    padding: 0.55in 0.65in;
   }
 
   /* Pages 2+: forced page break, fill one letter-size sheet, flex-center content */
