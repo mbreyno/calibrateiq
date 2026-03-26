@@ -268,18 +268,18 @@ function PortfolioLegend({ members, category }: { members: MemberData[]; categor
 function SignatureBlock({ members }: { members: MemberData[] }) {
   return (
     <div className="print-only !mt-auto">
-      <div className="border-t border-cream-300 pt-6">
-        <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-5">
+      <div className="border-t border-cream-300 pt-3">
+        <div className="text-[10px] font-semibold text-forest-400 uppercase tracking-wider mb-3">
           Client Acknowledgment
         </div>
-        <div className={`grid gap-8 ${members.length >= 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-xs'}`}>
+        <div className={`grid gap-6 ${members.length >= 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-xs'}`}>
           {members.map(({ client }) => (
             <div key={client.id}>
-              <div className="border-b border-forest-400 mb-2 pb-6" />
-              <div className="text-xs font-medium text-forest-700">
+              <div className="border-b border-forest-400 mb-1.5 pb-3" />
+              <div className="text-[10px] font-medium text-forest-700">
                 {client.first_name} {client.last_name}
               </div>
-              <div className="text-xs text-forest-400 mt-0.5">Signature &amp; Date</div>
+              <div className="text-[10px] text-forest-400">Signature &amp; Date</div>
             </div>
           ))}
         </div>
