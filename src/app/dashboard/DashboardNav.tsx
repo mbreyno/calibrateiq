@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { applyBrandColors } from '@/lib/colorUtils'
 import type { Advisor } from '@/types'
 
 function LogoMark({ accentColor }: { accentColor: string }) {
@@ -65,12 +66,12 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
 
   const brandColor = advisor?.brand_color ?? '#1b4332'
   const brandAccent = advisor?.brand_accent ?? '#d4a017'
+  const brandSurface = advisor?.brand_surface ?? '#fefae0'
 
-  // Set CSS custom properties so the whole app can reference them
+  // Apply full palette CSS variables so Tailwind classes reflect brand colors
   useEffect(() => {
-    document.documentElement.style.setProperty('--brand-color', brandColor)
-    document.documentElement.style.setProperty('--brand-accent', brandAccent)
-  }, [brandColor, brandAccent])
+    applyBrandColors(brandColor, brandAccent, brandSurface)
+  }, [brandColor, brandAccent, brandSurface])
 
   const handleSignout = async () => {
     await supabase.auth.signOut()

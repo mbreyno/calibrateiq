@@ -4,13 +4,37 @@
 @tailwind utilities;
 
 :root {
-  --forest-900: #1b4332;
-  --forest-800: #2d6a4f;
-  --cream-100: #fefae0;
-  --gold-500: #d4a017;
-  /* Brand colors — overridden at runtime by DashboardNav / Settings */
+  /* ── Primary (forest) palette — default deep green ──────────────────── */
+  --forest-950: 13 35 24;
+  --forest-900: 27 67 50;
+  --forest-800: 45 106 79;
+  --forest-700: 64 145 108;
+  --forest-600: 82 183 136;
+  --forest-500: 116 198 157;
+  --forest-400: 149 213 178;
+  --forest-300: 183 228 199;
+  --forest-200: 216 243 220;
+  --forest-100: 240 250 243;
+  --forest-50:  248 253 249;
+
+  /* ── Accent (gold) palette — default warm gold ───────────────────────── */
+  --gold-700: 139 101 8;
+  --gold-600: 184 134 11;
+  --gold-500: 212 160 23;
+  --gold-400: 240 192 64;
+  --gold-300: 245 216 122;
+
+  /* ── Surface (cream) palette — default warm cream ────────────────────── */
+  --cream-50:  254 253 249;
+  --cream-100: 254 250 224;
+  --cream-200: 248 242 208;
+  --cream-300: 240 230 184;
+  --cream-400: 228 212 154;
+
+  /* ── Legacy single-value brand vars (used by sidebar inline styles) ──── */
   --brand-color: #1b4332;
   --brand-accent: #d4a017;
+  --brand-surface: #fefae0;
 }
 
 html {

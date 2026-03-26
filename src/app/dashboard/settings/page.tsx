@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { applyBrandColors } from '@/lib/colorUtils'
 import type { InvestmentPreference } from '@/types'
 
 // ─── Color Field ──────────────────────────────────────────────────────────────
@@ -145,6 +146,7 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const brandColorDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const brandAccentDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const brandSurfaceDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Firm settings
   const [firmName, setFirmName] = useState('')
@@ -157,6 +159,7 @@ export default function SettingsPage() {
   const [signatureBlock, setSignatureBlock] = useState(false)
   const [brandColor, setBrandColor] = useState('#1b4332')
   const [brandAccent, setBrandAccent] = useState('#d4a017')
+  const [brandSurface, setBrandSurface] = useState('#fefae0')
   const [advisorId, setAdvisorId] = useState<string | null>(null)
   const [masterToken, setMasterToken] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
@@ -198,6 +201,7 @@ export default function SettingsPage() {
         setSignatureBlock(advisor.signature_block ?? false)
         setBrandColor(advisor.brand_color ?? '#1b4332')
         setBrandAccent(advisor.brand_accent ?? '#d4a017')
+        setBrandSurface(advisor.brand_surface ?? '#fefae0')
         setMasterToken(advisor.master_token ?? null)
         loadPreferences(advisor.id)
       }
@@ -244,7 +248,7 @@ export default function SettingsPage() {
 
   const handleBrandColorChange = (color: string) => {
     setBrandColor(color)
-    document.documentElement.style.setProperty('--brand-color', color)
+    applyBrandColors(color, brandAccent, brandSurface)
     if (brandColorDebounce.current) clearTimeout(brandColorDebounce.current)
     brandColorDebounce.current = setTimeout(async () => {
       if (!advisorId) return
@@ -254,11 +258,21 @@ export default function SettingsPage() {
 
   const handleBrandAccentChange = (accent: string) => {
     setBrandAccent(accent)
-    document.documentElement.style.setProperty('--brand-accent', accent)
+    applyBrandColors(brandColor, accent, brandSurface)
     if (brandAccentDebounce.current) clearTimeout(brandAccentDebounce.current)
     brandAccentDebounce.current = setTimeout(async () => {
       if (!advisorId) return
       await supabase.from('advisors').update({ brand_accent: accent }).eq('id', advisorId)
+    }, 500)
+  }
+
+  const handleBrandSurfaceChange = (surface: string) => {
+    setBrandSurface(surface)
+    applyBrandColors(brandColor, brandAccent, surface)
+    if (brandSurfaceDebounce.current) clearTimeout(brandSurfaceDebounce.current)
+    brandSurfaceDebounce.current = setTimeout(async () => {
+      if (!advisorId) return
+      await supabase.from('advisors').update({ brand_surface: surface }).eq('id', advisorId)
     }, 500)
   }
 
@@ -550,29 +564,37 @@ export default function SettingsPage() {
         {/* Brand Colors */}
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <h2 className="font-semibold text-forest-900 mb-1">Brand Colors</h2>
-          <p className="text-xs text-forest-500 mb-5">Applied to the navigation sidebar and PDF reports. Click the color swatch or enter a hex code.</p>
+          <p className="text-xs text-forest-500 mb-5">These three colors control every shade throughout the portal and PDF reports. Click a swatch or type a hex code.</p>
           <div className="space-y-5">
             <ColorField
               label="Primary Color"
-              description="Sidebar background, report header accents, and score gauges."
+              description="Sidebar background, headings, buttons, score gauges, and most text."
               value={brandColor}
               defaultValue="#1b4332"
               onChange={handleBrandColorChange}
             />
             <ColorField
               label="Accent Color"
-              description="Highlights and decorative elements."
+              description="Highlights, badges, active nav item indicators, and PDF decorative elements."
               value={brandAccent}
               defaultValue="#d4a017"
               onChange={handleBrandAccentChange}
             />
+            <ColorField
+              label="Background Color"
+              description="Page background, card fills, and cream-toned surfaces throughout the app."
+              value={brandSurface}
+              defaultValue="#fefae0"
+              onChange={handleBrandSurfaceChange}
+            />
           </div>
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-5 flex items-center gap-2">
             <div className="h-8 rounded-lg flex-1" style={{ backgroundColor: brandColor }} />
-            <div className="h-8 rounded-lg w-16" style={{ backgroundColor: brandAccent }} />
-            <div className="text-xs text-forest-400">Live preview</div>
+            <div className="h-8 rounded-lg w-20" style={{ backgroundColor: brandAccent }} />
+            <div className="h-8 rounded-lg w-20 border border-cream-300" style={{ backgroundColor: brandSurface }} />
+            <div className="text-xs text-forest-400 flex-shrink-0">Preview</div>
           </div>
-          <p className="text-xs text-forest-400 mt-3">Tip: dark colors work best for the sidebar so text stays readable.</p>
+          <p className="text-xs text-forest-400 mt-3">Tip: dark primary, warm accent, and a light neutral background work best for readability.</p>
         </div>
 
         {/* Signature Block */}
