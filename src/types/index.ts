@@ -4,6 +4,8 @@ export interface Advisor {
   firm_name: string
   logo_url?: string | null
   signature_block?: boolean | null
+  brand_color?: string | null
+  brand_accent?: string | null
   created_at: string
 }
 

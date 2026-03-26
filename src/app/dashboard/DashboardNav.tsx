@@ -1,19 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import type { Advisor } from '@/types'
 
-function LogoMark() {
+function LogoMark({ accentColor }: { accentColor: string }) {
   return (
     <svg className="w-8 h-8 flex-shrink-0" viewBox="0 0 40 40" fill="none">
-      <rect width="40" height="40" rx="10" fill="#1b4332" />
-      <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="30" cy="13" r="3" fill="#d4a017"/>
-      <path d="M8 32 L32 32" stroke="#52b788" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <rect width="40" height="40" rx="10" fill="rgba(255,255,255,0.15)" />
+      <path d="M8 28 L16 18 L22 23 L30 13" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="30" cy="13" r="3" fill={accentColor}/>
+      <path d="M8 32 L32 32" stroke={accentColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
     </svg>
   )
 }
@@ -63,6 +63,15 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  const brandColor = advisor?.brand_color ?? '#1b4332'
+  const brandAccent = advisor?.brand_accent ?? '#d4a017'
+
+  // Set CSS custom properties so the whole app can reference them
+  useEffect(() => {
+    document.documentElement.style.setProperty('--brand-color', brandColor)
+    document.documentElement.style.setProperty('--brand-accent', brandAccent)
+  }, [brandColor, brandAccent])
+
   const handleSignout = async () => {
     await supabase.auth.signOut()
     router.push('/')
@@ -71,17 +80,17 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
   const NavContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-5 border-b border-forest-800/60 flex items-center gap-2.5">
+      <div className="p-5 flex items-center gap-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
         {advisor?.logo_url ? (
           <Image src={advisor.logo_url} alt="Firm logo" width={32} height={32} className="rounded-lg object-contain bg-white" />
         ) : (
-          <LogoMark />
+          <LogoMark accentColor={brandAccent} />
         )}
         <div className="min-w-0">
-          <div className="text-xs font-bold text-cream-100 truncate">
+          <div className="text-xs font-bold text-white truncate">
             {advisor?.firm_name || 'CalibrateIQ'}
           </div>
-          <div className="text-xs text-forest-400">Advisor Portal</div>
+          <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Advisor Portal</div>
         </div>
       </div>
 
@@ -94,11 +103,13 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
               key={item.href}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-forest-700/60 text-cream-100'
-                  : 'text-forest-300 hover:text-cream-200 hover:bg-forest-800/50'
-              }`}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                color: active ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.65)',
+                backgroundColor: active ? 'rgba(255,255,255,0.18)' : 'transparent',
+              }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent' }}
             >
               {item.icon}
               {item.label}
@@ -108,10 +119,19 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
       </nav>
 
       {/* Sign out */}
-      <div className="p-3 border-t border-forest-800/60">
+      <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
         <button
           onClick={handleSignout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-forest-400 hover:text-forest-200 hover:bg-forest-800/50 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          style={{ color: 'rgba(255,255,255,0.5)' }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.9)'
+            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.1)'
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.5)'
+            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+          }}
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
@@ -125,17 +145,27 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="no-print hidden lg:flex fixed inset-y-0 left-0 w-60 bg-forest-900 flex-col z-30">
+      <aside
+        className="no-print hidden lg:flex fixed inset-y-0 left-0 w-60 flex-col z-30"
+        style={{ backgroundColor: 'var(--brand-color)' }}
+      >
         <NavContent />
       </aside>
 
       {/* Mobile top bar */}
-      <div className="no-print lg:hidden fixed top-0 inset-x-0 z-30 bg-forest-900 flex items-center justify-between px-4 h-14 border-b border-forest-800">
+      <div
+        className="no-print lg:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 h-14"
+        style={{ backgroundColor: 'var(--brand-color)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+      >
         <div className="flex items-center gap-2">
-          <LogoMark />
-          <span className="text-sm font-bold text-cream-100">{advisor?.firm_name || 'CalibrateIQ'}</span>
+          <LogoMark accentColor={brandAccent} />
+          <span className="text-sm font-bold text-white">{advisor?.firm_name || 'CalibrateIQ'}</span>
         </div>
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="text-forest-300 hover:text-cream-100 p-1">
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="p-1"
+          style={{ color: 'rgba(255,255,255,0.7)' }}
+        >
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             {mobileOpen
               ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -149,7 +179,7 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-20 pt-14">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <div className="absolute top-14 left-0 w-60 bottom-0 bg-forest-900">
+          <div className="absolute top-14 left-0 w-60 bottom-0" style={{ backgroundColor: 'var(--brand-color)' }}>
             <NavContent />
           </div>
         </div>

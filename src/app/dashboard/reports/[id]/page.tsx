@@ -99,9 +99,9 @@ function ScoreGauge({ score, max, label, color, primary = false }: { score: numb
   )
 }
 
-function MiniGauge({ score, max, label, primary }: { score: number; max: number; label: string; primary: boolean }) {
+function MiniGauge({ score, max, label, primary, brandColor }: { score: number; max: number; label: string; primary: boolean; brandColor?: string }) {
   const pct = Math.round((score / max) * 100)
-  const color = primary ? '#1b4332' : '#74c69d'
+  const color = primary ? (brandColor ?? '#1b4332') : '#74c69d'
   return (
     <div className={`flex-1 rounded-xl p-4 print:p-3 ${primary ? 'bg-white border-2' : 'bg-cream-50 border'}`}
       style={{ borderColor: primary ? color : '#e8e0cc' }}>
@@ -306,7 +306,7 @@ function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: strin
 
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock }: {
+function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   member: MemberData
   category: RiskCategory
   advisorNotes: string
@@ -316,9 +316,11 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
   advisorLogoUrl: string | null
   reportName: string
   signatureBlock: boolean
+  brandColor?: string
 }) {
   const { profile, responses } = member
   const color = CATEGORY_COLORS[category]
+  const bc = brandColor ?? '#1b4332'
 
   return (
     <div className="space-y-5 print:space-y-0">
@@ -327,7 +329,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
       <div className="print-page-1 space-y-5">
 
         {/* Print-only branded header */}
-        <div className="print-only mb-6 pb-4 border-b-2 border-forest-200">
+        <div className="print-only mb-6 pb-4 border-b-2" style={{ borderColor: bc + '60' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {advisorLogoUrl ? (
@@ -335,18 +337,18 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
                 <img src={advisorLogoUrl} alt="Firm logo" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
               ) : (
                 <svg style={{ width: 40, height: 40 }} viewBox="0 0 40 40" fill="none">
-                  <rect width="40" height="40" rx="10" fill="#1b4332" />
+                  <rect width="40" height="40" rx="10" fill={bc} />
                   <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   <circle cx="30" cy="13" r="3" fill="#d4a017"/>
                 </svg>
               )}
               <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: '#1b4332' }}>{advisorFirmName || 'CalibrateIQ'}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: bc }}>{advisorFirmName || 'CalibrateIQ'}</div>
                 <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
               </div>
             </div>
             <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: '#1b4332' }}>{reportName}</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: bc }}>{reportName}</div>
               <div>Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
             </div>
           </div>
@@ -360,7 +362,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
         </div>
 
         <div className="flex gap-4">
-          <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" primary={true} />
+          <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color={bc} primary={true} />
           <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
         </div>
 
@@ -401,7 +403,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock }: {
+function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   members: MemberData[]
   category: RiskCategory
   advisorNotes: string
@@ -411,9 +413,11 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
   advisorLogoUrl: string | null
   reportName: string
   signatureBlock: boolean
+  brandColor?: string
 }) {
   const [m1, m2] = members
   const color = CATEGORY_COLORS[category]
+  const bc = brandColor ?? '#1b4332'
 
   return (
     <div className="space-y-5 print:space-y-0">
@@ -422,7 +426,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
       <div className="print-page-1 space-y-5">
 
         {/* Print-only branded header */}
-        <div className="print-only mb-6 pb-4 border-b-2 border-forest-200">
+        <div className="print-only mb-6 pb-4 border-b-2" style={{ borderColor: bc + '60' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {advisorLogoUrl ? (
@@ -430,18 +434,18 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
                 <img src={advisorLogoUrl} alt="Firm logo" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
               ) : (
                 <svg style={{ width: 40, height: 40 }} viewBox="0 0 40 40" fill="none">
-                  <rect width="40" height="40" rx="10" fill="#1b4332" />
+                  <rect width="40" height="40" rx="10" fill={bc} />
                   <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   <circle cx="30" cy="13" r="3" fill="#d4a017"/>
                 </svg>
               )}
               <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: '#1b4332' }}>{advisorFirmName || 'CalibrateIQ'}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: bc }}>{advisorFirmName || 'CalibrateIQ'}</div>
                 <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
               </div>
             </div>
             <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: '#1b4332' }}>{reportName}</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: bc }}>{reportName}</div>
               <div>Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
             </div>
           </div>
@@ -475,7 +479,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
                   </span>
                 </div>
                 <div className="flex gap-3 print:gap-2">
-                  <MiniGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" primary={true} />
+                  <MiniGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" primary={true} brandColor={bc} />
                   <MiniGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" primary={false} />
                 </div>
               </div>
@@ -554,6 +558,7 @@ export default function ReportDetailPage() {
   const [advisorFirmName, setAdvisorFirmName] = useState('')
   const [advisorLogoUrl, setAdvisorLogoUrl] = useState<string | null>(null)
   const [advisorSignatureBlock, setAdvisorSignatureBlock] = useState(false)
+  const [advisorBrandColor, setAdvisorBrandColor] = useState('#1b4332')
 
   // Edit modal
   const [allClients, setAllClients] = useState<Client[]>([])
@@ -582,7 +587,7 @@ export default function ReportDetailPage() {
     // Load advisor preferences, timezone, and all completed clients in parallel
     const [{ data: prefs }, { data: advisorRow }, { data: allCls }, { data: resps }] = await Promise.all([
       supabase.from('investment_preferences').select('*').eq('advisor_id', advisorId).order('sort_order', { ascending: true }),
-      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block').eq('id', advisorId).single(),
+      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color').eq('id', advisorId).single(),
       supabase.from('clients').select('*').eq('advisor_id', advisorId).eq('status', 'completed').order('first_name'),
       supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
@@ -591,6 +596,7 @@ export default function ReportDetailPage() {
     if (advisorRow?.firm_name) setAdvisorFirmName(advisorRow.firm_name)
     setAdvisorLogoUrl(advisorRow?.logo_url ?? null)
     setAdvisorSignatureBlock(advisorRow?.signature_block ?? false)
+    setAdvisorBrandColor(advisorRow?.brand_color ?? '#1b4332')
     setAllClients(allCls ?? [])
     const map: Record<string, string> = {}
     for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
@@ -802,6 +808,7 @@ export default function ReportDetailPage() {
           advisorLogoUrl={advisorLogoUrl}
           reportName={reportName}
           signatureBlock={advisorSignatureBlock}
+          brandColor={advisorBrandColor}
         />
       ) : (
         <SingleClientReport
@@ -814,6 +821,7 @@ export default function ReportDetailPage() {
           advisorLogoUrl={advisorLogoUrl}
           reportName={reportName}
           signatureBlock={advisorSignatureBlock}
+          brandColor={advisorBrandColor}
         />
       )}
     </div>

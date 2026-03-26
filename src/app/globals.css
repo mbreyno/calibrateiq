@@ -8,6 +8,9 @@
   --forest-800: #2d6a4f;
   --cream-100: #fefae0;
   --gold-500: #d4a017;
+  /* Brand colors — overridden at runtime by DashboardNav / Settings */
+  --brand-color: #1b4332;
+  --brand-accent: #d4a017;
 }
 
 html {

@@ -5,6 +5,75 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import type { InvestmentPreference } from '@/types'
 
+// ─── Color Field ──────────────────────────────────────────────────────────────
+
+const isValidHex = (s: string) => /^#[0-9A-Fa-f]{6}$/.test(s)
+
+function ColorField({
+  label, description, value, defaultValue, onChange,
+}: {
+  label: string; description: string; value: string; defaultValue: string; onChange: (v: string) => void
+}) {
+  const pickerRef = useRef<HTMLInputElement>(null)
+  const [hex, setHex] = useState(value)
+
+  useEffect(() => { setHex(value) }, [value])
+
+  const handleHexInput = (raw: string) => {
+    const v = raw.startsWith('#') ? raw : '#' + raw
+    setHex(v)
+    if (isValidHex(v)) onChange(v)
+  }
+
+  const handlePickerChange = (v: string) => {
+    setHex(v)
+    onChange(v)
+  }
+
+  const safeColor = isValidHex(hex) ? hex : value
+  const isDirty = safeColor.toLowerCase() !== defaultValue.toLowerCase()
+
+  return (
+    <div>
+      <div className="text-sm font-medium text-forest-800 mb-0.5">{label}</div>
+      <div className="text-xs text-forest-500 mb-2">{description}</div>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => pickerRef.current?.click()}
+          title="Open color picker"
+          className="w-10 h-10 rounded-xl border-2 border-cream-300 shadow-sm flex-shrink-0 hover:scale-105 transition-transform"
+          style={{ backgroundColor: safeColor }}
+        />
+        <input
+          ref={pickerRef}
+          type="color"
+          value={safeColor}
+          onChange={e => handlePickerChange(e.target.value)}
+          className="sr-only"
+        />
+        <input
+          type="text"
+          value={hex}
+          onChange={e => handleHexInput(e.target.value)}
+          placeholder={defaultValue}
+          maxLength={7}
+          className="w-28 px-3 py-2 rounded-lg border border-cream-300 bg-white text-forest-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
+        />
+        {isDirty && (
+          <button
+            type="button"
+            onClick={() => onChange(defaultValue)}
+            className="text-xs text-forest-400 hover:text-forest-700 transition-colors"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // Timezone options
 const TIMEZONES = [
   { value: 'America/New_York',    label: 'Eastern Time (ET) — New York' },
@@ -74,6 +143,8 @@ function EmojiPicker({ value, onChange }: { value: string; onChange: (v: string)
 export default function SettingsPage() {
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const brandColorDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const brandAccentDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Firm settings
   const [firmName, setFirmName] = useState('')
@@ -84,6 +155,8 @@ export default function SettingsPage() {
   const [timezoneSaved, setTimezoneSaved] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [signatureBlock, setSignatureBlock] = useState(false)
+  const [brandColor, setBrandColor] = useState('#1b4332')
+  const [brandAccent, setBrandAccent] = useState('#d4a017')
   const [advisorId, setAdvisorId] = useState<string | null>(null)
   const [masterToken, setMasterToken] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
@@ -123,6 +196,8 @@ export default function SettingsPage() {
         setTimezone(advisor.timezone ?? 'America/New_York')
         setLogoUrl(advisor.logo_url ?? null)
         setSignatureBlock(advisor.signature_block ?? false)
+        setBrandColor(advisor.brand_color ?? '#1b4332')
+        setBrandAccent(advisor.brand_accent ?? '#d4a017')
         setMasterToken(advisor.master_token ?? null)
         loadPreferences(advisor.id)
       }
@@ -165,6 +240,26 @@ export default function SettingsPage() {
     setSignatureBlock(checked)
     if (!advisorId) return
     await supabase.from('advisors').update({ signature_block: checked }).eq('id', advisorId)
+  }
+
+  const handleBrandColorChange = (color: string) => {
+    setBrandColor(color)
+    document.documentElement.style.setProperty('--brand-color', color)
+    if (brandColorDebounce.current) clearTimeout(brandColorDebounce.current)
+    brandColorDebounce.current = setTimeout(async () => {
+      if (!advisorId) return
+      await supabase.from('advisors').update({ brand_color: color }).eq('id', advisorId)
+    }, 500)
+  }
+
+  const handleBrandAccentChange = (accent: string) => {
+    setBrandAccent(accent)
+    document.documentElement.style.setProperty('--brand-accent', accent)
+    if (brandAccentDebounce.current) clearTimeout(brandAccentDebounce.current)
+    brandAccentDebounce.current = setTimeout(async () => {
+      if (!advisorId) return
+      await supabase.from('advisors').update({ brand_accent: accent }).eq('id', advisorId)
+    }, 500)
   }
 
   // ── Investment preference handlers ────────────────────────────────────────
@@ -450,6 +545,34 @@ export default function SettingsPage() {
               <option key={tz.value} value={tz.value}>{tz.label}</option>
             ))}
           </select>
+        </div>
+
+        {/* Brand Colors */}
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="font-semibold text-forest-900 mb-1">Brand Colors</h2>
+          <p className="text-xs text-forest-500 mb-5">Applied to the navigation sidebar and PDF reports. Click the color swatch or enter a hex code.</p>
+          <div className="space-y-5">
+            <ColorField
+              label="Primary Color"
+              description="Sidebar background, report header accents, and score gauges."
+              value={brandColor}
+              defaultValue="#1b4332"
+              onChange={handleBrandColorChange}
+            />
+            <ColorField
+              label="Accent Color"
+              description="Highlights and decorative elements."
+              value={brandAccent}
+              defaultValue="#d4a017"
+              onChange={handleBrandAccentChange}
+            />
+          </div>
+          <div className="mt-5 flex items-center gap-3">
+            <div className="h-8 rounded-lg flex-1" style={{ backgroundColor: brandColor }} />
+            <div className="h-8 rounded-lg w-16" style={{ backgroundColor: brandAccent }} />
+            <div className="text-xs text-forest-400">Live preview</div>
+          </div>
+          <p className="text-xs text-forest-400 mt-3">Tip: dark colors work best for the sidebar so text stays readable.</p>
         </div>
 
         {/* Signature Block */}
