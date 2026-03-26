@@ -37,8 +37,19 @@ export default function ClientsPage() {
   const [deleting, setDeleting] = useState(false)
 
   const loadClients = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoading(false); return }
+
+    // Scope all queries to the current advisor only
+    const { data: advisor } = await supabase
+      .from('advisors')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+    if (!advisor) { setLoading(false); return }
+
     const [{ data: clientsData }, { data: responsesData }] = await Promise.all([
-      supabase.from('clients').select('*').order('created_at', { ascending: false }),
+      supabase.from('clients').select('*').eq('advisor_id', advisor.id).order('created_at', { ascending: false }),
       supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
     setClients(clientsData ?? [])

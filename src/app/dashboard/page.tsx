@@ -22,10 +22,20 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const [{ data: advisor }, { data: clients }] = await Promise.all([
-    supabase.from('advisors').select('*').eq('user_id', user.id).single(),
-    supabase.from('clients').select('*').order('created_at', { ascending: false }),
-  ])
+  // Fetch advisor first so we can scope the clients query to this advisor only
+  const { data: advisor } = await supabase
+    .from('advisors')
+    .select('*')
+    .eq('user_id', user.id)
+    .single()
+
+  const { data: clients } = advisor
+    ? await supabase
+        .from('clients')
+        .select('*')
+        .eq('advisor_id', advisor.id)
+        .order('created_at', { ascending: false })
+    : { data: [] }
 
   const totalClients = clients?.length ?? 0
   const completedClients = clients?.filter(c => c.status === 'completed').length ?? 0

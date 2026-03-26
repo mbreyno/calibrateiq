@@ -57,16 +57,18 @@ export default function ReportsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    // Fetch id + timezone so we can scope all subsequent queries to this advisor
     const { data: advisor } = await supabase
       .from('advisors')
-      .select('timezone')
+      .select('id, timezone')
       .eq('user_id', user.id)
       .single()
-    if (advisor?.timezone) setAdvisorTimezone(advisor.timezone)
+    if (!advisor) { setLoading(false); return }
+    if (advisor.timezone) setAdvisorTimezone(advisor.timezone)
 
     const [{ data: rpts }, { data: cls }] = await Promise.all([
-      supabase.from('households').select('id, name, created_at, household_members(client_id)').order('created_at', { ascending: false }),
-      supabase.from('clients').select('*').order('first_name'),
+      supabase.from('households').select('id, name, created_at, household_members(client_id)').eq('advisor_id', advisor.id).order('created_at', { ascending: false }),
+      supabase.from('clients').select('*').eq('advisor_id', advisor.id).order('first_name'),
     ])
 
     setReports((rpts ?? []) as Report[])
