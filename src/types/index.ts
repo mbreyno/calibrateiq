@@ -3,6 +3,7 @@ export interface Advisor {
   user_id: string
   firm_name: string
   logo_url?: string | null
+  signature_block?: boolean | null
   created_at: string
 }
 

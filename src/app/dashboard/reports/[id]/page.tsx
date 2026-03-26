@@ -263,6 +263,31 @@ function PortfolioLegend({ members, category }: { members: MemberData[]; categor
   )
 }
 
+// ─── Signature Block ─────────────────────────────────────────────────────────
+
+function SignatureBlock({ members }: { members: MemberData[] }) {
+  return (
+    <div className="print-only !mt-auto">
+      <div className="border-t border-cream-300 pt-6">
+        <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-5">
+          Client Acknowledgment
+        </div>
+        <div className={`grid gap-8 ${members.length >= 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-xs'}`}>
+          {members.map(({ client }) => (
+            <div key={client.id}>
+              <div className="border-b border-forest-400 mb-2 pb-6" />
+              <div className="text-xs font-medium text-forest-700">
+                {client.first_name} {client.last_name}
+              </div>
+              <div className="text-xs text-forest-400 mt-0.5">Signature &amp; Date</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Investment Preferences display ───────────────────────────────────────────
 
 function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: string[] | null; allPreferences: InvestmentPreference[] }) {
@@ -283,7 +308,7 @@ function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: strin
 
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName }: {
+function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock }: {
   member: MemberData
   category: RiskCategory
   advisorNotes: string
@@ -292,6 +317,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
   advisorFirmName: string
   advisorLogoUrl: string | null
   reportName: string
+  signatureBlock: boolean
 }) {
   const { profile, responses } = member
   const color = CATEGORY_COLORS[category]
@@ -348,6 +374,8 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
         )}
 
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+
+        {signatureBlock && <SignatureBlock members={[member]} />}
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -370,7 +398,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName }: {
+function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock }: {
   members: MemberData[]
   category: RiskCategory
   advisorNotes: string
@@ -379,6 +407,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
   advisorFirmName: string
   advisorLogoUrl: string | null
   reportName: string
+  signatureBlock: boolean
 }) {
   const [m1, m2] = members
   const color = CATEGORY_COLORS[category]
@@ -472,6 +501,8 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
         )}
 
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+
+        {signatureBlock && <SignatureBlock members={members} />}
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -514,6 +545,7 @@ export default function ReportDetailPage() {
   const [loading, setLoading] = useState(true)
   const [advisorFirmName, setAdvisorFirmName] = useState('')
   const [advisorLogoUrl, setAdvisorLogoUrl] = useState<string | null>(null)
+  const [advisorSignatureBlock, setAdvisorSignatureBlock] = useState(false)
 
   // Edit modal
   const [allClients, setAllClients] = useState<Client[]>([])
@@ -542,7 +574,7 @@ export default function ReportDetailPage() {
     // Load advisor preferences, timezone, and all completed clients in parallel
     const [{ data: prefs }, { data: advisorRow }, { data: allCls }, { data: resps }] = await Promise.all([
       supabase.from('investment_preferences').select('*').eq('advisor_id', advisorId).order('sort_order', { ascending: true }),
-      supabase.from('advisors').select('timezone, firm_name, logo_url').eq('id', advisorId).single(),
+      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block').eq('id', advisorId).single(),
       supabase.from('clients').select('*').eq('advisor_id', advisorId).eq('status', 'completed').order('first_name'),
       supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
@@ -550,6 +582,7 @@ export default function ReportDetailPage() {
     if (advisorRow?.timezone) setAdvisorTimezone(advisorRow.timezone)
     if (advisorRow?.firm_name) setAdvisorFirmName(advisorRow.firm_name)
     setAdvisorLogoUrl(advisorRow?.logo_url ?? null)
+    setAdvisorSignatureBlock(advisorRow?.signature_block ?? false)
     setAllClients(allCls ?? [])
     const map: Record<string, string> = {}
     for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
@@ -760,6 +793,7 @@ export default function ReportDetailPage() {
           advisorFirmName={advisorFirmName}
           advisorLogoUrl={advisorLogoUrl}
           reportName={reportName}
+          signatureBlock={advisorSignatureBlock}
         />
       ) : (
         <SingleClientReport
@@ -771,6 +805,7 @@ export default function ReportDetailPage() {
           advisorFirmName={advisorFirmName}
           advisorLogoUrl={advisorLogoUrl}
           reportName={reportName}
+          signatureBlock={advisorSignatureBlock}
         />
       )}
     </div>

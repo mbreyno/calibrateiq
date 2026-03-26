@@ -79,6 +79,7 @@ export default function SettingsPage() {
   const [firmName, setFirmName] = useState('')
   const [timezone, setTimezone] = useState('America/New_York')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [signatureBlock, setSignatureBlock] = useState(false)
   const [advisorId, setAdvisorId] = useState<string | null>(null)
   const [masterToken, setMasterToken] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
@@ -118,6 +119,7 @@ export default function SettingsPage() {
         setFirmName(advisor.firm_name ?? '')
         setTimezone(advisor.timezone ?? 'America/New_York')
         setLogoUrl(advisor.logo_url ?? null)
+        setSignatureBlock(advisor.signature_block ?? false)
         setMasterToken(advisor.master_token ?? null)
         loadPreferences(advisor.id)
       }
@@ -265,7 +267,7 @@ export default function SettingsPage() {
 
     const { error: updateError } = await supabase
       .from('advisors')
-      .update({ firm_name: firmName, timezone })
+      .update({ firm_name: firmName, timezone, signature_block: signatureBlock })
       .eq('id', advisorId)
 
     if (updateError) {
@@ -401,6 +403,27 @@ export default function SettingsPage() {
               <option key={tz.value} value={tz.value}>{tz.label}</option>
             ))}
           </select>
+        </div>
+
+        {/* Signature Block */}
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="font-semibold text-forest-900 mb-1">Signature Block</h2>
+          <p className="text-xs text-forest-500 mb-4">When enabled, a signature line is added to the bottom of page 1 of PDF reports — one line per client.</p>
+          <label className="flex items-center gap-3 cursor-pointer select-none group w-fit">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={signatureBlock}
+                onChange={e => setSignatureBlock(e.target.checked)}
+                className="sr-only"
+              />
+              <div className={`w-10 h-6 rounded-full transition-colors ${signatureBlock ? 'bg-forest-700' : 'bg-cream-300'}`} />
+              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${signatureBlock ? 'translate-x-4' : 'translate-x-0'}`} />
+            </div>
+            <span className="text-sm font-medium text-forest-900">
+              {signatureBlock ? 'Signature block enabled' : 'Signature block disabled'}
+            </span>
+          </label>
         </div>
 
         {/* Preview */}
