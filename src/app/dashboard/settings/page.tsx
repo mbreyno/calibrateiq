@@ -77,17 +77,19 @@ export default function SettingsPage() {
 
   // Firm settings
   const [firmName, setFirmName] = useState('')
+  const [savedFirmName, setSavedFirmName] = useState('')
+  const [firmNameSaving, setFirmNameSaving] = useState(false)
+  const [firmNameSaved, setFirmNameSaved] = useState(false)
   const [timezone, setTimezone] = useState('America/New_York')
+  const [timezoneSaved, setTimezoneSaved] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [signatureBlock, setSignatureBlock] = useState(false)
   const [advisorId, setAdvisorId] = useState<string | null>(null)
   const [masterToken, setMasterToken] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [copiedMaster, setCopiedMaster] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   // Investment preferences
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
@@ -117,6 +119,7 @@ export default function SettingsPage() {
       if (advisor) {
         setAdvisorId(advisor.id)
         setFirmName(advisor.firm_name ?? '')
+        setSavedFirmName(advisor.firm_name ?? '')
         setTimezone(advisor.timezone ?? 'America/New_York')
         setLogoUrl(advisor.logo_url ?? null)
         setSignatureBlock(advisor.signature_block ?? false)
@@ -137,6 +140,34 @@ export default function SettingsPage() {
     setPreferences(data ?? [])
     setPrefLoading(false)
   }
+
+  // ── Auto-save handlers ────────────────────────────────────────────────────
+
+  const handleSaveFirmName = async () => {
+    if (!advisorId || firmName === savedFirmName) return
+    setFirmNameSaving(true)
+    await supabase.from('advisors').update({ firm_name: firmName }).eq('id', advisorId)
+    setSavedFirmName(firmName)
+    setFirmNameSaving(false)
+    setFirmNameSaved(true)
+    setTimeout(() => setFirmNameSaved(false), 2000)
+  }
+
+  const handleTimezoneChange = async (newTz: string) => {
+    setTimezone(newTz)
+    if (!advisorId) return
+    await supabase.from('advisors').update({ timezone: newTz }).eq('id', advisorId)
+    setTimezoneSaved(true)
+    setTimeout(() => setTimezoneSaved(false), 2000)
+  }
+
+  const handleSignatureBlockChange = async (checked: boolean) => {
+    setSignatureBlock(checked)
+    if (!advisorId) return
+    await supabase.from('advisors').update({ signature_block: checked }).eq('id', advisorId)
+  }
+
+  // ── Investment preference handlers ────────────────────────────────────────
 
   const handleAddPreference = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -214,36 +245,30 @@ export default function SettingsPage() {
     if (!file || !advisorId || !userId) return
 
     if (file.size > 2 * 1024 * 1024) {
-      setError('Logo must be smaller than 2MB.')
+      setUploadError('Logo must be smaller than 2MB.')
       return
     }
 
     setUploading(true)
-    setError(null)
+    setUploadError(null)
 
     const ext = file.name.split('.').pop()
     const path = `${userId}/logo.${ext}`
 
-    const { error: uploadError } = await supabase.storage
+    const { error: err } = await supabase.storage
       .from('logos')
       .upload(path, file, { upsert: true })
 
-    if (uploadError) {
-      setError(`Upload failed: ${uploadError.message}`)
+    if (err) {
+      setUploadError(`Upload failed: ${err.message}`)
       setUploading(false)
       return
     }
 
-    const { data: urlData } = supabase.storage
-      .from('logos')
-      .getPublicUrl(path)
-
+    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(path)
     const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`
 
-    await supabase
-      .from('advisors')
-      .update({ logo_url: publicUrl })
-      .eq('id', advisorId)
+    await supabase.from('advisors').update({ logo_url: publicUrl }).eq('id', advisorId)
 
     setLogoUrl(publicUrl)
     setUploading(false)
@@ -251,34 +276,11 @@ export default function SettingsPage() {
 
   const handleRemoveLogo = async () => {
     if (!advisorId) return
-    await supabase
-      .from('advisors')
-      .update({ logo_url: null })
-      .eq('id', advisorId)
+    await supabase.from('advisors').update({ logo_url: null }).eq('id', advisorId)
     setLogoUrl(null)
   }
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!advisorId) return
-
-    setSaving(true)
-    setError(null)
-
-    const { error: updateError } = await supabase
-      .from('advisors')
-      .update({ firm_name: firmName, timezone, signature_block: signatureBlock })
-      .eq('id', advisorId)
-
-    if (updateError) {
-      setError(updateError.message)
-    } else {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
-    }
-
-    setSaving(false)
-  }
+  const firmNameDirty = firmName !== savedFirmName
 
   return (
     <div className="p-6 lg:p-8 pt-20 lg:pt-8 max-w-2xl">
@@ -320,7 +322,8 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <div className="space-y-6">
+
         {/* Logo upload */}
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <h2 className="font-semibold text-forest-900 mb-4">Firm Logo</h2>
@@ -363,6 +366,7 @@ export default function SettingsPage() {
                 )}
               </div>
               <p className="text-xs text-forest-500">PNG, JPG, or SVG · Max 2MB · Recommended: square, 400×400px</p>
+              {uploadError && <p className="text-xs text-red-600 mt-1">{uploadError}</p>}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -379,24 +383,67 @@ export default function SettingsPage() {
           <h2 className="font-semibold text-forest-900 mb-4">Firm Name</h2>
           <div>
             <label className="block text-sm font-medium text-forest-800 mb-1.5">Display name</label>
-            <input
-              type="text"
-              value={firmName}
-              onChange={e => setFirmName(e.target.value)}
-              placeholder="e.g. Westbrook Wealth Management"
-              className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 placeholder-forest-700/40 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
-            />
-            <p className="text-xs text-forest-500 mt-2">This name appears on your client questionnaires and reports.</p>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={firmName}
+                onChange={e => setFirmName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSaveFirmName() }}
+                placeholder="e.g. Westbrook Wealth Management"
+                className="flex-1 px-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 placeholder-forest-700/40 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={handleSaveFirmName}
+                disabled={firmNameSaving || !firmNameDirty}
+                title={firmNameDirty ? 'Save firm name' : 'No changes'}
+                className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                  firmNameSaved
+                    ? 'bg-forest-100 text-forest-600'
+                    : firmNameDirty
+                    ? 'bg-forest-700 text-white hover:bg-forest-600'
+                    : 'bg-cream-100 text-forest-300 cursor-default'
+                }`}
+              >
+                {firmNameSaving ? (
+                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-forest-500 mt-2">
+              {firmNameSaved
+                ? <span className="text-forest-600 font-medium">✓ Saved</span>
+                : firmNameDirty
+                ? <span className="text-forest-400">Press Enter or click ✓ to save</span>
+                : 'This name appears on your client questionnaires and reports.'}
+            </p>
           </div>
         </div>
 
         {/* Timezone */}
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-          <h2 className="font-semibold text-forest-900 mb-1">Time Zone</h2>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="font-semibold text-forest-900">Time Zone</h2>
+            {timezoneSaved && (
+              <span className="text-xs text-forest-600 font-medium flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                </svg>
+                Saved
+              </span>
+            )}
+          </div>
           <p className="text-xs text-forest-500 mb-4">Used to display survey completion times throughout the app.</p>
           <select
             value={timezone}
-            onChange={e => setTimezone(e.target.value)}
+            onChange={e => handleTimezoneChange(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
           >
             {TIMEZONES.map(tz => (
@@ -408,13 +455,13 @@ export default function SettingsPage() {
         {/* Signature Block */}
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <h2 className="font-semibold text-forest-900 mb-1">Signature Block</h2>
-          <p className="text-xs text-forest-500 mb-4">When enabled, a signature line is added to the bottom of page 1 of PDF reports — one line per client.</p>
+          <p className="text-xs text-forest-500 mb-4">When enabled, a signature page is added to the end of PDF reports — one line per client.</p>
           <label className="flex items-center gap-3 cursor-pointer select-none group w-fit">
             <div className="relative">
               <input
                 type="checkbox"
                 checked={signatureBlock}
-                onChange={e => setSignatureBlock(e.target.checked)}
+                onChange={e => handleSignatureBlockChange(e.target.checked)}
                 className="sr-only"
               />
               <div className={`w-10 h-6 rounded-full transition-colors ${signatureBlock ? 'bg-forest-700' : 'bg-cream-300'}`} />
@@ -447,31 +494,10 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {error && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
-        )}
-
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="inline-flex items-center gap-2 bg-forest-900 text-cream-100 font-semibold text-sm px-6 py-3 rounded-xl hover:bg-forest-800 disabled:opacity-60"
-          >
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
-          {saved && (
-            <span className="text-sm text-forest-700 font-medium flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-forest-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-              </svg>
-              Saved
-            </span>
-          )}
-        </div>
-      </form>
+      </div>
 
       {/* Investment Preferences */}
-      <div className="mt-8">
+      <div className="mt-6">
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <div className="flex items-start justify-between mb-1">
             <div>
