@@ -187,6 +187,17 @@ export default function MasterSurveyPage() {
 
     setSubmitted(true)
     setSubmitting(false)
+
+    // Fire-and-forget advisor notification — doesn't block the success screen
+    fetch('/api/notify-advisor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        advisor_id: advisor.id,
+        client_name: `${firstName.trim()} ${lastName.trim()}`,
+        client_email: email.trim(),
+      }),
+    }).catch(() => {})
   }
 
   // ── Loading ──────────────────────────────────────────────────────
