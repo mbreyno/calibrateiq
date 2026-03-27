@@ -617,7 +617,7 @@ export default function LandingPage() {
           <div className="flex gap-6 text-xs text-forest-500">
             <a href="#" className="hover:text-forest-300">Privacy</a>
             <a href="#" className="hover:text-forest-300">Terms</a>
-            <a href="mailto:support@calibrateiq.com" className="hover:text-forest-300">Contact</a>
+            <a href="mailto:support@calibrateiq.app" className="hover:text-forest-300">Contact</a>
           </div>
         </div>
       </footer>
