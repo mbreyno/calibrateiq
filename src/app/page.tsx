@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import FAQList from './FAQList'
 
 // ─── Icons (inline SVG for zero dependencies) ───────────────────────────────
 
@@ -565,6 +566,19 @@ export default function LandingPage() {
             </div>
 
           </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ─────────────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-cream-100">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 bg-forest-100 px-3 py-1 rounded-full mb-4">
+              FAQ
+            </div>
+            <h2 className="text-4xl font-bold text-forest-900">Frequently asked questions</h2>
+          </div>
+          <FAQList />
         </div>
       </section>
 
