@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { QUESTIONS, calculateAgeScore } from '@/lib/scoring'
+import { applyBrandColors } from '@/lib/colorUtils'
 import type { Client, Advisor } from '@/types'
 
 // ─── Progress bar ────────────────────────────────────────────────────────────
@@ -58,6 +59,14 @@ export default function QuestionnairePage() {
         .single()
 
       setAdvisor(advisorData)
+      if (advisorData) {
+        applyBrandColors(
+          advisorData.brand_color  ?? '#1b4332',
+          advisorData.brand_accent ?? '#d4a017',
+          advisorData.brand_surface ?? '#fefae0',
+          advisorData.brand_text   ?? advisorData.brand_color ?? '#1b4332',
+        )
+      }
       setLoading(false)
     }
     load()

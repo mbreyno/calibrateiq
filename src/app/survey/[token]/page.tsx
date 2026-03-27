@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { QUESTIONS, calculateAgeScore } from '@/lib/scoring'
+import { applyBrandColors } from '@/lib/colorUtils'
 import type { Advisor, InvestmentPreference } from '@/types'
 
 // ─── Progress bar ─────────────────────────────────────────────────────────────
@@ -79,6 +80,12 @@ export default function MasterSurveyPage() {
 
       if (!advisorData) { setNotFound(true); setLoading(false); return }
       setAdvisor(advisorData)
+      applyBrandColors(
+        advisorData.brand_color  ?? '#1b4332',
+        advisorData.brand_accent ?? '#d4a017',
+        advisorData.brand_surface ?? '#fefae0',
+        advisorData.brand_text   ?? advisorData.brand_color ?? '#1b4332',
+      )
 
       // Load this advisor's investment preferences
       const { data: prefs } = await supabase
