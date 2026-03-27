@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { QUESTIONS, calculateAgeScore } from '@/lib/scoring'
+import { QUESTIONS } from '@/lib/scoring'
 import { applyBrandColors } from '@/lib/colorUtils'
 import type { Advisor, InvestmentPreference } from '@/types'
 
@@ -149,62 +149,37 @@ export default function MasterSurveyPage() {
     setSubmitting(true)
     setError(null)
 
-    // Create the client record
-    const { data: newClient, error: clientError } = await supabase
-      .from('clients')
-      .insert({
-        advisor_id: advisor.id,
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim(),
-        date_of_birth: dob || null,
-        status: 'completed',
-      })
-      .select('id')
-      .single()
-
-    if (clientError || !newClient) {
-      setError('Something went wrong. Please try again.')
-      setSubmitting(false)
-      return
-    }
-
-    // Save questionnaire responses
-    const { error: respError } = await supabase
-      .from('questionnaire_responses')
-      .insert({
-        client_id: newClient.id,
-        q1: calculateAgeScore(dob),
-        q2: answers['q2'] ?? null,
-        q3: answers['q3'] ?? null,
-        q4: answers['q4'] ?? null,
-        q5: answers['q5'] ?? null,
-        q6: answers['q6'] ?? null,
-        q8: answers['q8'] ?? null,
-        selected_preferences: selectedPreferences,
-        comments,
+    try {
+      const res = await fetch('/api/submit-survey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          advisor_id: advisor.id,
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          dob,
+          answers,
+          selected_preferences: selectedPreferences,
+          comments,
+        }),
       })
 
-    if (respError) {
-      await supabase.from('clients').delete().eq('id', newClient.id)
-      setError('Something went wrong saving your responses. Please try again.')
+      const json = await res.json()
+
+      if (!res.ok) {
+        setError(json?.error || 'Something went wrong. Please try again.')
+        setSubmitting(false)
+        return
+      }
+    } catch {
+      setError('Something went wrong. Please check your connection and try again.')
       setSubmitting(false)
       return
     }
 
     setSubmitted(true)
     setSubmitting(false)
-
-    // Fire-and-forget advisor notification — doesn't block the success screen
-    fetch('/api/notify-advisor', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        advisor_id: advisor.id,
-        client_name: `${firstName.trim()} ${lastName.trim()}`,
-        client_email: email.trim(),
-      }),
-    }).catch(() => {})
   }
 
   // ── Loading ──────────────────────────────────────────────────────

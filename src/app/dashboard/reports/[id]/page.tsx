@@ -122,14 +122,33 @@ function MiniGauge({ score, max, label, primary, brandColor }: { score: number; 
 
 // ─── Survey Q&A ───────────────────────────────────────────────────────────────
 
-function SurveyResponses({ responses }: { responses: QuestionnaireResponse }) {
+function ageFromDob(dob: string | null | undefined): string {
+  if (!dob) return 'Not provided'
+  const birth = new Date(dob)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  return `${age} years old`
+}
+
+function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireResponse; clientDob?: string | null }) {
   return (
     <div className="space-y-5 print:space-y-2">
       {QUESTIONS.filter(q => q.type === 'radio').map((q) => {
         const key = q.id as keyof QuestionnaireResponse
         const score = responses[key]
         if (typeof score !== 'number') return null
-        const selectedOption = q.type === 'radio' ? q.options.find(o => o.score === score) : null
+
+        // Q1 (age) is stored as a computed score from DOB — display the actual age instead
+        let displayLabel: string
+        if (q.id === 'q1') {
+          displayLabel = ageFromDob(clientDob)
+        } else {
+          const selectedOption = q.options.find(o => o.score === score)
+          displayLabel = selectedOption?.label ?? '—'
+        }
+
         return (
           <div key={q.id} className="border-b border-cream-100 pb-5 print:pb-2 last:border-0 last:pb-0">
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-2 print:mb-0.5"
@@ -139,7 +158,7 @@ function SurveyResponses({ responses }: { responses: QuestionnaireResponse }) {
             </div>
             <p className="text-sm print:text-xs font-medium text-forest-900 mb-1.5 print:mb-0.5">{q.question}</p>
             <p className="text-sm print:text-xs text-forest-700 bg-cream-50 rounded-lg px-3 print:px-2 py-2 print:py-1 border border-cream-200 inline-block">
-              {selectedOption?.label ?? '—'}
+              {displayLabel}
             </p>
           </div>
         )
@@ -386,7 +405,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
       <div className="print-center-page">
         <div className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
           <h2 className="font-semibold text-forest-900 mb-5 print:mb-3">Survey Responses</h2>
-          <SurveyResponses responses={responses} />
+          <SurveyResponses responses={responses} clientDob={member.client.date_of_birth} />
         </div>
       </div>
 
@@ -527,7 +546,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
                 </div>
                 <h2 className="font-semibold print:text-sm text-forest-900">{client.first_name} {client.last_name} — Survey Responses</h2>
               </div>
-              <SurveyResponses responses={responses} />
+              <SurveyResponses responses={responses} clientDob={client.date_of_birth} />
             </div>
           ))}
         </div>
