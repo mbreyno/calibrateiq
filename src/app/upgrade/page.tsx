@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Advisor } from '@/types'
 
@@ -43,7 +43,6 @@ function daysLeft(trialEndsAt: string | null | undefined): number | null {
 
 export default function UpgradePage() {
   const router   = useRouter()
-  const params   = useSearchParams()
   const supabase = createClient()
 
   const [advisor, setAdvisor]   = useState<Advisor | null>(null)
