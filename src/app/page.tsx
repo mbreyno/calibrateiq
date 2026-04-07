@@ -38,6 +38,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-forest-800">
             <a href="#features" className="hover:text-forest-900">Features</a>
             <a href="#how-it-works" className="hover:text-forest-900">How It Works</a>
+            <a href="#pricing" className="hover:text-forest-900">Pricing</a>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -579,6 +580,51 @@ export default function LandingPage() {
             <h2 className="text-4xl font-bold text-forest-900">Frequently asked questions</h2>
           </div>
           <FAQList />
+        </div>
+      </section>
+
+      {/* ── PRICING ─────────────────────────────────────────────────────── */}
+      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-forest-900/4">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 bg-forest-100 px-3 py-1 rounded-full mb-4">
+            Pricing
+          </div>
+          <h2 className="text-4xl font-bold text-forest-900 mb-4">Simple, transparent pricing</h2>
+          <p className="text-forest-800/70 text-lg mb-12">
+            One plan. Everything included. Cancel anytime.
+          </p>
+
+          <div className="bg-white rounded-2xl shadow-elevated border border-cream-300 p-10 max-w-md mx-auto">
+            <div className="flex items-end justify-center gap-1 mb-2">
+              <span className="text-6xl font-bold text-forest-900">$9</span>
+              <span className="text-forest-700/70 text-lg mb-3">/month</span>
+            </div>
+            <p className="text-forest-700/60 text-sm mb-8">per advisor · billed monthly</p>
+
+            <ul className="space-y-3 text-left mb-8">
+              {[
+                '7-day free trial — no credit card required',
+                'Unlimited client surveys',
+                'Branded survey links',
+                'Automatic risk scoring',
+                'PDF Investment Policy Statements',
+                'No long-term contract · cancel anytime',
+              ].map((feature) => (
+                <li key={feature} className="flex items-center gap-3 text-forest-800">
+                  <CheckIcon />
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              href="/auth/signup"
+              className="block w-full text-center bg-forest-900 text-cream-100 text-base font-semibold px-8 py-3.5 rounded-xl hover:bg-forest-800 shadow-sm"
+            >
+              Start your free trial
+            </Link>
+            <p className="text-xs text-forest-700/50 mt-3">No credit card needed to get started</p>
+          </div>
         </div>
       </section>
 
