@@ -19,23 +19,28 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(`${APP_URL}/upgrade`)
     }
 
-    const advisorId     = session.metadata?.advisor_id
-      ?? session.subscription_data?.metadata?.advisor_id
-    const customerId    = session.customer
+    const advisorId      = session.metadata?.advisor_id
+    const customerId     = session.customer
     const subscriptionId = session.subscription
 
-    if (!advisorId) {
-      console.error('checkout-success: missing advisor_id on session', sessionId)
-      return NextResponse.redirect(`${APP_URL}/dashboard`)
-    }
+    const admin = createAdminClient()
 
     // Immediately mark the advisor as active — don't wait for the webhook
-    const admin = createAdminClient()
-    await admin.from('advisors').update({
-      subscription_status:    'active',
-      stripe_customer_id:     customerId,
-      stripe_subscription_id: subscriptionId,
-    }).eq('id', advisorId)
+    if (advisorId) {
+      await admin.from('advisors').update({
+        subscription_status:    'active',
+        stripe_customer_id:     customerId,
+        stripe_subscription_id: subscriptionId,
+      }).eq('id', advisorId)
+    } else if (customerId) {
+      // Fallback: look up by Stripe customer ID (covers edge cases)
+      await admin.from('advisors').update({
+        subscription_status:    'active',
+        stripe_subscription_id: subscriptionId,
+      }).eq('stripe_customer_id', customerId)
+    } else {
+      console.error('checkout-success: cannot identify advisor for session', sessionId)
+    }
 
   } catch (err) {
     console.error('checkout-success error:', err)

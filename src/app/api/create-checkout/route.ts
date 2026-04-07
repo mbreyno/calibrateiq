@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Create a Checkout Session
+  // advisor_id is set on both session metadata AND subscription metadata so
+  // checkout-success and the webhook both have a reliable way to find the advisor
   const session = await stripePost('/checkout/sessions', {
     customer: customerId,
     mode: 'subscription',
@@ -54,6 +56,7 @@ export async function POST(req: NextRequest) {
     'line_items[0][quantity]': '1',
     success_url: `${APP_URL}/api/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${APP_URL}/upgrade`,
+    'metadata[advisor_id]': advisor.id,
     'subscription_data[metadata][advisor_id]': advisor.id,
   })
 
