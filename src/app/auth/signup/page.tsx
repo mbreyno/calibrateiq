@@ -106,7 +106,7 @@ export default function SignupPage() {
             </div>
           ))}
         </div>
-        <p className="relative text-forest-500 text-xs">Free forever · No credit card needed</p>
+        <p className="relative text-forest-500 text-xs">7-day free trial · $9/month · Cancel anytime</p>
       </div>
 
       {/* Right panel */}
@@ -120,7 +120,7 @@ export default function SignupPage() {
           </div>
 
           <h1 className="text-2xl font-bold text-forest-900 mb-1">Create your account</h1>
-          <p className="text-forest-700/70 text-sm mb-8">Free forever for advisors.</p>
+          <p className="text-forest-700/70 text-sm mb-8">Start your 7-day free trial.</p>
 
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">

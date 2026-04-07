@@ -8,6 +8,11 @@ export interface Advisor {
   brand_accent?: string | null
   brand_surface?: string | null
   brand_text?: string | null
+  // Subscription
+  stripe_customer_id?: string | null
+  stripe_subscription_id?: string | null
+  subscription_status?: string | null   // 'trialing' | 'active' | 'past_due' | 'canceled'
+  trial_ends_at?: string | null
   created_at: string
 }
 

@@ -169,6 +169,11 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
+  // Subscription
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
+
   // Investment preferences
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [prefLoading, setPrefLoading] = useState(true)
@@ -206,6 +211,8 @@ export default function SettingsPage() {
         setBrandSurface(advisor.brand_surface ?? '#fefae0')
         setBrandText(advisor.brand_text ?? advisor.brand_color ?? '#1b4332')
         setMasterToken(advisor.master_token ?? null)
+        setSubscriptionStatus(advisor.subscription_status ?? 'trialing')
+        setTrialEndsAt(advisor.trial_ends_at ?? null)
         loadPreferences(advisor.id)
       }
     }
@@ -801,6 +808,77 @@ export default function SettingsPage() {
               </form>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ── Subscription ────────────────────────────────────────────────── */}
+      <div className="mt-6">
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="text-base font-semibold text-forest-900 mb-4">Subscription</h2>
+          {(() => {
+            const isActive = subscriptionStatus === 'active'
+            const isTrialing = subscriptionStatus === 'trialing'
+            const days = trialEndsAt
+              ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86400000))
+              : null
+
+            return (
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  {isActive && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                      <span className="text-sm font-medium text-forest-900">Active — $9/month</span>
+                    </div>
+                  )}
+                  {isTrialing && days != null && days > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-gold-500 flex-shrink-0" />
+                      <span className="text-sm font-medium text-forest-900">
+                        Trial — {days} day{days === 1 ? '' : 's'} remaining
+                      </span>
+                    </div>
+                  )}
+                  {subscriptionStatus === 'past_due' && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                      <span className="text-sm font-medium text-red-700">Payment past due</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-forest-500 mt-1">
+                    {isActive
+                      ? 'Manage your payment method and billing history below.'
+                      : isTrialing && days != null && days > 0
+                        ? `Trial ends ${new Date(trialEndsAt!).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
+                        : 'Subscribe to keep full access.'}
+                  </p>
+                </div>
+
+                {isActive || subscriptionStatus === 'past_due' ? (
+                  <button
+                    onClick={async () => {
+                      setPortalLoading(true)
+                      const res = await fetch('/api/stripe-portal', { method: 'POST' })
+                      const { url, error } = await res.json()
+                      if (url) window.location.href = url
+                      else { alert(error || 'Unable to open billing portal.'); setPortalLoading(false) }
+                    }}
+                    disabled={portalLoading}
+                    className="flex-shrink-0 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 disabled:opacity-60 transition-colors"
+                  >
+                    {portalLoading ? 'Opening…' : 'Manage billing'}
+                  </button>
+                ) : (
+                  <a
+                    href="/upgrade"
+                    className="flex-shrink-0 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 transition-colors"
+                  >
+                    Subscribe — $9/mo
+                  </a>
+                )}
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>

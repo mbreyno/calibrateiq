@@ -1,7 +1,20 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import DashboardNav from './DashboardNav'
+
+/** Returns true if the advisor currently has valid access (active sub or live trial). */
+function hasAccess(advisor: {
+  subscription_status?: string | null
+  trial_ends_at?: string | null
+}): boolean {
+  const status = advisor.subscription_status ?? 'trialing'
+  if (status === 'active') return true
+  if (status === 'trialing') {
+    return !!advisor.trial_ends_at && new Date(advisor.trial_ends_at) > new Date()
+  }
+  return false
+}
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -17,17 +30,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .single()
 
   if (!advisor) {
-    // Auto-create advisor profile from signup metadata
+    // First login — create advisor row and start 7-day trial
     const meta = user.user_metadata
-    const { data: newAdvisor } = await supabase
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    const admin = createAdminClient()
+    const { data: newAdvisor } = await admin
       .from('advisors')
       .insert({
         user_id: user.id,
         firm_name: meta?.firm_name ?? '',
+        subscription_status: 'trialing',
+        trial_ends_at: trialEndsAt,
       })
       .select()
       .single()
     advisor = newAdvisor
+  }
+
+  // Subscription gate — skip for the upgrade page itself
+  if (!hasAccess(advisor ?? {})) {
+    redirect('/upgrade')
   }
 
   return (
