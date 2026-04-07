@@ -24,10 +24,6 @@ const FAQS = [
     a: 'Yes — this is an option you can toggle on or off in Firm Settings. When enabled, a signature page is added to the end of the exported PDF.',
   },
   {
-    q: 'How much does it cost?',
-    a: 'CalibrateIQ is currently free for unlimited use as a beta release. At some point in the near future a subscription fee will be charged, but it will be extremely low. This is designed to be a simple, low-cost product.',
-  },
-  {
     q: 'There are other risk tolerance tools out there — why build this one?',
     a: 'Many existing tools are too complicated, too expensive, and incorrectly base risk profiles on client preference instead of capacity. CalibrateIQ is a simple, low-cost alternative that measures what truly matters.',
   },
