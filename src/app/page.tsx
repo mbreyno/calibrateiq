@@ -50,7 +50,7 @@ export default function LandingPage() {
               href="/auth/signup"
               className="inline-flex items-center text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-lg hover:bg-forest-800 shadow-sm"
             >
-              Get started free
+              Start free trial
             </Link>
           </div>
         </div>
@@ -86,7 +86,7 @@ export default function LandingPage() {
               href="/auth/signup"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-forest-900 text-cream-100 text-base font-semibold px-8 py-4 rounded-xl hover:bg-forest-800 shadow-elevated"
             >
-              Create your free account
+              Start your free trial
               <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
               </svg>
@@ -100,7 +100,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-sm text-forest-700/60 mt-5">
-            Free for advisors · No credit card required
+            7-day free trial · $9/month · No long-term contract
           </p>
         </div>
 
@@ -590,13 +590,13 @@ export default function LandingPage() {
             Ready to know your clients&apos; risk profile?
           </h2>
           <p className="text-forest-300 mb-8 text-lg">
-            Create your free account and send your first survey in under five minutes.
+            Start your 7-day free trial and send your first survey in under five minutes.
           </p>
           <Link
             href="/auth/signup"
             className="inline-flex items-center gap-2 bg-gold-500 text-forest-950 text-base font-bold px-8 py-4 rounded-xl hover:bg-gold-400 shadow-elevated"
           >
-            Start for free — no credit card needed
+            Start your 7-day free trial
             <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
             </svg>
