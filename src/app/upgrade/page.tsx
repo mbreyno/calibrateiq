@@ -57,7 +57,7 @@ export default function UpgradePage() {
 
       const { data } = await supabase
         .from('advisors')
-        .select('subscription_status, trial_ends_at, stripe_customer_id')
+        .select('*')
         .eq('user_id', user.id)
         .single()
 
