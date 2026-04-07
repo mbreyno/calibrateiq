@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   if (!customerId) {
     const customer = await stripePost('/customers', {
       email: user.email ?? '',
-      metadata: JSON.stringify({ advisor_id: advisor.id }),
+      'metadata[advisor_id]': advisor.id,   // bracket notation required by Stripe REST API
     })
     customerId = customer.id
 
