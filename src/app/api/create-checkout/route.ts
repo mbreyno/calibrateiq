@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     mode: 'subscription',
     'line_items[0][price]': STRIPE_PRICE_ID,
     'line_items[0][quantity]': '1',
-    success_url: `${APP_URL}/dashboard?subscribed=1`,
+    success_url: `${APP_URL}/api/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${APP_URL}/upgrade`,
     'subscription_data[metadata][advisor_id]': advisor.id,
   })
