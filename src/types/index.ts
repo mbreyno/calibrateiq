@@ -3,6 +3,7 @@ export interface Advisor {
   user_id: string
   firm_name: string
   logo_url?: string | null
+  ips_notes?: string | null
   signature_block?: boolean | null
   brand_color?: string | null
   brand_accent?: string | null

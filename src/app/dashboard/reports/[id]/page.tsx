@@ -173,6 +173,21 @@ function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireRes
   )
 }
 
+// ─── Firm IPS Notes ───────────────────────────────────────────────────────────
+
+function FirmNotes({ html }: { html: string }) {
+  if (!html || html === '<br>' || html.replace(/<[^>]*>/g, '').trim() === '') return null
+  return (
+    <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+      <h2 className="font-semibold text-forest-900 mb-4">IPS Notes</h2>
+      <div
+        className="text-sm text-forest-700 leading-relaxed prose prose-sm max-w-none"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  )
+}
+
 // ─── Advisor Notes ────────────────────────────────────────────────────────────
 
 function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: (notes: string) => Promise<void> }) {
@@ -325,10 +340,11 @@ function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: strin
 
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   member: MemberData
   category: RiskCategory
   advisorNotes: string
+  advisorIpsNotes: string
   onSaveNotes: (n: string) => Promise<void>
   preferences: InvestmentPreference[]
   advisorFirmName: string
@@ -392,6 +408,7 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
           </div>
         )}
 
+        <FirmNotes html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
@@ -422,10 +439,11 @@ function SingleClientReport({ member, category, advisorNotes, onSaveNotes, prefe
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, advisorNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   members: MemberData[]
   category: RiskCategory
   advisorNotes: string
+  advisorIpsNotes: string
   onSaveNotes: (n: string) => Promise<void>
   preferences: InvestmentPreference[]
   advisorFirmName: string
@@ -526,6 +544,7 @@ function CoupleReport({ members, category, advisorNotes, onSaveNotes, preference
           </div>
         )}
 
+        <FirmNotes html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
@@ -572,6 +591,7 @@ export default function ReportDetailPage() {
   const [reportName, setReportName] = useState('')
   const [members, setMembers] = useState<MemberData[]>([])
   const [advisorNotes, setAdvisorNotes] = useState('')
+  const [advisorIpsNotes, setAdvisorIpsNotes] = useState('')
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [loading, setLoading] = useState(true)
   const [advisorFirmName, setAdvisorFirmName] = useState('')
@@ -606,7 +626,7 @@ export default function ReportDetailPage() {
     // Load advisor preferences, timezone, and all completed clients in parallel
     const [{ data: prefs }, { data: advisorRow }, { data: allCls }, { data: resps }] = await Promise.all([
       supabase.from('investment_preferences').select('*').eq('advisor_id', advisorId).order('sort_order', { ascending: true }),
-      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color').eq('id', advisorId).single(),
+      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color, ips_notes').eq('id', advisorId).single(),
       supabase.from('clients').select('*').eq('advisor_id', advisorId).eq('status', 'completed').order('first_name'),
       supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
@@ -616,6 +636,7 @@ export default function ReportDetailPage() {
     setAdvisorLogoUrl(advisorRow?.logo_url ?? null)
     setAdvisorSignatureBlock(advisorRow?.signature_block ?? false)
     setAdvisorBrandColor(advisorRow?.brand_color ?? '#1b4332')
+    setAdvisorIpsNotes((advisorRow as { ips_notes?: string | null } | null)?.ips_notes ?? '')
     setAllClients(allCls ?? [])
     const map: Record<string, string> = {}
     for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
@@ -821,6 +842,7 @@ export default function ReportDetailPage() {
           members={members}
           category={category}
           advisorNotes={advisorNotes}
+          advisorIpsNotes={advisorIpsNotes}
           onSaveNotes={handleSaveNotes}
           preferences={preferences}
           advisorFirmName={advisorFirmName}
@@ -834,6 +856,7 @@ export default function ReportDetailPage() {
           member={members[0]}
           category={category}
           advisorNotes={advisorNotes}
+          advisorIpsNotes={advisorIpsNotes}
           onSaveNotes={handleSaveNotes}
           preferences={preferences}
           advisorFirmName={advisorFirmName}

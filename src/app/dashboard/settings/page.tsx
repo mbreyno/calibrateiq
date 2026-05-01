@@ -75,6 +75,75 @@ function ColorField({
   )
 }
 
+// ─── Rich Text Editor ─────────────────────────────────────────────────────────
+
+function RichTextEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const editorRef = useRef<HTMLDivElement>(null)
+
+  // Sync external value into editor only on mount
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const exec = (cmd: string, val?: string) => {
+    editorRef.current?.focus()
+    document.execCommand(cmd, false, val)
+    if (editorRef.current) onChange(editorRef.current.innerHTML)
+  }
+
+  const ToolbarBtn = ({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) => (
+    <button
+      type="button"
+      title={title}
+      onMouseDown={e => { e.preventDefault(); onClick() }}
+      className="w-7 h-7 flex items-center justify-center rounded text-forest-700 hover:bg-cream-200 hover:text-forest-900 transition-colors text-sm font-medium"
+    >
+      {children}
+    </button>
+  )
+
+  return (
+    <div className="border border-cream-300 rounded-xl overflow-hidden bg-white">
+      {/* Toolbar */}
+      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-cream-300 bg-cream-50">
+        <ToolbarBtn title="Bold" onClick={() => exec('bold')}><strong>B</strong></ToolbarBtn>
+        <ToolbarBtn title="Italic" onClick={() => exec('italic')}><em>I</em></ToolbarBtn>
+        <ToolbarBtn title="Underline" onClick={() => exec('underline')}><span style={{ textDecoration: 'underline' }}>U</span></ToolbarBtn>
+        <div className="w-px h-4 bg-cream-300 mx-1" />
+        <ToolbarBtn title="Bullet list" onClick={() => exec('insertUnorderedList')}>
+          <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+            <circle cx="2" cy="4" r="1.5"/><rect x="5" y="3" width="9" height="2" rx="1"/>
+            <circle cx="2" cy="8" r="1.5"/><rect x="5" y="7" width="9" height="2" rx="1"/>
+            <circle cx="2" cy="12" r="1.5"/><rect x="5" y="11" width="9" height="2" rx="1"/>
+          </svg>
+        </ToolbarBtn>
+        <ToolbarBtn title="Numbered list" onClick={() => exec('insertOrderedList')}>
+          <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+            <text x="0" y="5" fontSize="5" fontFamily="sans-serif">1.</text>
+            <rect x="5" y="3" width="9" height="2" rx="1"/>
+            <text x="0" y="9" fontSize="5" fontFamily="sans-serif">2.</text>
+            <rect x="5" y="7" width="9" height="2" rx="1"/>
+            <text x="0" y="13" fontSize="5" fontFamily="sans-serif">3.</text>
+            <rect x="5" y="11" width="9" height="2" rx="1"/>
+          </svg>
+        </ToolbarBtn>
+      </div>
+      {/* Editable area */}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={() => { if (editorRef.current) onChange(editorRef.current.innerHTML) }}
+        className="min-h-[160px] px-4 py-3 text-sm text-forest-900 leading-relaxed focus:outline-none"
+        style={{ whiteSpace: 'pre-wrap' }}
+      />
+    </div>
+  )
+}
+
 // Timezone options
 const TIMEZONES = [
   { value: 'America/New_York',    label: 'Eastern Time (ET) — New York' },
@@ -158,6 +227,9 @@ export default function SettingsPage() {
   const [timezoneSaved, setTimezoneSaved] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [signatureBlock, setSignatureBlock] = useState(false)
+  const [ipsNotes, setIpsNotes] = useState('')
+  const [ipsNotesSaving, setIpsNotesSaving] = useState(false)
+  const [ipsNotesSaved, setIpsNotesSaved] = useState(false)
   const [brandColor, setBrandColor] = useState('#1b4332')
   const [brandAccent, setBrandAccent] = useState('#d4a017')
   const [brandSurface, setBrandSurface] = useState('#fefae0')
@@ -206,6 +278,7 @@ export default function SettingsPage() {
         setTimezone(advisor.timezone ?? 'America/New_York')
         setLogoUrl(advisor.logo_url ?? null)
         setSignatureBlock(advisor.signature_block ?? false)
+        setIpsNotes(advisor.ips_notes ?? '')
         setBrandColor(advisor.brand_color ?? '#1b4332')
         setBrandAccent(advisor.brand_accent ?? '#d4a017')
         setBrandSurface(advisor.brand_surface ?? '#fefae0')
@@ -248,6 +321,15 @@ export default function SettingsPage() {
     await supabase.from('advisors').update({ timezone: newTz }).eq('id', advisorId)
     setTimezoneSaved(true)
     setTimeout(() => setTimezoneSaved(false), 2000)
+  }
+
+  const handleSaveIpsNotes = async () => {
+    if (!advisorId) return
+    setIpsNotesSaving(true)
+    await supabase.from('advisors').update({ ips_notes: ipsNotes } as never).eq('id', advisorId)
+    setIpsNotesSaving(false)
+    setIpsNotesSaved(true)
+    setTimeout(() => setIpsNotesSaved(false), 2500)
   }
 
   const handleSignatureBlockChange = async (checked: boolean) => {
@@ -667,6 +749,34 @@ export default function SettingsPage() {
           </div>
         </div>
 
+      </div>
+
+      {/* IPS Notes */}
+      <div className="mt-6">
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <div className="flex items-start justify-between mb-1">
+            <div>
+              <h2 className="font-semibold text-forest-900">IPS Notes</h2>
+              <p className="text-sm text-forest-600 mt-0.5">
+                Enter your firm&apos;s standard language — investment philosophy, guidelines, or disclosures. This text appears on every IPS above the per-client Advisor Notes.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+              {ipsNotesSaved && <span className="text-xs text-forest-500">✓ Saved</span>}
+              <button
+                type="button"
+                onClick={handleSaveIpsNotes}
+                disabled={ipsNotesSaving}
+                className="text-sm font-semibold bg-forest-900 text-cream-100 px-4 py-1.5 rounded-lg hover:bg-forest-800 disabled:opacity-60 transition-colors"
+              >
+                {ipsNotesSaving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+          <div className="mt-4">
+            <RichTextEditor value={ipsNotes} onChange={setIpsNotes} />
+          </div>
+        </div>
       </div>
 
       {/* Investment Preferences */}
