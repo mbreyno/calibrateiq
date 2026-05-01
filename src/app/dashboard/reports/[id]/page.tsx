@@ -301,7 +301,7 @@ function PortfolioLegend({ members, category }: { members: MemberData[]; categor
 
 function SignatureBlock({ members }: { members: MemberData[] }) {
   return (
-    <div>
+    <div className="mt-10">
       <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-8">
         Client Acknowledgment
       </div>
@@ -426,7 +426,7 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
       </div>
 
       {/* ── Print Last Page: IPS Notes + optional Signature block ── */}
-      <div className="print-last-page">
+      <div className="print-only print-last-page">
         <FirmNotes html={advisorIpsNotes} />
         {signatureBlock && <SignatureBlock members={[member]} />}
       </div>
@@ -569,7 +569,7 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
       </div>
 
       {/* ── Print Last Page: IPS Notes + optional Signature block ── */}
-      <div className="print-last-page">
+      <div className="print-only print-last-page">
         <FirmNotes html={advisorIpsNotes} />
         {signatureBlock && <SignatureBlock members={members} />}
       </div>

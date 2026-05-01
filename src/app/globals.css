@@ -131,6 +131,9 @@ html {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    background: #f3f4f6 !important;
+    min-height: 11in;
+    box-sizing: border-box;
   }
 
   /* Pages 2+: forced page break, fill one letter-size sheet, flex-center content */
