@@ -407,9 +407,6 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
             <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
           </div>
         )}
-
-        <FirmNotes html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -426,7 +423,13 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
         </div>
       </div>
 
-      {/* ── Print Page 4 (optional): Signature block ── */}
+      {/* ── Print Page 4: IPS Notes + Advisor Notes ── */}
+      <div className="print-center-page space-y-5">
+        <FirmNotes html={advisorIpsNotes} />
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+      </div>
+
+      {/* ── Print Page 5 (optional): Signature block ── */}
       {signatureBlock && (
         <div className="print-only print-sig-page">
           <SignatureBlock members={[member]} />
@@ -544,8 +547,6 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
           </div>
         )}
 
-        <FirmNotes html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -571,7 +572,13 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
         </div>
       </div>
 
-      {/* ── Print Page 4 (optional): Signature block ── */}
+      {/* ── Print Page 4: IPS Notes + Advisor Notes ── */}
+      <div className="print-center-page space-y-5">
+        <FirmNotes html={advisorIpsNotes} />
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
+      </div>
+
+      {/* ── Print Page 5 (optional): Signature block ── */}
       {signatureBlock && (
         <div className="print-only print-sig-page">
           <SignatureBlock members={members} />
