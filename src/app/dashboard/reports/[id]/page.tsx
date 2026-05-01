@@ -425,17 +425,11 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
         </div>
       </div>
 
-      {/* ── Print Page 4: IPS Notes ── */}
-      <div className="print-center-page space-y-5">
+      {/* ── Print Last Page: IPS Notes + optional Signature block ── */}
+      <div className="print-last-page">
         <FirmNotes html={advisorIpsNotes} />
+        {signatureBlock && <SignatureBlock members={[member]} />}
       </div>
-
-      {/* ── Print Page 5 (optional): Signature block ── */}
-      {signatureBlock && (
-        <div className="print-only print-sig-page">
-          <SignatureBlock members={[member]} />
-        </div>
-      )}
 
     </div>
   )
@@ -574,17 +568,11 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
         </div>
       </div>
 
-      {/* ── Print Page 4: IPS Notes ── */}
-      <div className="print-center-page space-y-5">
+      {/* ── Print Last Page: IPS Notes + optional Signature block ── */}
+      <div className="print-last-page">
         <FirmNotes html={advisorIpsNotes} />
+        {signatureBlock && <SignatureBlock members={members} />}
       </div>
-
-      {/* ── Print Page 5 (optional): Signature block ── */}
-      {signatureBlock && (
-        <div className="print-only print-sig-page">
-          <SignatureBlock members={members} />
-        </div>
-      )}
 
     </div>
   )

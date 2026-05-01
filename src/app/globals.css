@@ -124,6 +124,15 @@ html {
     padding: 0.55in 0.65in;
   }
 
+  /* Last page: forced break, top-anchored, for IPS notes + optional signature */
+  .print-last-page {
+    break-before: page;
+    padding: 0.55in 0.65in;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
   /* Pages 2+: forced page break, fill one letter-size sheet, flex-center content */
   .print-center-page {
     break-before: page;
