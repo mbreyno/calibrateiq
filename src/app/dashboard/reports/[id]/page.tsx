@@ -407,6 +407,8 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
             <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
           </div>
         )}
+
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -423,10 +425,9 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
         </div>
       </div>
 
-      {/* ── Print Page 4: IPS Notes + Advisor Notes ── */}
+      {/* ── Print Page 4: IPS Notes ── */}
       <div className="print-center-page space-y-5">
         <FirmNotes html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 5 (optional): Signature block ── */}
@@ -547,6 +548,7 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
           </div>
         )}
 
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
@@ -572,10 +574,9 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
         </div>
       </div>
 
-      {/* ── Print Page 4: IPS Notes + Advisor Notes ── */}
+      {/* ── Print Page 4: IPS Notes ── */}
       <div className="print-center-page space-y-5">
         <FirmNotes html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 5 (optional): Signature block ── */}
