@@ -79,18 +79,20 @@ function ColorField({
 
 function RichTextEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const editorRef = useRef<HTMLDivElement>(null)
+  const initializedRef = useRef(false)
 
-  // Sync external value into editor only on mount
+  // Sync async-loaded value into editor the first time it arrives non-empty.
+  // After that we leave innerHTML alone so the cursor isn't disrupted during editing.
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
+    if (editorRef.current && !initializedRef.current && value) {
       editorRef.current.innerHTML = value
+      initializedRef.current = true
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [value])
 
   const exec = (cmd: string, val?: string) => {
     editorRef.current?.focus()
-    document.execCommand(cmd, false, val)
+    document.execCommand(cmd, false, val ?? undefined)
     if (editorRef.current) onChange(editorRef.current.innerHTML)
   }
 
@@ -137,8 +139,7 @@ function RichTextEditor({ value, onChange }: { value: string; onChange: (v: stri
         contentEditable
         suppressContentEditableWarning
         onInput={() => { if (editorRef.current) onChange(editorRef.current.innerHTML) }}
-        className="min-h-[160px] px-4 py-3 text-sm text-forest-900 leading-relaxed focus:outline-none"
-        style={{ whiteSpace: 'pre-wrap' }}
+        className="min-h-[160px] px-4 py-3 text-sm text-forest-900 leading-relaxed focus:outline-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
       />
     </div>
   )

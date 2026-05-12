@@ -181,7 +181,7 @@ function FirmNotes({ html }: { html: string }) {
     <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
       <h2 className="font-semibold text-forest-900 mb-4">IPS Notes</h2>
       <div
-        className="text-sm text-forest-700 leading-relaxed prose prose-sm max-w-none"
+        className="text-sm text-forest-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_li]:my-0.5"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>
@@ -408,6 +408,7 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
           </div>
         )}
 
+        <FirmNotes html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
@@ -425,11 +426,12 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
         </div>
       </div>
 
-      {/* ── Print Last Page: IPS Notes + optional Signature block ── */}
-      <div className="print-only print-last-page">
-        <FirmNotes html={advisorIpsNotes} />
-        {signatureBlock && <SignatureBlock members={[member]} />}
-      </div>
+      {/* ── Print Page 4 (optional): Signature block ── */}
+      {signatureBlock && (
+        <div className="print-only print-sig-page">
+          <SignatureBlock members={[member]} />
+        </div>
+      )}
 
     </div>
   )
@@ -542,6 +544,7 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
           </div>
         )}
 
+        <FirmNotes html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
@@ -568,11 +571,12 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
         </div>
       </div>
 
-      {/* ── Print Last Page: IPS Notes + optional Signature block ── */}
-      <div className="print-only print-last-page">
-        <FirmNotes html={advisorIpsNotes} />
-        {signatureBlock && <SignatureBlock members={members} />}
-      </div>
+      {/* ── Print Page 4 (optional): Signature block ── */}
+      {signatureBlock && (
+        <div className="print-only print-sig-page">
+          <SignatureBlock members={members} />
+        </div>
+      )}
 
     </div>
   )
