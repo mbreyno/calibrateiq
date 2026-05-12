@@ -741,7 +741,7 @@ export default function ReportDetailPage() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => {
-              const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+              const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).replace(',', '')
               const prev = document.title
               document.title = `IPS - ${reportName} - ${date}`
               window.print()
