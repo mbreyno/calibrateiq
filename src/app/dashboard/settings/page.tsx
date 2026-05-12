@@ -757,9 +757,9 @@ export default function SettingsPage() {
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <div className="flex items-start justify-between mb-1">
             <div>
-              <h2 className="font-semibold text-forest-900">IPS Notes</h2>
+              <h2 className="font-semibold text-forest-900">Investor Understanding &amp; Acceptance</h2>
               <p className="text-sm text-forest-600 mt-0.5">
-                Enter your firm&apos;s standard language — investment philosophy, guidelines, or disclosures. This text appears on every IPS above the per-client Advisor Notes.
+                Enter your firm&apos;s standard language — investment philosophy, disclosures, or acceptance language. This text appears on every IPS above the per-client Advisor Notes.
               </p>
             </div>
             <div className="flex items-center gap-2 ml-4 flex-shrink-0">

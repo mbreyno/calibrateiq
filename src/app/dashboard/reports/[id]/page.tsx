@@ -173,13 +173,14 @@ function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireRes
   )
 }
 
-// ─── Firm IPS Notes ───────────────────────────────────────────────────────────
+// ─── Investor Understanding & Acceptance ─────────────────────────────────────
 
-function FirmNotes({ html }: { html: string }) {
-  if (!html || html === '<br>' || html.replace(/<[^>]*>/g, '').trim() === '') return null
+function InvestorAcceptance({ html }: { html: string }) {
+  const isEmpty = !html || html === '<br>' || html.replace(/<[^>]*>/g, '').trim() === ''
+  if (isEmpty) return null
   return (
     <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-      <h2 className="font-semibold text-forest-900 mb-4">IPS Notes</h2>
+      <h2 className="font-semibold text-forest-900 mb-4">Investor Understanding &amp; Acceptance</h2>
       <div
         className="text-sm text-forest-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_li]:my-0.5"
         dangerouslySetInnerHTML={{ __html: html }}
@@ -237,19 +238,6 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
         <p className="text-sm text-forest-400 italic">No notes yet. Click Edit to add advisor notes.</p>
       )}
       {saved && <p className="text-xs text-forest-500 mt-2">✓ Notes saved</p>}
-    </div>
-  )
-}
-
-// ─── Investor Understanding & Acceptance ─────────────────────────────────────
-
-function InvestorAcceptance() {
-  return (
-    <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-      <h2 className="font-semibold text-forest-900 mb-3">Investor Understanding &amp; Acceptance</h2>
-      <p className="text-sm text-forest-700 leading-relaxed">
-        Receipt of this Investment Policy Statement certifies the following: I have discussed my current financial situation, including my assets, debts, income sources and expenses, and my financial objectives with my advisor. I understand the risks inherent in investing. Investments are not guaranteed and may lose value. I agree to inform my financial advisor whenever my circumstances or preferences regarding these accounts change in order to determine if a revised Investment Policy Statement should be prepared.
-      </p>
     </div>
   )
 }
@@ -408,13 +396,12 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
           </div>
         )}
 
-        <FirmNotes html={advisorIpsNotes} />
+        <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
-      {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
+      {/* ── Print Page 2: Portfolio Legend, centered ── */}
       <div className="print-center-page space-y-5">
-        <InvestorAcceptance />
         <PortfolioLegend members={[member]} category={category} />
       </div>
 
@@ -544,13 +531,12 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
           </div>
         )}
 
-        <FirmNotes html={advisorIpsNotes} />
+        <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
-      {/* ── Print Page 2: Investor Acceptance + Portfolio Legend, centered ── */}
+      {/* ── Print Page 2: Portfolio Legend, centered ── */}
       <div className="print-center-page space-y-5">
-        <InvestorAcceptance />
         <PortfolioLegend members={members} category={category} />
       </div>
 
