@@ -55,12 +55,12 @@ html {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
 
-  /* Zero @page margins = full-bleed cream background on every page */
+  /* Zero @page margins = full-bleed background on every page */
   @page { margin: 0; size: letter; }
 
-  /* Cream fills the full page surface on every page */
+  /* Neutral gray fills the full page surface — avoids cream bleed on partial pages */
   html, body {
-    background: #fefae0 !important;
+    background: #f3f4f6 !important;
     color: #1b4332 !important;
     font-size: 11pt !important;
     height: auto !important;
@@ -72,8 +72,9 @@ html {
   /* Sidebar gone; main owns all page padding */
   main { margin-left: 0 !important; padding: 0 !important; }
 
-  /* Strip the page component's own padding (pt-20 mobile nav offset) */
-  main > div:first-child { padding: 0 !important; margin: 0 !important; }
+  /* Strip ALL padding/margin from the report page's outer wrapper and any nested containers */
+  main > div:first-child,
+  main > div:first-child > div:first-child { padding: 0 !important; margin: 0 !important; }
 
   /* xl: breakpoint (1280px) never fires — Chrome prints at ~816px */
   .xl\:grid-cols-2 {
@@ -112,44 +113,48 @@ html {
     break-inside: avoid;
   }
 
-  /* Explicit print-page sections */
-  /* Page 1: no forced break, just inner padding */
-  .print-page-1 {
-    padding: 0.55in 0.65in;
-  }
-
-  /* Signature page: forced break, top-anchored, same padding as page 1 */
-  .print-sig-page {
-    break-before: page;
-    padding: 0.55in 0.65in;
-  }
-
-  /* Last page: forced break, top-anchored, for IPS notes + optional signature */
+  /* Shared padding for all print pages */
+  .print-page-1,
+  .print-center-page,
+  .print-sig-page,
   .print-last-page {
-    break-before: page;
-    padding: 0.55in 0.65in;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    background: #f3f4f6 !important;
-    min-height: 11in;
+    padding: 0.45in 0.5in;
     box-sizing: border-box;
   }
 
-  /* Pages 2+: forced page break, fill one letter-size sheet, flex-center content */
+  /* Page 1: no forced break */
+  .print-page-1 {
+    /* inherits shared padding */
+  }
+
+  /* Pages 2+: forced break, fill full sheet, content starts at top */
   .print-center-page {
     break-before: page;
-    height: 11in;
-    box-sizing: border-box;
-    padding: 0.55in 0.65in;
+    min-height: 11in;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 1.5rem;
   }
 
-  /* Suppress space-y margins inside flex-centered print pages */
-  .print-center-page > * + * {
+  /* Signature page: forced break, top-anchored, fills full sheet */
+  .print-sig-page {
+    break-before: page;
+    min-height: 11in;
+  }
+
+  /* Last page (IPS notes + optional sig): forced break, top-anchored, fills full sheet */
+  .print-last-page {
+    break-before: page;
+    min-height: 11in;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Suppress space-y margins inside flex print pages */
+  .print-center-page > * + *,
+  .print-last-page > * + * {
     margin-top: 0 !important;
   }
 }
