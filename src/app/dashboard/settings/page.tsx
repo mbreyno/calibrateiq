@@ -77,18 +77,25 @@ function ColorField({
 
 // ─── Rich Text Editor ─────────────────────────────────────────────────────────
 
-function RichTextEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function RichTextEditor({ value, onChange, resetKey }: { value: string; onChange: (v: string) => void; resetKey?: number }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const initializedRef = useRef(false)
 
   // Sync async-loaded value into editor the first time it arrives non-empty.
-  // After that we leave innerHTML alone so the cursor isn't disrupted during editing.
   useEffect(() => {
     if (editorRef.current && !initializedRef.current && value) {
       editorRef.current.innerHTML = value
       initializedRef.current = true
     }
   }, [value])
+
+  // When resetKey changes (triggered by "Restore to default"), force-reload content.
+  useEffect(() => {
+    if (resetKey !== undefined && resetKey > 0 && editorRef.current) {
+      editorRef.current.innerHTML = value
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey])
 
   const exec = (cmd: string, val?: string) => {
     editorRef.current?.focus()
@@ -144,6 +151,8 @@ function RichTextEditor({ value, onChange }: { value: string; onChange: (v: stri
     </div>
   )
 }
+
+const DEFAULT_IPS_NOTES = '<p>I have discussed my current financial situation, including my assets, debts, income sources and expenses, and my financial objectives with my advisor. I understand the risks inherent in investing. Investments are not guaranteed and may lose value. I agree to inform my financial advisor whenever my circumstances or preferences regarding these accounts change in order to determine if a revised Investment Policy Statement should be prepared.</p>'
 
 // Timezone options
 const TIMEZONES = [
@@ -231,6 +240,7 @@ export default function SettingsPage() {
   const [ipsNotes, setIpsNotes] = useState('')
   const [ipsNotesSaving, setIpsNotesSaving] = useState(false)
   const [ipsNotesSaved, setIpsNotesSaved] = useState(false)
+  const [ipsNotesResetKey, setIpsNotesResetKey] = useState(0)
   const [brandColor, setBrandColor] = useState('#1b4332')
   const [brandAccent, setBrandAccent] = useState('#d4a017')
   const [brandSurface, setBrandSurface] = useState('#fefae0')
@@ -766,6 +776,16 @@ export default function SettingsPage() {
               {ipsNotesSaved && <span className="text-xs text-forest-500">✓ Saved</span>}
               <button
                 type="button"
+                onClick={() => {
+                  setIpsNotes(DEFAULT_IPS_NOTES)
+                  setIpsNotesResetKey(k => k + 1)
+                }}
+                className="text-sm font-medium text-forest-500 hover:text-forest-800 border border-cream-300 px-4 py-1.5 rounded-lg hover:bg-cream-50 transition-colors"
+              >
+                Restore default
+              </button>
+              <button
+                type="button"
                 onClick={handleSaveIpsNotes}
                 disabled={ipsNotesSaving}
                 className="text-sm font-semibold bg-forest-900 text-cream-100 px-4 py-1.5 rounded-lg hover:bg-forest-800 disabled:opacity-60 transition-colors"
@@ -775,7 +795,7 @@ export default function SettingsPage() {
             </div>
           </div>
           <div className="mt-4">
-            <RichTextEditor value={ipsNotes} onChange={setIpsNotes} />
+            <RichTextEditor value={ipsNotes} onChange={setIpsNotes} resetKey={ipsNotesResetKey} />
           </div>
         </div>
       </div>
