@@ -406,18 +406,22 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
             <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
           </div>
         )}
+      </div>
 
+      {/* ── Print Page 2: IPS Notes + Advisor Notes ── */}
+      <div className="print-center-page space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
-      {/* ── Print Page 2: Portfolio Legend ── */}
+      {/* ── Print Page 3: Portfolio Legend ── */}
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={[member]} category={category} />
       </div>
 
-      {/* ── Print Page 3: Survey responses ── */}
+      {/* ── Print Page 4: Survey responses ── */}
       <div className="print-center-page">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <div className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
@@ -426,7 +430,7 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
         </div>
       </div>
 
-      {/* ── Print Page 4 (optional): Signature block ── */}
+      {/* ── Print Page 5 (optional): Signature block ── */}
       {signatureBlock && (
         <div className="print-only print-sig-page">
           <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
@@ -520,17 +524,22 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
           </div>
         )}
 
+      </div>
+
+      {/* ── Print Page 2: IPS Notes + Advisor Notes ── */}
+      <div className="print-center-page space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
-      {/* ── Print Page 2: Portfolio Legend ── */}
+      {/* ── Print Page 3: Portfolio Legend ── */}
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={members} category={category} />
       </div>
 
-      {/* ── Print Page 3: Survey Q&A side-by-side ── */}
+      {/* ── Print Page 4: Survey Q&A side-by-side ── */}
       <div className="print-center-page">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -548,7 +557,7 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
         </div>
       </div>
 
-      {/* ── Print Page 4 (optional): Signature block ── */}
+      {/* ── Print Page 5 (optional): Signature block ── */}
       {signatureBlock && (
         <div className="print-only print-sig-page">
           <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
