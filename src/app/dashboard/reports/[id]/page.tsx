@@ -173,6 +173,42 @@ function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireRes
   )
 }
 
+// ─── Print Header (appears on every page) ────────────────────────────────────
+
+function PrintHeader({ advisorLogoUrl, advisorFirmName, reportName, brandColor }: {
+  advisorLogoUrl: string | null
+  advisorFirmName: string
+  reportName: string
+  brandColor: string
+}) {
+  return (
+    <div className="print-only mb-5 pb-4 border-b-2" style={{ borderColor: brandColor + '60' }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {advisorLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={advisorLogoUrl} alt="Firm logo" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
+          ) : (
+            <svg style={{ width: 40, height: 40 }} viewBox="0 0 40 40" fill="none">
+              <rect width="40" height="40" rx="10" fill={brandColor} />
+              <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="30" cy="13" r="3" fill="#d4a017"/>
+            </svg>
+          )}
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: brandColor }}>{advisorFirmName || 'CalibrateIQ'}</div>
+            <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
+          <div style={{ fontWeight: 600, fontSize: 13, color: brandColor }}>{reportName}</div>
+          <div>Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Investor Understanding & Acceptance ─────────────────────────────────────
 
 function InvestorAcceptance({ html }: { html: string }) {
@@ -350,32 +386,7 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
 
       {/* ── Print Page 1: category banner + scores + prefs + notes ── */}
       <div className="print-page-1 space-y-5">
-
-        {/* Print-only branded header */}
-        <div className="print-only mb-6 pb-4 border-b-2" style={{ borderColor: bc + '60' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {advisorLogoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={advisorLogoUrl} alt="Firm logo" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
-              ) : (
-                <svg style={{ width: 40, height: 40 }} viewBox="0 0 40 40" fill="none">
-                  <rect width="40" height="40" rx="10" fill={bc} />
-                  <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="30" cy="13" r="3" fill="#d4a017"/>
-                </svg>
-              )}
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: bc }}>{advisorFirmName || 'CalibrateIQ'}</div>
-                <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: bc }}>{reportName}</div>
-              <div>Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
-            </div>
-          </div>
-        </div>
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
 
         <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
           <div className="text-sm font-semibold opacity-80 mb-1">Overall Risk Category</div>
@@ -400,13 +411,15 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
-      {/* ── Print Page 2: Portfolio Legend, centered ── */}
+      {/* ── Print Page 2: Portfolio Legend ── */}
       <div className="print-center-page space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={[member]} category={category} />
       </div>
 
-      {/* ── Print Page 3: Survey responses, centered ── */}
+      {/* ── Print Page 3: Survey responses ── */}
       <div className="print-center-page">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <div className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
           <h2 className="font-semibold text-forest-900 mb-5 print:mb-3">Survey Responses</h2>
           <SurveyResponses responses={responses} clientDob={member.client.date_of_birth} />
@@ -416,6 +429,7 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
       {/* ── Print Page 4 (optional): Signature block ── */}
       {signatureBlock && (
         <div className="print-only print-sig-page">
+          <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
           <SignatureBlock members={[member]} />
         </div>
       )}
@@ -448,32 +462,7 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
 
       {/* ── Print Page 1: category banner + member cards + prefs + notes ── */}
       <div className="print-page-1 space-y-5">
-
-        {/* Print-only branded header */}
-        <div className="print-only mb-6 pb-4 border-b-2" style={{ borderColor: bc + '60' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {advisorLogoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={advisorLogoUrl} alt="Firm logo" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
-              ) : (
-                <svg style={{ width: 40, height: 40 }} viewBox="0 0 40 40" fill="none">
-                  <rect width="40" height="40" rx="10" fill={bc} />
-                  <path d="M8 28 L16 18 L22 23 L30 13" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="30" cy="13" r="3" fill="#d4a017"/>
-                </svg>
-              )}
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: bc }}>{advisorFirmName || 'CalibrateIQ'}</div>
-                <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: bc }}>{reportName}</div>
-              <div>Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
-            </div>
-          </div>
-        </div>
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
 
         <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
           <div className="text-sm font-semibold opacity-80 mb-1">Combined Household Category</div>
@@ -535,13 +524,15 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
-      {/* ── Print Page 2: Portfolio Legend, centered ── */}
+      {/* ── Print Page 2: Portfolio Legend ── */}
       <div className="print-center-page space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={members} category={category} />
       </div>
 
-      {/* ── Print Page 3: Survey Q&A side-by-side, centered ── */}
+      {/* ── Print Page 3: Survey Q&A side-by-side ── */}
       <div className="print-center-page">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           {[m1, m2].map(({ client, responses }) => (
             <div key={client.id} className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
@@ -560,6 +551,7 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
       {/* ── Print Page 4 (optional): Signature block ── */}
       {signatureBlock && (
         <div className="print-only print-sig-page">
+          <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
           <SignatureBlock members={members} />
         </div>
       )}
