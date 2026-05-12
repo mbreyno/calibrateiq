@@ -123,7 +123,7 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
       {/* Help + Sign out */}
       <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
         <a
-          href="mailto:support@calibrateiq.app"
+          href="mailto:support@calibrateiq.app?subject=Help%20with%20CalibrateIQ"
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors mb-0.5"
           style={{ color: 'rgba(255,255,255,0.5)' }}
           onMouseEnter={e => {
