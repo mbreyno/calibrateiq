@@ -740,7 +740,13 @@ export default function ReportDetailPage() {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
-            onClick={() => window.print()}
+            onClick={() => {
+              const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+              const prev = document.title
+              document.title = `IPS - ${reportName} - ${date}`
+              window.print()
+              document.title = prev
+            }}
             className="inline-flex items-center gap-1.5 text-sm font-medium bg-forest-900 text-cream-100 px-4 py-2 rounded-xl hover:bg-forest-800 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
