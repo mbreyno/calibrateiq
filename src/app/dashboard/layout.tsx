@@ -5,13 +5,17 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import DashboardNav from './DashboardNav'
 import type { Advisor } from '@/types'
 
-/** Returns true if the advisor (or their parent) currently has valid access. */
+/** Returns true if the advisor currently has valid access. */
 function hasAccess(advisor: {
   subscription_status?: string | null
   trial_ends_at?: string | null
+  stripe_subscription_id?: string | null
 }): boolean {
   const status = advisor.subscription_status ?? 'trialing'
   if (status === 'active') return true
+  // If a Stripe subscription ID exists and wasn't explicitly canceled, grant access.
+  // This handles cases where the webhook was delayed or the status column got out of sync.
+  if (advisor.stripe_subscription_id && status !== 'canceled') return true
   if (status === 'trialing') {
     return !!advisor.trial_ends_at && new Date(advisor.trial_ends_at) > new Date()
   }

@@ -73,6 +73,21 @@ const PLANS = [
   },
 ]
 
+function hasAccess(advisor: {
+  subscription_status?: string | null
+  trial_ends_at?: string | null
+  stripe_subscription_id?: string | null
+} | null): boolean {
+  if (!advisor) return false
+  const status = advisor.subscription_status ?? 'trialing'
+  if (status === 'active') return true
+  if (advisor.stripe_subscription_id && status !== 'canceled') return true
+  if (status === 'trialing') {
+    return !!advisor.trial_ends_at && new Date(advisor.trial_ends_at) > new Date()
+  }
+  return false
+}
+
 function daysLeft(trialEndsAt: string | null | undefined): number | null {
   if (!trialEndsAt) return null
   const ms = new Date(trialEndsAt).getTime() - Date.now()
