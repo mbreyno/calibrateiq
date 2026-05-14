@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Sub-user not found.' }, { status: 404 })
   }
 
-  const res = NextResponse.redirect(`${APP_URL}/dashboard`)
+  const res = NextResponse.json({ success: true })
   res.cookies.set('iq_emulate', sub_advisor_id, {
     path: '/',
     sameSite: 'strict',
