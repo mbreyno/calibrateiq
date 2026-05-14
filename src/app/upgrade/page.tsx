@@ -114,7 +114,7 @@ export default function UpgradePage() {
         .single()
 
       // If they already have access, send them to the dashboard
-      if (data?.subscription_status === 'active') {
+      if (hasAccess(data)) {
         router.replace('/dashboard')
         return
       }
