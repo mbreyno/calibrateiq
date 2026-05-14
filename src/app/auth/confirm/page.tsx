@@ -30,15 +30,28 @@ export default function ConfirmPage() {
 
   useEffect(() => {
     const handleAuth = async () => {
-      // Give the browser client a moment to parse the hash and set the session
-      await new Promise(r => setTimeout(r, 300))
+      // Invite links carry the session in the URL hash (#access_token=...&refresh_token=...)
+      // which is only accessible in the browser. Parse and set the session explicitly.
+      const hash = window.location.hash.slice(1)
+      const params = new URLSearchParams(hash)
+      const accessToken  = params.get('access_token')
+      const refreshToken = params.get('refresh_token')
 
-      const { data: { session }, error } = await supabase.auth.getSession()
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        if (!error) {
+          window.history.replaceState(null, '', window.location.pathname)
+          router.replace('/dashboard')
+          return
+        }
+        console.error('confirm: setSession error', error)
+      }
 
+      // Fallback — session may already be established (e.g. revisiting the page)
+      const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         router.replace('/dashboard')
       } else {
-        console.error('confirm: no session found', error)
         router.replace('/auth/login?error=invite_failed')
       }
     }
