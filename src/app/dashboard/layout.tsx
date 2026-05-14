@@ -30,8 +30,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const adminClient = createAdminClient()
 
-  // Fetch or create advisor profile
-  let { data: advisor } = await supabase
+  // Fetch or create advisor profile.
+  // Use adminClient so this read is never blocked by RLS —
+  // the user's identity is already verified above via getUser().
+  let { data: advisor } = await adminClient
     .from('advisors')
     .select('*')
     .eq('user_id', user.id)
