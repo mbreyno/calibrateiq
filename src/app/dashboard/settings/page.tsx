@@ -676,35 +676,21 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
-          {/* IPS Notes — sub-users can customize their own acceptance language */}
+          {/* IPS Notes — read-only for sub-users, set by firm admin */}
           <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
             <div className="flex items-start justify-between mb-1">
               <div>
                 <h2 className="font-semibold text-forest-900">Investor Understanding &amp; Acceptance</h2>
-                <p className="text-sm text-forest-600 mt-0.5">Standard language shown on every IPS above per-client Advisor Notes.</p>
+                <p className="text-sm text-forest-600 mt-0.5">Set by your firm administrator. Applied to every IPS above per-client Advisor Notes.</p>
               </div>
-              <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                {ipsNotesSaved && <span className="text-xs text-forest-500">✓ Saved</span>}
-                <button
-                  type="button"
-                  onClick={() => { setIpsNotes(DEFAULT_IPS_NOTES); setIpsNotesResetKey(k => k + 1) }}
-                  className="text-sm font-medium text-forest-500 hover:text-forest-800 border border-cream-300 px-4 py-1.5 rounded-lg hover:bg-cream-50 transition-colors"
-                >
-                  Restore default
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveIpsNotes}
-                  disabled={ipsNotesSaving}
-                  className="text-sm font-semibold bg-forest-900 text-cream-100 px-4 py-1.5 rounded-lg hover:bg-forest-800 disabled:opacity-60 transition-colors"
-                >
-                  {ipsNotesSaving ? 'Saving…' : 'Save'}
-                </button>
-              </div>
+              <span className="flex-shrink-0 ml-4 text-xs font-medium text-forest-500 bg-cream-100 border border-cream-300 px-3 py-1.5 rounded-lg">
+                Read-only
+              </span>
             </div>
-            <div className="mt-4">
-              <RichTextEditor value={ipsNotes} onChange={setIpsNotes} resetKey={ipsNotesResetKey} />
-            </div>
+            <div
+              className="mt-4 prose prose-sm max-w-none text-forest-800 bg-cream-50 border border-cream-200 rounded-xl px-4 py-3 pointer-events-none select-text"
+              dangerouslySetInnerHTML={{ __html: ipsNotes || '<p class="text-forest-400 italic">No acceptance language configured by your administrator.</p>' }}
+            />
           </div>
         </div>
       )}
@@ -975,10 +961,16 @@ export default function SettingsPage() {
             <div>
               <h2 className="font-semibold text-forest-900">Investment Preferences</h2>
               <p className="text-sm text-forest-600 mt-0.5">
-                These options appear as checkboxes on your client survey. Clients can select any that apply to them.
+                {isSubUser
+                  ? 'Set by your firm administrator. Applied to every client survey.'
+                  : 'These options appear as checkboxes on your client survey. Clients can select any that apply to them.'}
               </p>
             </div>
-            {!showAddPref && (
+            {isSubUser ? (
+              <span className="flex-shrink-0 ml-4 text-xs font-medium text-forest-500 bg-cream-100 border border-cream-300 px-3 py-1.5 rounded-lg">
+                Read-only
+              </span>
+            ) : !showAddPref && (
               <button
                 type="button"
                 onClick={() => setShowAddPref(true)}
@@ -1027,64 +1019,69 @@ export default function SettingsPage() {
                   ) : (
                     /* Display row */
                     <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-cream-200 hover:border-cream-300 bg-white group">
-                      {/* Reorder */}
-                      <div className="flex flex-col gap-0.5">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveUp(pref, idx)}
-                          disabled={idx === 0}
-                          className="text-forest-300 hover:text-forest-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                          title="Move up"
-                        >
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd"/>
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveDown(pref, idx)}
-                          disabled={idx === preferences.length - 1}
-                          className="text-forest-300 hover:text-forest-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                          title="Move down"
-                        >
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-                          </svg>
-                        </button>
-                      </div>
+                      {/* Reorder — admin only */}
+                      {!isSubUser && (
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveUp(pref, idx)}
+                            disabled={idx === 0}
+                            className="text-forest-300 hover:text-forest-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                            title="Move up"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd"/>
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveDown(pref, idx)}
+                            disabled={idx === preferences.length - 1}
+                            className="text-forest-300 hover:text-forest-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                            title="Move down"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                       <span className="text-xl w-8 text-center flex-shrink-0">{pref.icon}</span>
                       <span className="flex-1 text-sm font-medium text-forest-900">{pref.label}</span>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(pref)}
-                          className="p-1.5 rounded-lg text-forest-500 hover:text-forest-800 hover:bg-cream-100"
-                          title="Edit"
-                        >
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePreference(pref.id)}
-                          disabled={deletingPrefId === pref.id}
-                          className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
-                          title="Delete"
-                        >
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
-                          </svg>
-                        </button>
-                      </div>
+                      {/* Edit / delete — admin only */}
+                      {!isSubUser && (
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(pref)}
+                            className="p-1.5 rounded-lg text-forest-500 hover:text-forest-800 hover:bg-cream-100"
+                            title="Edit"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePreference(pref.id)}
+                            disabled={deletingPrefId === pref.id}
+                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            title="Delete"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               ))
             )}
 
-            {/* Add new preference form */}
-            {showAddPref && (
+            {/* Add new preference form — admin only */}
+            {!isSubUser && showAddPref && (
               <form onSubmit={handleAddPreference} className="flex items-center gap-3 bg-cream-50 border border-forest-200 rounded-xl p-3 mt-2">
                 <EmojiPicker value={newPrefIcon} onChange={setNewPrefIcon} />
                 <input
