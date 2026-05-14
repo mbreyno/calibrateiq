@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
         parent_advisor_id: advisor.id,
         role: 'sub_user',
       },
-      redirectTo: `${APP_URL}/auth/callback`,
+      redirectTo: `${APP_URL}/auth/confirm`,
     },
   })
 
