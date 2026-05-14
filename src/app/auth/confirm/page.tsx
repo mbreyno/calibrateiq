@@ -38,10 +38,12 @@ export default function ConfirmPage() {
       const refreshToken = params.get('refresh_token')
 
       if (accessToken && refreshToken) {
+        const type = params.get('type') // 'invite', 'recovery', etc.
         const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
         if (!error) {
           window.history.replaceState(null, '', window.location.pathname)
-          router.replace('/dashboard')
+          // Invite links: send user to set their password before entering the app
+          router.replace(type === 'invite' ? '/auth/reset-password' : '/dashboard')
           return
         }
         console.error('confirm: setSession error', error)
