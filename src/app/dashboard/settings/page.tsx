@@ -327,7 +327,16 @@ export default function SettingsPage() {
         setAdvisorPlan(advisor.plan ?? 'solo')
         const isSubUserAdvisor = !!advisor.parent_advisor_id
         setIsSubUser(isSubUserAdvisor)
-        if (!isSubUserAdvisor) {
+        if (isSubUserAdvisor) {
+          // Load parent's IPS notes and preferences for display
+          fetch('/api/parent-settings')
+            .then(r => r.json())
+            .then(({ ips_notes, preferences: prefs }) => {
+              if (ips_notes !== undefined) setIpsNotes(ips_notes)
+              if (prefs) { setPreferences(prefs); setPrefLoading(false) }
+            })
+            .catch(() => setPrefLoading(false))
+        } else {
           loadPreferences(advisor.id)
           loadSubUsers()
         }
