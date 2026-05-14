@@ -400,11 +400,26 @@ export default function SettingsPage() {
 
   const handleEmulateSubUser = async (subAdvisorId: string) => {
     setEmulatingId(subAdvisorId)
-    await fetch('/api/emulate-user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sub_advisor_id: subAdvisorId }),
-    })
+    try {
+      const res = await fetch('/api/emulate-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sub_advisor_id: subAdvisorId }),
+      })
+      const body = await res.json()
+      console.log('[emulate-user] status:', res.status, 'body:', body)
+      if (!res.ok) {
+        console.error('[emulate-user] failed:', body)
+        setEmulatingId(null)
+        return
+      }
+      // Confirm cookie was set before navigating
+      console.log('[emulate-user] cookies after response:', document.cookie)
+    } catch (err) {
+      console.error('[emulate-user] fetch error:', err)
+      setEmulatingId(null)
+      return
+    }
     window.location.href = '/dashboard'
   }
 
