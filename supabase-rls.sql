@@ -110,5 +110,64 @@ CREATE POLICY "Survey page can read preferences"
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Sub-user / emulation policies
+--
+-- These let a parent (admin) advisor read and manage data belonging to their
+-- sub-users while emulating them. We use a SECURITY DEFINER helper to bypass
+-- RLS on the advisors table itself (which would otherwise block cross-user
+-- lookups and return empty results).
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- Helper: returns the advisor IDs of all direct sub-users of the current user.
+-- SECURITY DEFINER runs as the function owner, bypassing RLS on advisors.
+CREATE OR REPLACE FUNCTION get_sub_advisor_ids()
+RETURNS SETOF uuid
+LANGUAGE sql SECURITY DEFINER STABLE
+AS $$
+  SELECT id FROM advisors
+  WHERE parent_advisor_id = (
+    SELECT id FROM advisors WHERE user_id = auth.uid() LIMIT 1
+  );
+$$;
+
+-- clients: parent advisor can manage sub-users' clients
+CREATE POLICY "Parent advisors can manage sub-user clients"
+  ON clients FOR ALL
+  USING   (advisor_id IN (SELECT get_sub_advisor_ids()))
+  WITH CHECK (advisor_id IN (SELECT get_sub_advisor_ids()));
+
+-- questionnaire_responses: parent advisor can read sub-users' responses
+CREATE POLICY "Parent advisors can read sub-user responses"
+  ON questionnaire_responses FOR SELECT
+  USING (
+    client_id IN (
+      SELECT id FROM clients
+      WHERE advisor_id IN (SELECT get_sub_advisor_ids())
+    )
+  );
+
+-- households: parent advisor can manage sub-users' households
+CREATE POLICY "Parent advisors can manage sub-user households"
+  ON households FOR ALL
+  USING   (advisor_id IN (SELECT get_sub_advisor_ids()))
+  WITH CHECK (advisor_id IN (SELECT get_sub_advisor_ids()));
+
+-- household_members: parent advisor can manage members of sub-users' households
+CREATE POLICY "Parent advisors can manage sub-user household members"
+  ON household_members FOR ALL
+  USING (
+    household_id IN (
+      SELECT id FROM households
+      WHERE advisor_id IN (SELECT get_sub_advisor_ids())
+    )
+  )
+  WITH CHECK (
+    household_id IN (
+      SELECT id FROM households
+      WHERE advisor_id IN (SELECT get_sub_advisor_ids())
+    )
+  );
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Done. All tables now enforce per-advisor data isolation.
 -- ─────────────────────────────────────────────────────────────────────────────
