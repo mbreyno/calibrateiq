@@ -1,0 +1,62 @@
+import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+/**
+ * GET /api/emulation/clients
+ *
+ * Returns the clients and questionnaire response timestamps for the sub-user
+ * currently being emulated by an admin. Uses the admin client so RLS never
+ * blocks the cross-user read.
+ *
+ * Security:
+ *  - Caller must be authenticated.
+ *  - Caller must be a parent (non-sub) advisor.
+ *  - The iq_emulate cookie must point to one of their own sub-users.
+ */
+export async function GET() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const cookieStore = cookies()
+  const emulatedId = cookieStore.get('iq_emulate')?.value
+  if (!emulatedId) return NextResponse.json({ error: 'No emulation active.' }, { status: 400 })
+
+  const admin = createAdminClient()
+
+  // Verify the caller is the parent of the emulated advisor
+  const { data: callerAdvisor } = await admin
+    .from('advisors')
+    .select('id, parent_advisor_id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!callerAdvisor || callerAdvisor.parent_advisor_id) {
+    return NextResponse.json({ error: 'Only admin users can emulate.' }, { status: 403 })
+  }
+
+  const { data: target } = await admin
+    .from('advisors')
+    .select('id, timezone')
+    .eq('id', emulatedId)
+    .eq('parent_advisor_id', callerAdvisor.id)
+    .single()
+
+  if (!target) {
+    return NextResponse.json({ error: 'Sub-user not found or not yours.' }, { status: 404 })
+  }
+
+  // Fetch clients and their survey responses using admin client (bypasses RLS)
+  const [{ data: clients }, { data: responses }] = await Promise.all([
+    admin.from('clients').select('*').eq('advisor_id', target.id).order('created_at', { ascending: false }),
+    admin.from('questionnaire_responses').select('client_id, completed_at'),
+  ])
+
+  return NextResponse.json({
+    advisor: { id: target.id, timezone: target.timezone },
+    clients: clients ?? [],
+    responses: responses ?? [],
+  })
+}

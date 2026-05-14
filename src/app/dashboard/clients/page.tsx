@@ -38,21 +38,30 @@ export default function ClientsPage() {
   const [deleting, setDeleting] = useState(false)
 
   const loadClients = async () => {
+    const emulatedId = getEmulatedAdvisorId()
+
+    if (emulatedId) {
+      // Admin emulating a sub-user — fetch via server route that uses admin client,
+      // bypassing RLS entirely. The browser client can't see cross-user data.
+      const res = await fetch('/api/emulation/clients')
+      if (!res.ok) {
+        // Cookie stale or invalid — fall through to own data
+      } else {
+        const { clients: clientsData, responses: responsesData } = await res.json()
+        setClients(clientsData ?? [])
+        const map: Record<string, string> = {}
+        for (const r of (responsesData ?? [])) map[r.client_id] = r.completed_at
+        setCompletedAtMap(map)
+        setLoading(false)
+        return
+      }
+    }
+
+    // Normal path — own advisor's data via RLS-restricted browser client
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
 
-    // Support emulation: if admin is viewing as a sub-user, use their advisor_id.
-    // If the emulated lookup fails (e.g. stale cookie), fall back to own advisor.
-    const emulatedId = getEmulatedAdvisorId()
-    let { data: advisor } = emulatedId
-      ? await supabase.from('advisors').select('id').eq('id', emulatedId).single()
-      : await supabase.from('advisors').select('id').eq('user_id', user.id).single()
-
-    if (!advisor && emulatedId) {
-      // Stale emulation cookie — fall back to own advisor row
-      const { data: fallback } = await supabase.from('advisors').select('id').eq('user_id', user.id).single()
-      advisor = fallback
-    }
+    const { data: advisor } = await supabase.from('advisors').select('id').eq('user_id', user.id).single()
     if (!advisor) { setLoading(false); return }
 
     const [{ data: clientsData }, { data: responsesData }] = await Promise.all([

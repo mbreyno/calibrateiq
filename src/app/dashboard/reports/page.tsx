@@ -55,21 +55,31 @@ export default function ReportsPage() {
     })
 
   const loadData = async () => {
+    const emulatedId = getEmulatedAdvisorId()
+
+    if (emulatedId) {
+      // Admin emulating a sub-user — fetch via server route that uses admin client,
+      // bypassing RLS entirely. The browser client can't see cross-user data.
+      const res = await fetch('/api/emulation/reports')
+      if (res.ok) {
+        const { advisor, households, clients: cls, responses } = await res.json()
+        if (advisor?.timezone) setAdvisorTimezone(advisor.timezone)
+        setReports((households ?? []) as Report[])
+        setClients(cls ?? [])
+        const map: Record<string, string> = {}
+        for (const r of (responses ?? [])) map[r.client_id] = r.completed_at
+        setCompletedAtMap(map)
+        setLoading(false)
+        return
+      }
+      // If the endpoint fails, fall through to own data
+    }
+
+    // Normal path — own advisor's data via RLS-restricted browser client
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Support emulation: if admin is viewing as a sub-user, use their advisor_id.
-    // If the emulated lookup fails (e.g. stale cookie), fall back to own advisor.
-    const emulatedId = getEmulatedAdvisorId()
-    let { data: advisor } = emulatedId
-      ? await supabase.from('advisors').select('id, timezone').eq('id', emulatedId).single()
-      : await supabase.from('advisors').select('id, timezone').eq('user_id', user.id).single()
-
-    if (!advisor && emulatedId) {
-      // Stale emulation cookie — fall back to own advisor row
-      const { data: fallback } = await supabase.from('advisors').select('id, timezone').eq('user_id', user.id).single()
-      advisor = fallback
-    }
+    const { data: advisor } = await supabase.from('advisors').select('id, timezone').eq('user_id', user.id).single()
     if (!advisor) { setLoading(false); return }
     if (advisor.timezone) setAdvisorTimezone(advisor.timezone)
 
