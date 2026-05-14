@@ -36,6 +36,15 @@ function mapStatus(stripeStatus: string): string {
   }
 }
 
+// ── Map Stripe price ID → our plan name ───────────────────────────────────────
+function getPlanFromPriceId(priceId: string | undefined): string | null {
+  if (!priceId) return null
+  if (priceId === process.env.STRIPE_PRICE_ID)      return 'solo'
+  if (priceId === process.env.STRIPE_PRICE_TEAM_ID) return 'team'
+  if (priceId === process.env.STRIPE_PRICE_PLUS_ID) return 'plus'
+  return null
+}
+
 export async function POST(req: NextRequest) {
   const payload   = await req.text()
   const sigHeader = req.headers.get('stripe-signature') ?? ''
@@ -89,10 +98,16 @@ export async function POST(req: NextRequest) {
       }
 
       const newStatus = mapStatus(sub.status)
-      await admin.from('advisors').update({
+      const priceId   = sub.items?.data?.[0]?.price?.id
+      const plan      = getPlanFromPriceId(priceId)
+
+      const updatePayload: Record<string, string> = {
         subscription_status:    newStatus,
         stripe_subscription_id: sub.id,
-      }).eq('id', advisor.id)
+      }
+      if (plan) updatePayload.plan = plan
+
+      await admin.from('advisors').update(updatePayload).eq('id', advisor.id)
       break
     }
 
