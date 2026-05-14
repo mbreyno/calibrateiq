@@ -633,17 +633,14 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Team — most popular */}
-            <div className="bg-white rounded-2xl shadow-elevated border-2 border-forest-700 overflow-hidden flex flex-col relative">
-              <div className="bg-forest-700 text-cream-100 text-xs font-bold uppercase tracking-widest text-center py-1.5">
-                Most Popular
-              </div>
-              <div className="bg-forest-900 px-7 pt-5 pb-5">
-                <div className="text-xs font-semibold text-forest-300 uppercase tracking-widest mb-2">Up to 10 advisors</div>
-                <div className="text-sm font-semibold text-forest-300 mb-3">CalibrateIQ Team</div>
+            {/* Team */}
+            <div className="bg-white rounded-2xl shadow-elevated border border-cream-300 overflow-hidden flex flex-col">
+              <div className="px-7 pt-7 pb-5 border-b border-cream-200">
+                <div className="text-xs font-semibold text-forest-500 uppercase tracking-widest mb-2">Up to 10 advisors</div>
+                <div className="text-sm font-semibold text-forest-700 mb-3">CalibrateIQ Team</div>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-5xl font-bold text-white">$27</span>
-                  <span className="text-forest-300 mb-1.5">/month</span>
+                  <span className="text-5xl font-bold text-forest-900">$27</span>
+                  <span className="text-forest-500 mb-1.5">/month</span>
                 </div>
               </div>
               <div className="px-7 py-5 flex-1">
@@ -665,7 +662,7 @@ export default function LandingPage() {
               <div className="px-7 pb-7">
                 <Link
                   href="/auth/signup"
-                  className="block w-full text-center bg-forest-900 hover:bg-forest-800 text-cream-100 text-sm font-semibold py-3 rounded-xl transition-colors shadow-sm"
+                  className="block w-full text-center bg-cream-200 hover:bg-cream-300 text-forest-900 text-sm font-semibold py-3 rounded-xl transition-colors"
                 >
                   Start free trial
                 </Link>
