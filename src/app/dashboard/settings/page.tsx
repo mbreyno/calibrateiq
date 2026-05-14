@@ -6,6 +6,21 @@ import { createClient } from '@/lib/supabase/client'
 import { applyBrandColors } from '@/lib/colorUtils'
 import type { InvestmentPreference } from '@/types'
 
+// ─── Plan metadata ─────────────────────────────────────────────────────────────
+
+const PLAN_META = {
+  solo: { label: 'CalibrateIQ Solo', price: '$9/month', subUserLimit: 0 },
+  team: { label: 'CalibrateIQ Team', price: '$27/month', subUserLimit: 9 },
+  plus: { label: 'CalibrateIQ Plus', price: '$59/month', subUserLimit: 24 },
+}
+
+interface SubUser {
+  id: string
+  email: string | null
+  firm_name: string
+  created_at: string
+}
+
 // ─── Color Field ──────────────────────────────────────────────────────────────
 
 const isValidHex = (s: string) => /^#[0-9A-Fa-f]{6}$/.test(s)
@@ -251,11 +266,23 @@ export default function SettingsPage() {
   const [copiedMaster, setCopiedMaster] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isSubUser, setIsSubUser] = useState(false)
 
   // Subscription
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null)
+  const [advisorPlan, setAdvisorPlan] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
+
+  // Team members (admin only)
+  const [subUsers, setSubUsers] = useState<SubUser[]>([])
+  const [subUsersLoading, setSubUsersLoading] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [inviteSuccess, setInviteSuccess] = useState(false)
+  const [removingId, setRemovingId] = useState<string | null>(null)
+  const [emulatingId, setEmulatingId] = useState<string | null>(null)
 
   // Investment preferences
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
@@ -297,7 +324,13 @@ export default function SettingsPage() {
         setMasterToken(advisor.master_token ?? null)
         setSubscriptionStatus(advisor.subscription_status ?? 'trialing')
         setTrialEndsAt(advisor.trial_ends_at ?? null)
-        loadPreferences(advisor.id)
+        setAdvisorPlan(advisor.plan ?? 'solo')
+        const isSubUserAdvisor = !!advisor.parent_advisor_id
+        setIsSubUser(isSubUserAdvisor)
+        if (!isSubUserAdvisor) {
+          loadPreferences(advisor.id)
+          loadSubUsers()
+        }
       }
     }
     load()
@@ -312,6 +345,58 @@ export default function SettingsPage() {
       .order('sort_order', { ascending: true })
     setPreferences(data ?? [])
     setPrefLoading(false)
+  }
+
+  const loadSubUsers = async () => {
+    setSubUsersLoading(true)
+    const res = await fetch('/api/list-sub-users')
+    const { subUsers: data } = await res.json()
+    setSubUsers(data ?? [])
+    setSubUsersLoading(false)
+  }
+
+  const handleInviteSubUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inviteEmail.trim()) return
+    setInviting(true)
+    setInviteError(null)
+    setInviteSuccess(false)
+    const res = await fetch('/api/invite-sub-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: inviteEmail.trim() }),
+    })
+    const { error } = await res.json()
+    if (error) {
+      setInviteError(error)
+    } else {
+      setInviteSuccess(true)
+      setInviteEmail('')
+      setTimeout(() => setInviteSuccess(false), 4000)
+    }
+    setInviting(false)
+  }
+
+  const handleRemoveSubUser = async (subAdvisorId: string) => {
+    if (!confirm('Remove this team member? They will lose access to the dashboard.')) return
+    setRemovingId(subAdvisorId)
+    await fetch('/api/remove-sub-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sub_advisor_id: subAdvisorId }),
+    })
+    setRemovingId(null)
+    loadSubUsers()
+  }
+
+  const handleEmulateSubUser = async (subAdvisorId: string) => {
+    setEmulatingId(subAdvisorId)
+    await fetch('/api/emulate-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sub_advisor_id: subAdvisorId }),
+    })
+    window.location.href = '/dashboard'
   }
 
   // ── Auto-save handlers ────────────────────────────────────────────────────
@@ -507,12 +592,24 @@ export default function SettingsPage() {
   return (
     <div className="p-6 lg:p-8 pt-20 lg:pt-8 max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-forest-900 mb-1">Firm Settings</h1>
-        <p className="text-forest-600 text-sm">Your firm name and logo appear on every client questionnaire and report you generate.</p>
+        <h1 className="text-2xl font-bold text-forest-900 mb-1">Settings</h1>
+        <p className="text-forest-600 text-sm">
+          {isSubUser
+            ? 'Manage your survey link and report preferences. Branding is controlled by your firm administrator.'
+            : 'Your firm name and logo appear on every client questionnaire and report you generate.'}
+        </p>
       </div>
 
-      {/* Master survey link */}
-      {masterToken && (
+      {/* Sub-user notice */}
+      {isSubUser && (
+        <div className="bg-forest-50 border border-forest-200 rounded-2xl px-5 py-4 mb-6">
+          <p className="text-sm font-medium text-forest-900 mb-0.5">Team member account</p>
+          <p className="text-xs text-forest-600">You&apos;re part of a firm team. Branding, firm name, and subscription are managed by your firm administrator.</p>
+        </div>
+      )}
+
+      {/* Master survey link — admin only (sub-users see it in their settings block below) */}
+      {!isSubUser && masterToken && (
         <div className="bg-forest-900 rounded-2xl p-6 mb-6 text-cream-100">
           <div className="flex items-start gap-3 mb-3">
             <svg className="w-5 h-5 text-gold-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
@@ -544,7 +641,76 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div className="space-y-6">
+      {/* ── Sub-user: simplified settings ────────────────────────────────────── */}
+      {isSubUser && (
+        <div className="space-y-6">
+          {/* Master survey link */}
+          {masterToken && (
+            <div className="bg-forest-900 rounded-2xl p-6 text-cream-100">
+              <div className="flex items-start gap-3 mb-3">
+                <svg className="w-5 h-5 text-gold-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd"/>
+                </svg>
+                <div>
+                  <h2 className="font-semibold text-cream-100">Your Master Survey Link</h2>
+                  <p className="text-sm text-cream-300 mt-0.5">Send this one link to any client.</p>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <div className="flex-1 bg-forest-800 border border-forest-700 rounded-xl px-4 py-2.5 text-xs text-cream-300 font-mono truncate">
+                  {typeof window !== 'undefined' ? window.location.origin : ''}/survey/{masterToken}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/survey/${masterToken}`)
+                    setCopiedMaster(true)
+                    setTimeout(() => setCopiedMaster(false), 2000)
+                  }}
+                  className={`flex-shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all ${
+                    copiedMaster ? 'bg-forest-700 text-cream-100' : 'bg-gold-500 text-forest-900 hover:bg-gold-400'
+                  }`}
+                >
+                  {copiedMaster ? 'Copied!' : 'Copy link'}
+                </button>
+              </div>
+            </div>
+          )}
+          {/* IPS Notes — sub-users can customize their own acceptance language */}
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <h2 className="font-semibold text-forest-900">Investor Understanding &amp; Acceptance</h2>
+                <p className="text-sm text-forest-600 mt-0.5">Standard language shown on every IPS above per-client Advisor Notes.</p>
+              </div>
+              <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                {ipsNotesSaved && <span className="text-xs text-forest-500">✓ Saved</span>}
+                <button
+                  type="button"
+                  onClick={() => { setIpsNotes(DEFAULT_IPS_NOTES); setIpsNotesResetKey(k => k + 1) }}
+                  className="text-sm font-medium text-forest-500 hover:text-forest-800 border border-cream-300 px-4 py-1.5 rounded-lg hover:bg-cream-50 transition-colors"
+                >
+                  Restore default
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveIpsNotes}
+                  disabled={ipsNotesSaving}
+                  className="text-sm font-semibold bg-forest-900 text-cream-100 px-4 py-1.5 rounded-lg hover:bg-forest-800 disabled:opacity-60 transition-colors"
+                >
+                  {ipsNotesSaving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            </div>
+            <div className="mt-4">
+              <RichTextEditor value={ipsNotes} onChange={setIpsNotes} resetKey={ipsNotesResetKey} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Admin: full settings ──────────────────────────────────────────────── */}
+      {!isSubUser && <div className="space-y-6">
 
         {/* Logo upload */}
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
@@ -760,10 +926,11 @@ export default function SettingsPage() {
           </div>
         </div>
 
-      </div>
+      </div>}
+      {/* end admin full settings block */}
 
-      {/* IPS Notes */}
-      <div className="mt-6">
+      {/* IPS Notes — visible to all (sub-users handled in their own block above) */}
+      {!isSubUser && <div className="mt-6">
         <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
           <div className="flex items-start justify-between mb-1">
             <div>
@@ -798,7 +965,8 @@ export default function SettingsPage() {
             <RichTextEditor value={ipsNotes} onChange={setIpsNotes} resetKey={ipsNotesResetKey} />
           </div>
         </div>
-      </div>
+      </div>}
+      {/* end admin IPS Notes block */}
 
       {/* Investment Preferences */}
       <div className="mt-6">
@@ -943,75 +1111,216 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Subscription ────────────────────────────────────────────────── */}
-      <div className="mt-6">
-        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-          <h2 className="text-base font-semibold text-forest-900 mb-4">Subscription</h2>
-          {(() => {
-            const isActive = subscriptionStatus === 'active'
-            const isTrialing = subscriptionStatus === 'trialing'
-            const days = trialEndsAt
-              ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86400000))
-              : null
+      {!isSubUser && (
+        <div className="mt-6">
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+            <h2 className="text-base font-semibold text-forest-900 mb-4">Subscription</h2>
+            {(() => {
+              const isActive = subscriptionStatus === 'active'
+              const isTrialing = subscriptionStatus === 'trialing'
+              const days = trialEndsAt
+                ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86400000))
+                : null
+              const planInfo = PLAN_META[advisorPlan as keyof typeof PLAN_META] ?? PLAN_META.solo
+              const subUserLimit = planInfo.subUserLimit
+              const subUserCount = subUsers.length
 
-            return (
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <div>
-                  {isActive && (
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-                      <span className="text-sm font-medium text-forest-900">Active — $9/month</span>
+              return (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      {isActive && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                          <span className="text-sm font-medium text-forest-900">
+                            {planInfo.label} — {planInfo.price}
+                          </span>
+                        </div>
+                      )}
+                      {isTrialing && days != null && days > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-gold-500 flex-shrink-0" />
+                          <span className="text-sm font-medium text-forest-900">
+                            Trial — {days} day{days === 1 ? '' : 's'} remaining
+                          </span>
+                        </div>
+                      )}
+                      {subscriptionStatus === 'past_due' && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                          <span className="text-sm font-medium text-red-700">Payment past due</span>
+                        </div>
+                      )}
+                      <p className="text-xs text-forest-500 mt-1">
+                        {isActive
+                          ? subUserLimit > 0
+                            ? `${subUserCount} of ${subUserLimit} team member slot${subUserLimit === 1 ? '' : 's'} used · Manage billing below.`
+                            : 'Manage your payment method and billing history below.'
+                          : isTrialing && days != null && days > 0
+                            ? `Trial ends ${new Date(trialEndsAt!).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
+                            : 'Subscribe to keep full access.'}
+                      </p>
+                    </div>
+
+                    {isActive || subscriptionStatus === 'past_due' ? (
+                      <button
+                        onClick={async () => {
+                          setPortalLoading(true)
+                          const res = await fetch('/api/stripe-portal', { method: 'POST' })
+                          const { url, error } = await res.json()
+                          if (url) window.location.href = url
+                          else { alert(error || 'Unable to open billing portal.'); setPortalLoading(false) }
+                        }}
+                        disabled={portalLoading}
+                        className="flex-shrink-0 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 disabled:opacity-60 transition-colors"
+                      >
+                        {portalLoading ? 'Opening…' : 'Manage billing'}
+                      </button>
+                    ) : (
+                      <a
+                        href="/upgrade"
+                        className="flex-shrink-0 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 transition-colors"
+                      >
+                        View plans
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Upgrade nudge for Solo users who want team features */}
+                  {isActive && (advisorPlan === 'solo' || !advisorPlan) && (
+                    <div className="bg-forest-50 border border-forest-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-forest-900">Need team access?</p>
+                        <p className="text-xs text-forest-600 mt-0.5">Upgrade to Team ($27/mo) or Plus ($59/mo) to add up to 9 or 24 additional advisors.</p>
+                      </div>
+                      <a
+                        href="/upgrade"
+                        className="flex-shrink-0 text-sm font-semibold text-forest-700 border border-forest-300 px-4 py-2 rounded-xl hover:bg-forest-100 transition-colors"
+                      >
+                        Upgrade
+                      </a>
                     </div>
                   )}
-                  {isTrialing && days != null && days > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-gold-500 flex-shrink-0" />
-                      <span className="text-sm font-medium text-forest-900">
-                        Trial — {days} day{days === 1 ? '' : 's'} remaining
-                      </span>
-                    </div>
-                  )}
-                  {subscriptionStatus === 'past_due' && (
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                      <span className="text-sm font-medium text-red-700">Payment past due</span>
-                    </div>
-                  )}
-                  <p className="text-xs text-forest-500 mt-1">
-                    {isActive
-                      ? 'Manage your payment method and billing history below.'
-                      : isTrialing && days != null && days > 0
-                        ? `Trial ends ${new Date(trialEndsAt!).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
-                        : 'Subscribe to keep full access.'}
-                  </p>
                 </div>
-
-                {isActive || subscriptionStatus === 'past_due' ? (
-                  <button
-                    onClick={async () => {
-                      setPortalLoading(true)
-                      const res = await fetch('/api/stripe-portal', { method: 'POST' })
-                      const { url, error } = await res.json()
-                      if (url) window.location.href = url
-                      else { alert(error || 'Unable to open billing portal.'); setPortalLoading(false) }
-                    }}
-                    disabled={portalLoading}
-                    className="flex-shrink-0 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 disabled:opacity-60 transition-colors"
-                  >
-                    {portalLoading ? 'Opening…' : 'Manage billing'}
-                  </button>
-                ) : (
-                  <a
-                    href="/upgrade"
-                    className="flex-shrink-0 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 transition-colors"
-                  >
-                    Subscribe — $9/mo
-                  </a>
-                )}
-              </div>
-            )
-          })()}
+              )
+            })()}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Team Members (admin only, Team/Plus plan) ───────────────────────── */}
+      {!isSubUser && (
+        <div className="mt-6">
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <h2 className="font-semibold text-forest-900">Team Members</h2>
+                <p className="text-sm text-forest-600 mt-0.5">
+                  {subscriptionStatus !== 'active' || !advisorPlan || advisorPlan === 'solo'
+                    ? 'Upgrade to Team or Plus to invite additional advisors to your account.'
+                    : `Invite advisors to your firm. They inherit your branding and settings.`}
+                </p>
+              </div>
+            </div>
+
+            {subscriptionStatus === 'active' && advisorPlan && advisorPlan !== 'solo' ? (
+              <div className="mt-5 space-y-4">
+                {/* Invite form */}
+                <form onSubmit={handleInviteSubUser} className="flex gap-2 items-start">
+                  <div className="flex-1">
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={e => { setInviteEmail(e.target.value); setInviteError(null) }}
+                      placeholder="advisor@theirfirm.com"
+                      required
+                      className="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-forest-900 placeholder-forest-700/40 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
+                    />
+                    {inviteError && <p className="text-xs text-red-600 mt-1">{inviteError}</p>}
+                    {inviteSuccess && <p className="text-xs text-forest-600 font-medium mt-1">✓ Invitation sent!</p>}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={inviting || !inviteEmail.trim()}
+                    className="flex-shrink-0 text-sm font-semibold bg-forest-900 text-cream-100 px-4 py-2.5 rounded-xl hover:bg-forest-800 disabled:opacity-60 transition-colors"
+                  >
+                    {inviting ? 'Sending…' : 'Invite'}
+                  </button>
+                </form>
+
+                {/* Sub-user list */}
+                {subUsersLoading ? (
+                  <div className="text-sm text-forest-500 text-center py-4">Loading team…</div>
+                ) : subUsers.length === 0 ? (
+                  <div className="text-center py-5 border-2 border-dashed border-cream-300 rounded-xl">
+                    <p className="text-sm text-forest-600 font-medium">No team members yet</p>
+                    <p className="text-xs text-forest-500 mt-1">Invited advisors will appear here once they accept.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {subUsers.map(sub => (
+                      <div key={sub.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-cream-200 bg-white">
+                        <div className="w-8 h-8 rounded-full bg-forest-100 flex items-center justify-center text-xs font-bold text-forest-700 flex-shrink-0">
+                          {(sub.email || sub.firm_name || '?')[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-forest-900 truncate">
+                            {sub.email || sub.firm_name || 'Team member'}
+                          </div>
+                          <div className="text-xs text-forest-500">
+                            Joined {new Date(sub.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleEmulateSubUser(sub.id)}
+                            disabled={emulatingId === sub.id}
+                            className="text-xs font-medium text-forest-700 border border-forest-300 px-3 py-1.5 rounded-lg hover:bg-forest-50 disabled:opacity-60 transition-colors"
+                            title="View dashboard as this advisor"
+                          >
+                            {emulatingId === sub.id ? '…' : 'View as'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubUser(sub.id)}
+                            disabled={removingId === sub.id}
+                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                            title="Remove team member"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Slot usage */}
+                {(() => {
+                  const limit = PLAN_META[advisorPlan as keyof typeof PLAN_META]?.subUserLimit ?? 0
+                  return limit > 0 ? (
+                    <p className="text-xs text-forest-500 text-right">
+                      {subUsers.length} of {limit} team member slot{limit === 1 ? '' : 's'} used
+                    </p>
+                  ) : null
+                })()}
+              </div>
+            ) : (
+              <div className="mt-4">
+                <a
+                  href="/upgrade"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 transition-colors"
+                >
+                  Upgrade to add team members →
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

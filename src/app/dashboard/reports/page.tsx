@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getEmulatedAdvisorId } from '@/lib/emulation'
 import type { Client } from '@/types'
 
 interface Report {
@@ -57,12 +58,13 @@ export default function ReportsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Fetch id + timezone so we can scope all subsequent queries to this advisor
-    const { data: advisor } = await supabase
-      .from('advisors')
-      .select('id, timezone')
-      .eq('user_id', user.id)
-      .single()
+    // Support emulation: if admin is viewing as a sub-user, use their advisor_id
+    const emulatedId = getEmulatedAdvisorId()
+    const advisorQuery = emulatedId
+      ? supabase.from('advisors').select('id, timezone').eq('id', emulatedId).single()
+      : supabase.from('advisors').select('id, timezone').eq('user_id', user.id).single()
+
+    const { data: advisor } = await advisorQuery
     if (!advisor) { setLoading(false); return }
     if (advisor.timezone) setAdvisorTimezone(advisor.timezone)
 

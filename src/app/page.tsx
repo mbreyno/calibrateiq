@@ -585,46 +585,131 @@ export default function LandingPage() {
 
       {/* ── PRICING ─────────────────────────────────────────────────────── */}
       <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-forest-900/4">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 bg-forest-100 px-3 py-1 rounded-full mb-4">
-            Pricing
-          </div>
-          <h2 className="text-4xl font-bold text-forest-900 mb-4">Simple, transparent pricing</h2>
-          <p className="text-forest-800/70 text-lg mb-12">
-            One plan. Everything included. Cancel anytime.
-          </p>
-
-          <div className="bg-white rounded-2xl shadow-elevated border border-cream-300 p-10 max-w-md mx-auto">
-            <div className="flex items-end justify-center gap-1 mb-2">
-              <span className="text-6xl font-bold text-forest-900">$9</span>
-              <span className="text-forest-700/70 text-lg mb-3">/month</span>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 bg-forest-100 px-3 py-1 rounded-full mb-4">
+              Pricing
             </div>
-            <p className="text-forest-700/60 text-sm mb-8">per advisor · billed monthly</p>
-
-            <ul className="space-y-3 text-left mb-8">
-              {[
-                '7-day free trial — no credit card required',
-                'Unlimited client surveys',
-                'Branded survey links',
-                'Automatic risk scoring',
-                'PDF Investment Policy Statements',
-                'No long-term contract · cancel anytime',
-              ].map((feature) => (
-                <li key={feature} className="flex items-center gap-3 text-forest-800">
-                  <CheckIcon />
-                  <span className="text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              href="/auth/signup"
-              className="block w-full text-center bg-forest-900 text-cream-100 text-base font-semibold px-8 py-3.5 rounded-xl hover:bg-forest-800 shadow-sm"
-            >
-              Start your free trial
-            </Link>
-            <p className="text-xs text-forest-700/50 mt-3">No credit card needed to get started</p>
+            <h2 className="text-4xl font-bold text-forest-900 mb-4">Plans for every firm</h2>
+            <p className="text-forest-800/70 text-lg">
+              7-day free trial on every plan · No credit card required · Cancel anytime
+            </p>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Solo */}
+            <div className="bg-white rounded-2xl shadow-elevated border border-cream-300 overflow-hidden flex flex-col">
+              <div className="px-7 pt-7 pb-5 border-b border-cream-200">
+                <div className="text-xs font-semibold text-forest-500 uppercase tracking-widest mb-2">1 advisor</div>
+                <div className="text-sm font-semibold text-forest-700 mb-3">CalibrateIQ Solo</div>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-5xl font-bold text-forest-900">$9</span>
+                  <span className="text-forest-500 mb-1.5">/month</span>
+                </div>
+              </div>
+              <div className="px-7 py-5 flex-1">
+                <ul className="space-y-2.5">
+                  {[
+                    'Unlimited client questionnaires',
+                    'Dual-score risk profiling',
+                    'PDF Investment Policy Statements',
+                    'Custom branding & logo',
+                    'Household reports for couples',
+                  ].map(f => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-forest-800">
+                      <CheckIcon />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="px-7 pb-7">
+                <Link
+                  href="/auth/signup"
+                  className="block w-full text-center bg-cream-200 hover:bg-cream-300 text-forest-900 text-sm font-semibold py-3 rounded-xl transition-colors"
+                >
+                  Start free trial
+                </Link>
+              </div>
+            </div>
+
+            {/* Team — most popular */}
+            <div className="bg-white rounded-2xl shadow-elevated border-2 border-forest-700 overflow-hidden flex flex-col relative">
+              <div className="bg-forest-700 text-cream-100 text-xs font-bold uppercase tracking-widest text-center py-1.5">
+                Most Popular
+              </div>
+              <div className="bg-forest-900 px-7 pt-5 pb-5">
+                <div className="text-xs font-semibold text-forest-300 uppercase tracking-widest mb-2">Up to 10 advisors</div>
+                <div className="text-sm font-semibold text-forest-300 mb-3">CalibrateIQ Team</div>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-5xl font-bold text-white">$27</span>
+                  <span className="text-forest-300 mb-1.5">/month</span>
+                </div>
+              </div>
+              <div className="px-7 py-5 flex-1">
+                <ul className="space-y-2.5">
+                  {[
+                    'Everything in Solo',
+                    'Up to 9 additional advisors',
+                    'Each advisor has their own clients',
+                    'Shared firm branding across team',
+                    'Admin view-as for any team member',
+                  ].map(f => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-forest-800">
+                      <CheckIcon />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="px-7 pb-7">
+                <Link
+                  href="/auth/signup"
+                  className="block w-full text-center bg-forest-900 hover:bg-forest-800 text-cream-100 text-sm font-semibold py-3 rounded-xl transition-colors shadow-sm"
+                >
+                  Start free trial
+                </Link>
+              </div>
+            </div>
+
+            {/* Plus */}
+            <div className="bg-white rounded-2xl shadow-elevated border border-cream-300 overflow-hidden flex flex-col">
+              <div className="px-7 pt-7 pb-5 border-b border-cream-200">
+                <div className="text-xs font-semibold text-forest-500 uppercase tracking-widest mb-2">Up to 25 advisors</div>
+                <div className="text-sm font-semibold text-forest-700 mb-3">CalibrateIQ Plus</div>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-5xl font-bold text-forest-900">$59</span>
+                  <span className="text-forest-500 mb-1.5">/month</span>
+                </div>
+              </div>
+              <div className="px-7 py-5 flex-1">
+                <ul className="space-y-2.5">
+                  {[
+                    'Everything in Team',
+                    'Up to 24 additional advisors',
+                    'Priority support',
+                  ].map(f => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-forest-800">
+                      <CheckIcon />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="px-7 pb-7">
+                <Link
+                  href="/auth/signup"
+                  className="block w-full text-center bg-cream-200 hover:bg-cream-300 text-forest-900 text-sm font-semibold py-3 rounded-xl transition-colors"
+                >
+                  Start free trial
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-forest-500 mt-8">
+            All plans start with a 7-day free trial · No credit card required · Secure payments via Stripe
+          </p>
         </div>
       </section>
 

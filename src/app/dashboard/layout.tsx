@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import DashboardNav from './DashboardNav'
+import type { Advisor } from '@/types'
 
-/** Returns true if the advisor currently has valid access (active sub or live trial). */
+/** Returns true if the advisor (or their parent) currently has valid access. */
 function hasAccess(advisor: {
   subscription_status?: string | null
   trial_ends_at?: string | null
@@ -22,6 +24,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/auth/login')
 
+  const adminClient = createAdminClient()
+
   // Fetch or create advisor profile
   let { data: advisor } = await supabase
     .from('advisors')
@@ -30,31 +34,91 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .single()
 
   if (!advisor) {
-    // First login — create advisor row and start 7-day trial
+    // First login — check if this is a sub-user invite or a new solo advisor
     const meta = user.user_metadata
-    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-    const admin = createAdminClient()
-    const { data: newAdvisor } = await admin
+    const parentAdvisorId = (meta?.parent_advisor_id as string | null) ?? null
+    const isSubUserInvite = meta?.role === 'sub_user' && !!parentAdvisorId
+
+    const { data: newAdvisor } = await adminClient
       .from('advisors')
       .insert({
         user_id: user.id,
-        firm_name: meta?.firm_name ?? '',
-        subscription_status: 'trialing',
-        trial_ends_at: trialEndsAt,
+        email: user.email ?? null,
+        firm_name: isSubUserInvite ? '' : (meta?.firm_name ?? ''),
+        subscription_status: isSubUserInvite ? 'active' : 'trialing',
+        trial_ends_at: isSubUserInvite ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        parent_advisor_id: parentAdvisorId,
+        plan: isSubUserInvite ? null : 'solo',
       })
       .select()
       .single()
     advisor = newAdvisor
   }
 
-  // Subscription gate — skip for the upgrade page itself
-  if (!hasAccess(advisor ?? {})) {
-    redirect('/upgrade')
+  // ── Determine if this user is a sub-user ──────────────────────────────────
+  const isSubUser = !!(advisor as Advisor)?.parent_advisor_id
+  let advisorForNav: Advisor = advisor as Advisor
+
+  if (isSubUser) {
+    // Sub-user: gate access on parent's subscription and inherit parent branding
+    const { data: parentAdvisor } = await adminClient
+      .from('advisors')
+      .select('*')
+      .eq('id', (advisor as Advisor).parent_advisor_id!)
+      .single()
+
+    if (!parentAdvisor || !hasAccess(parentAdvisor)) {
+      redirect('/upgrade')
+    }
+
+    // Sub-users see parent firm's branding in the nav
+    advisorForNav = {
+      ...(advisor as Advisor),
+      firm_name: parentAdvisor.firm_name,
+      logo_url: parentAdvisor.logo_url,
+      brand_color: parentAdvisor.brand_color,
+      brand_accent: parentAdvisor.brand_accent,
+      brand_surface: parentAdvisor.brand_surface,
+      brand_text: parentAdvisor.brand_text,
+      ips_notes: parentAdvisor.ips_notes,
+    }
+  } else {
+    if (!hasAccess(advisor ?? {})) {
+      redirect('/upgrade')
+    }
+  }
+
+  // ── Emulation: admin can view as a sub-user ───────────────────────────────
+  let emulatingAs: { id: string; label: string } | null = null
+
+  if (!isSubUser) {
+    const cookieStore = cookies()
+    const emulatedId = cookieStore.get('iq_emulate')?.value
+
+    if (emulatedId) {
+      const { data: emulatedAdvisor } = await adminClient
+        .from('advisors')
+        .select('id, email, firm_name')
+        .eq('id', emulatedId)
+        .eq('parent_advisor_id', (advisor as Advisor).id) // safety: only own sub-users
+        .single()
+
+      if (emulatedAdvisor) {
+        emulatingAs = {
+          id: emulatedAdvisor.id,
+          label: emulatedAdvisor.email || emulatedAdvisor.firm_name || 'Team member',
+        }
+      }
+    }
   }
 
   return (
     <div className="min-h-screen bg-cream-100 flex">
-      <DashboardNav advisor={advisor} />
+      <DashboardNav
+        advisor={advisorForNav}
+        isSubUser={isSubUser}
+        emulatingAs={emulatingAs}
+      />
       <main className="flex-1 lg:ml-60 min-h-screen">
         {children}
       </main>

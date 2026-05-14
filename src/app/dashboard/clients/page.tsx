@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getEmulatedAdvisorId } from '@/lib/emulation'
 import type { Client } from '@/types'
 
 function StatusBadge({ status }: { status: Client['status'] }) {
@@ -40,12 +41,13 @@ export default function ClientsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
 
-    // Scope all queries to the current advisor only
-    const { data: advisor } = await supabase
-      .from('advisors')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
+    // Support emulation: if admin is viewing as a sub-user, use their advisor_id
+    const emulatedId = getEmulatedAdvisorId()
+    const advisorQuery = emulatedId
+      ? supabase.from('advisors').select('id').eq('id', emulatedId).single()
+      : supabase.from('advisors').select('id').eq('user_id', user.id).single()
+
+    const { data: advisor } = await advisorQuery
     if (!advisor) { setLoading(false); return }
 
     const [{ data: clientsData }, { data: responsesData }] = await Promise.all([

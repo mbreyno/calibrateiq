@@ -19,7 +19,7 @@ function LogoMark({ accentColor }: { accentColor: string }) {
   )
 }
 
-const NAV_ITEMS = [
+const ADMIN_NAV_ITEMS = [
   {
     href: '/dashboard',
     label: 'Dashboard',
@@ -58,11 +58,23 @@ const NAV_ITEMS = [
   },
 ]
 
-export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
+// Sub-users don't get Firm Settings
+const SUB_USER_NAV_ITEMS = ADMIN_NAV_ITEMS.filter(item => item.href !== '/dashboard/settings')
+
+export default function DashboardNav({
+  advisor,
+  isSubUser = false,
+  emulatingAs = null,
+}: {
+  advisor: Advisor | null
+  isSubUser?: boolean
+  emulatingAs?: { id: string; label: string } | null
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [revertingEmulation, setRevertingEmulation] = useState(false)
 
   const brandColor = advisor?.brand_color ?? '#1b4332'
   const brandAccent = advisor?.brand_accent ?? '#d4a017'
@@ -79,6 +91,15 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
     router.push('/')
   }
 
+  const handleRevertEmulation = async () => {
+    setRevertingEmulation(true)
+    await fetch('/api/revert-emulation', { method: 'POST' })
+    router.push('/dashboard')
+    router.refresh()
+  }
+
+  const NAV_ITEMS = isSubUser ? SUB_USER_NAV_ITEMS : ADMIN_NAV_ITEMS
+
   const NavContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -93,8 +114,26 @@ export default function DashboardNav({ advisor }: { advisor: Advisor | null }) {
         <div className="text-sm font-bold text-white leading-snug">
           {advisor?.firm_name || 'CalibrateIQ'}
         </div>
-        <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Advisor Portal</div>
+        <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          {isSubUser ? 'Team Member Portal' : 'Advisor Portal'}
+        </div>
       </div>
+
+      {/* Emulation banner */}
+      {emulatingAs && (
+        <div className="mx-3 mt-3 rounded-xl px-3 py-2.5 text-xs" style={{ backgroundColor: 'rgba(212,160,23,0.2)', border: '1px solid rgba(212,160,23,0.4)' }}>
+          <div className="text-white font-semibold mb-0.5" style={{ color: '#f0c040' }}>Viewing as:</div>
+          <div className="truncate mb-2" style={{ color: 'rgba(255,255,255,0.85)' }}>{emulatingAs.label}</div>
+          <button
+            onClick={handleRevertEmulation}
+            disabled={revertingEmulation}
+            className="w-full text-xs font-semibold py-1.5 rounded-lg transition-colors"
+            style={{ backgroundColor: 'rgba(212,160,23,0.3)', color: '#f0c040' }}
+          >
+            {revertingEmulation ? 'Exiting…' : '← Exit to admin view'}
+          </button>
+        </div>
+      )}
 
       {/* Nav items */}
       <nav className="flex-1 p-3 space-y-0.5">

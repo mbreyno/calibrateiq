@@ -26,9 +26,14 @@ export async function GET(req: NextRequest) {
     const admin = createAdminClient()
 
     // Immediately mark the advisor as active — don't wait for the webhook
+    const plan = (['solo', 'team', 'plus'].includes(session.metadata?.plan)
+      ? session.metadata.plan
+      : 'solo') as string
+
     if (advisorId) {
       await admin.from('advisors').update({
         subscription_status:    'active',
+        plan,
         stripe_customer_id:     customerId,
         stripe_subscription_id: subscriptionId,
       }).eq('id', advisorId)
@@ -36,6 +41,7 @@ export async function GET(req: NextRequest) {
       // Fallback: look up by Stripe customer ID (covers edge cases)
       await admin.from('advisors').update({
         subscription_status:    'active',
+        plan,
         stripe_subscription_id: subscriptionId,
       }).eq('stripe_customer_id', customerId)
     } else {

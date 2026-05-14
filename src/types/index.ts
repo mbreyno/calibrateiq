@@ -1,6 +1,7 @@
 export interface Advisor {
   id: string
   user_id: string
+  email?: string | null
   firm_name: string
   logo_url?: string | null
   ips_notes?: string | null
@@ -9,6 +10,9 @@ export interface Advisor {
   brand_accent?: string | null
   brand_surface?: string | null
   brand_text?: string | null
+  // Multi-tier plan
+  plan?: 'solo' | 'team' | 'plus' | null
+  parent_advisor_id?: string | null   // set for sub-users; null for admins
   // Subscription
   stripe_customer_id?: string | null
   stripe_subscription_id?: string | null
