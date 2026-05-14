@@ -41,13 +41,18 @@ export default function ClientsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
 
-    // Support emulation: if admin is viewing as a sub-user, use their advisor_id
+    // Support emulation: if admin is viewing as a sub-user, use their advisor_id.
+    // If the emulated lookup fails (e.g. stale cookie), fall back to own advisor.
     const emulatedId = getEmulatedAdvisorId()
-    const advisorQuery = emulatedId
-      ? supabase.from('advisors').select('id').eq('id', emulatedId).single()
-      : supabase.from('advisors').select('id').eq('user_id', user.id).single()
+    let { data: advisor } = emulatedId
+      ? await supabase.from('advisors').select('id').eq('id', emulatedId).single()
+      : await supabase.from('advisors').select('id').eq('user_id', user.id).single()
 
-    const { data: advisor } = await advisorQuery
+    if (!advisor && emulatedId) {
+      // Stale emulation cookie — fall back to own advisor row
+      const { data: fallback } = await supabase.from('advisors').select('id').eq('user_id', user.id).single()
+      advisor = fallback
+    }
     if (!advisor) { setLoading(false); return }
 
     const [{ data: clientsData }, { data: responsesData }] = await Promise.all([

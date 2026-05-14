@@ -1193,12 +1193,19 @@ export default function SettingsPage() {
                         <p className="text-sm font-medium text-forest-900">Need team access?</p>
                         <p className="text-xs text-forest-600 mt-0.5">Upgrade to Team ($27/mo) or Plus ($59/mo) to add up to 9 or 24 additional advisors.</p>
                       </div>
-                      <a
-                        href="/upgrade"
-                        className="flex-shrink-0 text-sm font-semibold text-forest-700 border border-forest-300 px-4 py-2 rounded-xl hover:bg-forest-100 transition-colors"
+                      <button
+                        disabled={portalLoading}
+                        onClick={async () => {
+                          setPortalLoading(true)
+                          const res = await fetch('/api/stripe-portal', { method: 'POST' })
+                          const { url, error } = await res.json()
+                          if (url) window.location.href = url
+                          else { alert(error || 'Unable to open billing portal.'); setPortalLoading(false) }
+                        }}
+                        className="flex-shrink-0 text-sm font-semibold text-forest-700 border border-forest-300 px-4 py-2 rounded-xl hover:bg-forest-100 disabled:opacity-60 transition-colors"
                       >
-                        Upgrade
-                      </a>
+                        {portalLoading ? 'Opening…' : 'Upgrade'}
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1310,12 +1317,19 @@ export default function SettingsPage() {
               </div>
             ) : (
               <div className="mt-4">
-                <a
-                  href="/upgrade"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 transition-colors"
+                <button
+                  disabled={portalLoading}
+                  onClick={async () => {
+                    setPortalLoading(true)
+                    const res = await fetch('/api/stripe-portal', { method: 'POST' })
+                    const { url, error } = await res.json()
+                    if (url) window.location.href = url
+                    else { alert(error || 'Unable to open billing portal.'); setPortalLoading(false) }
+                  }}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold bg-forest-900 text-cream-100 px-5 py-2.5 rounded-xl hover:bg-forest-800 disabled:opacity-60 transition-colors"
                 >
-                  Upgrade to add team members →
-                </a>
+                  {portalLoading ? 'Opening…' : 'Upgrade to add team members →'}
+                </button>
               </div>
             )}
           </div>
