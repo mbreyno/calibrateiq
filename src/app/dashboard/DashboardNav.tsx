@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { applyBrandColors } from '@/lib/colorUtils'
+import { clearEmulatedAdvisorId } from '@/lib/emulation'
 import type { Advisor } from '@/types'
 
 function LogoMark({ accentColor }: { accentColor: string }) {
@@ -94,6 +95,7 @@ export default function DashboardNav({
   const handleRevertEmulation = async () => {
     setRevertingEmulation(true)
     await fetch('/api/revert-emulation', { method: 'POST' })
+    clearEmulatedAdvisorId()
     router.push('/dashboard')
     router.refresh()
   }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { applyBrandColors } from '@/lib/colorUtils'
+import { setEmulatedAdvisorId, clearEmulatedAdvisorId } from '@/lib/emulation'
 import type { InvestmentPreference } from '@/types'
 
 // ─── Plan metadata ─────────────────────────────────────────────────────────────
@@ -406,15 +407,15 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sub_advisor_id: subAdvisorId }),
       })
-      const body = await res.json()
-      console.log('[emulate-user] status:', res.status, 'body:', body)
       if (!res.ok) {
-        console.error('[emulate-user] failed:', body)
+        const body = await res.json().catch(() => ({}))
+        console.error('[emulate-user] failed:', res.status, body)
         setEmulatingId(null)
         return
       }
-      // Confirm cookie was set before navigating
-      console.log('[emulate-user] cookies after response:', document.cookie)
+      // Persist emulated advisor ID in localStorage so client pages can detect it.
+      // (The server cookie may not be exposed to document.cookie in all browsers.)
+      setEmulatedAdvisorId(subAdvisorId)
     } catch (err) {
       console.error('[emulate-user] fetch error:', err)
       setEmulatingId(null)
