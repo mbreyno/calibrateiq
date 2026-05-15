@@ -72,15 +72,13 @@ export default function MasterSurveyPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: advisorData, error: advisorError } = await supabase
-        .from('advisors')
-        .select('*')
-        .eq('master_token', token)
-        .single()
+      // Use server-side API route (admin client) to bypass RLS for this public lookup
+      const res = await fetch(`/api/survey/advisor/${token}`)
+      if (!res.ok) { setNotFound(true); setLoading(false); return }
 
-      console.log('[survey] token:', token, '| advisor id:', advisorData?.id ?? null, '| error:', JSON.stringify(advisorError))
-
+      const { advisor: advisorData, preferences: prefs } = await res.json()
       if (!advisorData) { setNotFound(true); setLoading(false); return }
+
       setAdvisor(advisorData)
       applyBrandColors(
         advisorData.brand_color  ?? '#1b4332',
@@ -88,15 +86,7 @@ export default function MasterSurveyPage() {
         advisorData.brand_surface ?? '#fefae0',
         advisorData.brand_text   ?? advisorData.brand_color ?? '#1b4332',
       )
-
-      // Load this advisor's investment preferences
-      const { data: prefs } = await supabase
-        .from('investment_preferences')
-        .select('*')
-        .eq('advisor_id', advisorData.id)
-        .order('sort_order', { ascending: true })
       setPreferences(prefs ?? [])
-
       setLoading(false)
     }
     load()
