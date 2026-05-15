@@ -72,11 +72,13 @@ export default function MasterSurveyPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: advisorData } = await supabase
+      const { data: advisorData, error: advisorError } = await supabase
         .from('advisors')
         .select('*')
         .eq('master_token', token)
         .single()
+
+      console.log('[survey] token:', token, '| advisor id:', advisorData?.id ?? null, '| error:', JSON.stringify(advisorError))
 
       if (!advisorData) { setNotFound(true); setLoading(false); return }
       setAdvisor(advisorData)
