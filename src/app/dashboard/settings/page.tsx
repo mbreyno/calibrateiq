@@ -615,7 +615,7 @@ export default function SettingsPage() {
   const firmNameDirty = firmName !== savedFirmName
 
   return (
-    <div className="p-6 lg:p-8 pt-20 lg:pt-8 max-w-2xl">
+    <div className="p-6 lg:p-8 pt-20 lg:pt-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-forest-900 mb-1">Settings</h1>
         <p className="text-forest-600 text-sm">
