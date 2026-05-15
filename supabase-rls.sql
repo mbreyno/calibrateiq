@@ -12,6 +12,12 @@ CREATE POLICY "Advisors can manage their own profile"
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
+-- The public survey page needs to look up advisors by master_token for branding
+CREATE POLICY "Survey page can read advisor profiles"
+  ON advisors FOR SELECT
+  TO anon
+  USING (true);
+
 
 -- ── clients ──────────────────────────────────────────────────────────────────
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
