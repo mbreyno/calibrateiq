@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.app'
-
 export async function POST() {
-  const res = NextResponse.redirect(`${APP_URL}/dashboard`)
+  const res = NextResponse.json({ success: true })
   res.cookies.set('iq_emulate', '', {
     path: '/',
     sameSite: 'strict',

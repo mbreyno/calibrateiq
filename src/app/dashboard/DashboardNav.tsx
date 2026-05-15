@@ -96,8 +96,7 @@ export default function DashboardNav({
     setRevertingEmulation(true)
     await fetch('/api/revert-emulation', { method: 'POST' })
     clearEmulatedAdvisorId()
-    router.push('/dashboard')
-    router.refresh()
+    window.location.href = '/dashboard'
   }
 
   const NAV_ITEMS = isSubUser ? SUB_USER_NAV_ITEMS : ADMIN_NAV_ITEMS
