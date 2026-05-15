@@ -122,7 +122,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen bg-cream-100 flex">
       <DashboardNav
         advisor={advisorForNav}
-        isSubUser={isSubUser}
+        isSubUser={isSubUser || !!emulatingAs}
         emulatingAs={emulatingAs}
       />
       <main className="flex-1 lg:ml-60 min-h-screen">
