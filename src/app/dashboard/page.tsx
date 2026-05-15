@@ -38,7 +38,9 @@ export default async function DashboardPage() {
   const emulatedId = cookieStore.get('iq_emulate')?.value
   let advisor = ownAdvisor
 
-  if (emulatedId && ownAdvisor && !ownAdvisor.parent_advisor_id) {
+  const isEmulating = !!(emulatedId && ownAdvisor && !ownAdvisor.parent_advisor_id)
+
+  if (isEmulating) {
     // Verify the emulated advisor belongs to this admin before using it
     const { data: emulatedAdvisor } = await adminClient
       .from('advisors')
@@ -48,6 +50,11 @@ export default async function DashboardPage() {
       .single()
     if (emulatedAdvisor) advisor = emulatedAdvisor
   }
+
+  // Sub-users inherit firm name from parent; when emulating use the admin's firm name for display
+  const displayFirmName = isEmulating
+    ? (ownAdvisor?.firm_name || 'Your Dashboard')
+    : (advisor?.firm_name || null)
 
   const { data: clients } = advisor
     ? await adminClient
@@ -72,7 +79,7 @@ export default async function DashboardPage() {
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
           <h1 className="text-2xl font-bold text-forest-900">
-            {advisor?.firm_name ? `${advisor.firm_name}` : 'Your Dashboard'}
+            {displayFirmName ?? 'Your Dashboard'}
           </h1>
         </div>
         <Link
@@ -100,8 +107,8 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Setup prompt if no firm name */}
-      {!advisor?.firm_name && (
+      {/* Setup prompt — only for own dashboard with no firm name, never while emulating */}
+      {!isEmulating && !advisor?.firm_name && (
         <div className="bg-gold-300/20 border border-gold-400/40 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
           <div>
             <div className="font-semibold text-forest-900 text-sm mb-0.5">Finish setting up your profile</div>
