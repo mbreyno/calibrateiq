@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Client } from '@/types'
 
 function StatusBadge({ status }: { status: Client['status'] }) {
@@ -22,15 +24,33 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Fetch advisor first so we can scope the clients query to this advisor only
-  const { data: advisor } = await supabase
+  const adminClient = createAdminClient()
+
+  // Fetch the current user's own advisor row
+  const { data: ownAdvisor } = await adminClient
     .from('advisors')
     .select('*')
     .eq('user_id', user.id)
     .single()
 
+  // Check if an emulation cookie is active and resolve the target advisor
+  const cookieStore = cookies()
+  const emulatedId = cookieStore.get('iq_emulate')?.value
+  let advisor = ownAdvisor
+
+  if (emulatedId && ownAdvisor && !ownAdvisor.parent_advisor_id) {
+    // Verify the emulated advisor belongs to this admin before using it
+    const { data: emulatedAdvisor } = await adminClient
+      .from('advisors')
+      .select('*')
+      .eq('id', emulatedId)
+      .eq('parent_advisor_id', ownAdvisor.id)
+      .single()
+    if (emulatedAdvisor) advisor = emulatedAdvisor
+  }
+
   const { data: clients } = advisor
-    ? await supabase
+    ? await adminClient
         .from('clients')
         .select('*')
         .eq('advisor_id', advisor.id)
