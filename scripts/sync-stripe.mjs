@@ -1,27 +1,45 @@
 /**
  * One-time script: sync active Stripe subscriptions → Supabase advisors table.
+ * Updates subscription_status, stripe_subscription_id, stripe_customer_id,
+ * AND the plan column (solo / team / plus) based on the Stripe price ID.
  *
  * Usage:
  *   node scripts/sync-stripe.mjs
  *
- * Requires these env vars (copy from .env.local):
+ * Requires these env vars (copy from .env.local + Vercel):
  *   STRIPE_SECRET_KEY
+ *   STRIPE_PRICE_ID          (solo plan price ID)
+ *   STRIPE_PRICE_TEAM_ID     (team plan price ID)
+ *   STRIPE_PRICE_PLUS_ID     (plus plan price ID)  — optional
  *   NEXT_PUBLIC_SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY
  */
 
 import { createClient } from '@supabase/supabase-js'
 
-const STRIPE_SECRET_KEY      = process.env.STRIPE_SECRET_KEY
-const SUPABASE_URL           = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_SERVICE_KEY   = process.env.SUPABASE_SERVICE_ROLE_KEY
+const STRIPE_SECRET_KEY    = process.env.STRIPE_SECRET_KEY
+const SUPABASE_URL         = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!STRIPE_SECRET_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('Missing env vars. Run with:\n  STRIPE_SECRET_KEY=... NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/sync-stripe.mjs')
+  console.error(
+    'Missing env vars. Run with:\n' +
+    '  STRIPE_SECRET_KEY=... STRIPE_PRICE_ID=... STRIPE_PRICE_TEAM_ID=... ' +
+    'NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/sync-stripe.mjs'
+  )
   process.exit(1)
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+// ── Map Stripe price ID → plan name ──────────────────────────────────────────
+function getPlanFromPriceId(priceId) {
+  if (!priceId) return null
+  if (priceId === process.env.STRIPE_PRICE_ID)      return 'solo'
+  if (priceId === process.env.STRIPE_PRICE_TEAM_ID) return 'team'
+  if (priceId === process.env.STRIPE_PRICE_PLUS_ID) return 'plus'
+  return null
+}
 
 async function stripeGet(path) {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
@@ -38,7 +56,7 @@ async function fetchAllSubscriptions() {
     const qs = new URLSearchParams({ limit: '100', status: 'active' })
     if (startingAfter) qs.set('starting_after', startingAfter)
 
-    const page = await stripeGet(`subscriptions?${qs}`)
+    const page = await stripeGet(`subscriptions?${qs}&expand[]=data.items`)
     if (page.error) { console.error('Stripe error:', page.error); break }
 
     subs.push(...page.data)
@@ -52,19 +70,21 @@ async function fetchAllSubscriptions() {
 async function main() {
   console.log('Fetching active subscriptions from Stripe…')
   const subscriptions = await fetchAllSubscriptions()
-  console.log(`Found ${subscriptions.length} active subscription(s)`)
+  console.log(`Found ${subscriptions.length} active subscription(s)\n`)
 
-  let updated = 0
-  let skipped = 0
+  let updated  = 0
+  let skipped  = 0
   let notFound = 0
 
   for (const sub of subscriptions) {
     const customerId     = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id
     const subscriptionId = sub.id
     const advisorId      = sub.metadata?.advisor_id ?? null
+    const priceId        = sub.items?.data?.[0]?.price?.id ?? null
+    const plan           = getPlanFromPriceId(priceId)
 
     // Try to find the advisor row — first by advisor_id in metadata, then by stripe_customer_id
-    let query = supabase.from('advisors').select('id, email, subscription_status')
+    let query = supabase.from('advisors').select('id, email, plan, subscription_status')
 
     if (advisorId) {
       query = query.eq('id', advisorId)
@@ -85,30 +105,38 @@ async function main() {
 
     const row = rows[0]
 
-    if (row.subscription_status === 'active') {
-      console.log(`  ✓ ${row.email ?? row.id} already active — skipping`)
+    const alreadySynced =
+      row.subscription_status === 'active' &&
+      (!plan || row.plan === plan)
+
+    if (alreadySynced) {
+      console.log(`  ✓ ${row.email ?? row.id} already up to date (plan: ${row.plan}) — skipping`)
       skipped++
       continue
     }
 
+    const updatePayload = {
+      subscription_status:    'active',
+      stripe_subscription_id: subscriptionId,
+      stripe_customer_id:     customerId,
+    }
+    if (plan) updatePayload.plan = plan
+
     const { error: updateError } = await supabase
       .from('advisors')
-      .update({
-        subscription_status:    'active',
-        stripe_subscription_id: subscriptionId,
-        stripe_customer_id:     customerId,
-      })
+      .update(updatePayload)
       .eq('id', row.id)
 
     if (updateError) {
       console.error(`  ✗ Failed to update ${row.email ?? row.id}:`, updateError.message)
     } else {
-      console.log(`  ✔ Updated ${row.email ?? row.id} → active (sub: ${subscriptionId})`)
+      const planLabel = plan ? ` → plan: ${plan}` : ''
+      console.log(`  ✔ Updated ${row.email ?? row.id} → active${planLabel} (sub: ${subscriptionId})`)
       updated++
     }
   }
 
-  console.log(`\nDone. Updated: ${updated} | Already active: ${skipped} | Not matched: ${notFound}`)
+  console.log(`\nDone. Updated: ${updated} | Already synced: ${skipped} | Not matched: ${notFound}`)
 }
 
 main().catch(err => { console.error(err); process.exit(1) })
