@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Client } from '@/types'
@@ -26,42 +25,20 @@ export default async function DashboardPage() {
 
   const adminClient = createAdminClient()
 
-  // Fetch the current user's own advisor row
   const { data: ownAdvisor } = await adminClient
     .from('advisors')
     .select('*')
     .eq('user_id', user.id)
     .single()
 
-  // Check if the logged-in user is a sub-user
   const isSubUser = !!ownAdvisor?.parent_advisor_id
 
-  // Check if an emulation cookie is active and resolve the target advisor
-  const cookieStore = cookies()
-  const emulatedId = cookieStore.get('iq_emulate')?.value
-  let advisor = ownAdvisor
+  // Effective advisor ID: sub-users share the parent admin's data pool
+  const effectiveAdvisorId = ownAdvisor?.parent_advisor_id ?? ownAdvisor?.id
 
-  const isEmulating = !!(emulatedId && ownAdvisor && !isSubUser)
-
-  if (isEmulating) {
-    const { data: emulatedAdvisor } = await adminClient
-      .from('advisors')
-      .select('*')
-      .eq('id', emulatedId)
-      .eq('parent_advisor_id', ownAdvisor.id)
-      .single()
-    if (emulatedAdvisor) advisor = emulatedAdvisor
-  }
-
-  // Resolve display firm name:
-  // - Emulating a sub-user → show admin's own firm name
-  // - Logged in as sub-user → fetch parent's firm name
-  // - Normal admin → use own firm name
-  let displayFirmName: string | null = advisor?.firm_name || null
-
-  if (isEmulating) {
-    displayFirmName = ownAdvisor?.firm_name || null
-  } else if (isSubUser && ownAdvisor?.parent_advisor_id) {
+  // Display firm name: sub-users show parent firm name
+  let displayFirmName: string | null = ownAdvisor?.firm_name || null
+  if (isSubUser && ownAdvisor?.parent_advisor_id) {
     const { data: parent } = await adminClient
       .from('advisors')
       .select('firm_name')
@@ -70,19 +47,18 @@ export default async function DashboardPage() {
     displayFirmName = parent?.firm_name || null
   }
 
-  const { data: clients } = advisor
+  const { data: clients } = effectiveAdvisorId
     ? await adminClient
         .from('clients')
         .select('*')
-        .eq('advisor_id', advisor.id)
+        .eq('advisor_id', effectiveAdvisorId)
         .order('created_at', { ascending: false })
     : { data: [] }
 
-  const totalClients = clients?.length ?? 0
+  const totalClients     = clients?.length ?? 0
   const completedClients = clients?.filter(c => c.status === 'completed').length ?? 0
-  const pendingClients = totalClients - completedClients
-
-  const recentClients = clients?.slice(0, 10) ?? []
+  const pendingClients   = totalClients - completedClients
+  const recentClients    = clients?.slice(0, 10) ?? []
 
   return (
     <div className="p-6 lg:p-8 pt-20 lg:pt-8">
@@ -110,9 +86,9 @@ export default async function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
-          { label: 'Total Surveys', value: totalClients, color: 'bg-forest-100 text-forest-800' },
+          { label: 'Total Surveys',     value: totalClients,     color: 'bg-forest-100 text-forest-800' },
           { label: 'Profiles Complete', value: completedClients, color: 'bg-forest-100 text-forest-800' },
-          { label: 'Awaiting Response', value: pendingClients, color: 'bg-gold-300/25 text-gold-800' },
+          { label: 'Awaiting Response', value: pendingClients,   color: 'bg-gold-300/25 text-gold-800' },
         ].map(stat => (
           <div key={stat.label} className="bg-white rounded-2xl border border-cream-300 shadow-card p-5">
             <div className="text-3xl font-bold text-forest-900 mb-1">{stat.value}</div>
@@ -122,7 +98,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Setup prompt — only for admins with no firm name configured */}
-      {!isEmulating && !isSubUser && !advisor?.firm_name && (
+      {!isSubUser && !ownAdvisor?.firm_name && (
         <div className="bg-gold-300/20 border border-gold-400/40 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
           <div>
             <div className="font-semibold text-forest-900 text-sm mb-0.5">Finish setting up your profile</div>

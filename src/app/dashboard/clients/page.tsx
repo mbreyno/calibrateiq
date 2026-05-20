@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { getEmulatedAdvisorId } from '@/lib/emulation'
 import type { Client } from '@/types'
 
 function StatusBadge({ status }: { status: Client['status'] }) {
@@ -20,8 +18,6 @@ function StatusBadge({ status }: { status: Client['status'] }) {
 }
 
 export default function ClientsPage() {
-  const supabase = createClient()
-
   const [clients, setClients] = useState<Client[]>([])
   const [completedAtMap, setCompletedAtMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
@@ -38,42 +34,15 @@ export default function ClientsPage() {
   const [deleting, setDeleting] = useState(false)
 
   const loadClients = async () => {
-    const emulatedId = getEmulatedAdvisorId()
-
-    if (emulatedId) {
-      // Admin emulating a sub-user — fetch via server route that uses admin client,
-      // bypassing RLS entirely. The browser client can't see cross-user data.
-      const res = await fetch('/api/emulation/clients')
-      if (!res.ok) {
-        // Cookie stale or invalid — fall through to own data
-      } else {
-        const { clients: clientsData, responses: responsesData } = await res.json()
-        setClients(clientsData ?? [])
-        const map: Record<string, string> = {}
-        for (const r of (responsesData ?? [])) map[r.client_id] = r.completed_at
-        setCompletedAtMap(map)
-        setLoading(false)
-        return
-      }
+    setLoading(true)
+    const res = await fetch('/api/firm/clients')
+    if (res.ok) {
+      const { clients: clientsData, responses: responsesData } = await res.json()
+      setClients(clientsData ?? [])
+      const map: Record<string, string> = {}
+      for (const r of (responsesData ?? [])) map[r.client_id] = r.completed_at
+      setCompletedAtMap(map)
     }
-
-    // Normal path — own advisor's data via RLS-restricted browser client
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
-
-    const { data: advisor } = await supabase.from('advisors').select('id').eq('user_id', user.id).single()
-    if (!advisor) { setLoading(false); return }
-
-    const [{ data: clientsData }, { data: responsesData }] = await Promise.all([
-      supabase.from('clients').select('*').eq('advisor_id', advisor.id).order('created_at', { ascending: false }),
-      supabase.from('questionnaire_responses').select('client_id, completed_at'),
-    ])
-    setClients(clientsData ?? [])
-    const map: Record<string, string> = {}
-    for (const r of (responsesData ?? [])) {
-      map[r.client_id] = r.completed_at
-    }
-    setCompletedAtMap(map)
     setLoading(false)
   }
 
@@ -84,35 +53,15 @@ export default function ClientsPage() {
     setSaving(true)
     setFormError(null)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    await supabase
-      .from('advisors')
-      .upsert({ user_id: user.id, firm_name: '' }, { onConflict: 'user_id', ignoreDuplicates: true })
-
-    const { data: advisor, error: advisorError } = await supabase
-      .from('advisors')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (advisorError || !advisor) {
-      setFormError(`Unable to load advisor profile (${advisorError?.message ?? 'unknown error'}). Please try signing out and back in.`)
-      setSaving(false)
-      return
-    }
-
-    const { error } = await supabase.from('clients').insert({
-      advisor_id: advisor.id,
-      first_name: newFirst,
-      last_name: newLast,
-      email: newEmail,
-      date_of_birth: newDOB || null,
+    const res = await fetch('/api/firm/clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ first_name: newFirst, last_name: newLast, email: newEmail, date_of_birth: newDOB || null }),
     })
 
-    if (error) {
-      setFormError(error.message)
+    const body = await res.json()
+    if (!res.ok) {
+      setFormError(body.error ?? 'Failed to add client.')
     } else {
       setShowModal(false)
       setNewFirst(''); setNewLast(''); setNewEmail(''); setNewDOB('')
@@ -124,7 +73,7 @@ export default function ClientsPage() {
   const handleDeleteClient = async () => {
     if (!clientToDelete) return
     setDeleting(true)
-    await supabase.from('clients').delete().eq('id', clientToDelete.id)
+    await fetch(`/api/firm/clients?id=${clientToDelete.id}`, { method: 'DELETE' })
     setClientToDelete(null)
     setDeleting(false)
     loadClients()

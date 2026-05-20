@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { applyBrandColors } from '@/lib/colorUtils'
-import { setEmulatedAdvisorId, clearEmulatedAdvisorId } from '@/lib/emulation'
 import type { InvestmentPreference } from '@/types'
 
 // ─── Plan metadata ─────────────────────────────────────────────────────────────
@@ -283,7 +282,6 @@ export default function SettingsPage() {
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [inviteSuccess, setInviteSuccess] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
-  const [emulatingId, setEmulatingId] = useState<string | null>(null)
 
   // Investment preferences
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
@@ -329,10 +327,11 @@ export default function SettingsPage() {
         const isSubUserAdvisor = !!advisor.parent_advisor_id
         setIsSubUser(isSubUserAdvisor)
         if (isSubUserAdvisor) {
-          // Load parent's IPS notes and preferences for display
+          // Load parent's master token, IPS notes and preferences for display
           fetch('/api/parent-settings')
             .then(r => r.json())
-            .then(({ ips_notes, preferences: prefs }) => {
+            .then(({ ips_notes, master_token, preferences: prefs }) => {
+              if (master_token) setMasterToken(master_token)
               if (ips_notes !== undefined) setIpsNotes(ips_notes)
               if (prefs) { setPreferences(prefs); setPrefLoading(false) }
             })
@@ -397,31 +396,6 @@ export default function SettingsPage() {
     })
     setRemovingId(null)
     loadSubUsers()
-  }
-
-  const handleEmulateSubUser = async (subAdvisorId: string) => {
-    setEmulatingId(subAdvisorId)
-    try {
-      const res = await fetch('/api/emulate-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sub_advisor_id: subAdvisorId }),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        console.error('[emulate-user] failed:', res.status, body)
-        setEmulatingId(null)
-        return
-      }
-      // Persist emulated advisor ID in localStorage so client pages can detect it.
-      // (The server cookie may not be exposed to document.cookie in all browsers.)
-      setEmulatedAdvisorId(subAdvisorId)
-    } catch (err) {
-      console.error('[emulate-user] fetch error:', err)
-      setEmulatingId(null)
-      return
-    }
-    window.location.href = '/dashboard'
   }
 
   // ── Auto-save handlers ────────────────────────────────────────────────────
@@ -1301,15 +1275,6 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleEmulateSubUser(sub.id)}
-                            disabled={emulatingId === sub.id}
-                            className="text-xs font-medium text-forest-700 border border-forest-300 px-3 py-1.5 rounded-lg hover:bg-forest-50 disabled:opacity-60 transition-colors"
-                            title="View dashboard as this advisor"
-                          >
-                            {emulatingId === sub.id ? '…' : 'View as'}
-                          </button>
                           <button
                             type="button"
                             onClick={() => handleRemoveSubUser(sub.id)}

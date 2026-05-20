@@ -27,9 +27,9 @@ export async function GET() {
 
   const parentId = advisor.parent_advisor_id
 
-  // Fetch parent's ips_notes and preferences in parallel
+  // Fetch parent's settings and preferences in parallel
   const [{ data: parent }, { data: prefs }] = await Promise.all([
-    admin.from('advisors').select('ips_notes').eq('id', parentId).single(),
+    admin.from('advisors').select('ips_notes, master_token').eq('id', parentId).single(),
     admin
       .from('investment_preferences')
       .select('*')
@@ -38,7 +38,8 @@ export async function GET() {
   ])
 
   return NextResponse.json({
-    ips_notes:   parent?.ips_notes ?? '',
-    preferences: prefs ?? [],
+    ips_notes:    parent?.ips_notes ?? '',
+    master_token: parent?.master_token ?? null,
+    preferences:  prefs ?? [],
   })
 }

@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import { getEmulatedAdvisorId } from '@/lib/emulation'
 import type { Client } from '@/types'
 
 interface Report {
@@ -14,8 +12,6 @@ interface Report {
 }
 
 export default function ReportsPage() {
-  const supabase = createClient()
-
   const [reports, setReports] = useState<Report[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [completedAtMap, setCompletedAtMap] = useState<Record<string, string>>({})
@@ -55,54 +51,17 @@ export default function ReportsPage() {
     })
 
   const loadData = async () => {
-    const emulatedId = getEmulatedAdvisorId()
-
-    if (emulatedId) {
-      // Admin emulating a sub-user — fetch via server route that uses admin client,
-      // bypassing RLS entirely. The browser client can't see cross-user data.
-      const res = await fetch('/api/emulation/reports')
-      if (res.ok) {
-        const { advisor, households, clients: cls, responses } = await res.json()
-        if (advisor?.timezone) setAdvisorTimezone(advisor.timezone)
-        setReports((households ?? []) as Report[])
-        setClients(cls ?? [])
-        const map: Record<string, string> = {}
-        for (const r of (responses ?? [])) map[r.client_id] = r.completed_at
-        setCompletedAtMap(map)
-        setLoading(false)
-        return
-      }
-      // If the endpoint fails, fall through to own data
-    }
-
-    // Normal path — own advisor's data via RLS-restricted browser client
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data: advisor } = await supabase.from('advisors').select('id, timezone').eq('user_id', user.id).single()
-    if (!advisor) { setLoading(false); return }
-    if (advisor.timezone) setAdvisorTimezone(advisor.timezone)
-
-    const [{ data: rpts }, { data: cls }] = await Promise.all([
-      supabase.from('households').select('id, name, created_at, household_members(client_id)').eq('advisor_id', advisor.id).order('created_at', { ascending: false }),
-      supabase.from('clients').select('*').eq('advisor_id', advisor.id).order('first_name'),
-    ])
-
-    setReports((rpts ?? []) as Report[])
-    setClients(cls ?? [])
-
-    // Fetch survey completion dates filtered by known client IDs to avoid RLS issues
-    const completedIds = (cls ?? []).filter(c => c.status === 'completed').map(c => c.id)
-    if (completedIds.length > 0) {
-      const { data: resps } = await supabase
-        .from('questionnaire_responses')
-        .select('client_id, completed_at')
-        .in('client_id', completedIds)
+    setLoading(true)
+    const res = await fetch('/api/firm/reports')
+    if (res.ok) {
+      const { households, clients: cls, responses, timezone } = await res.json()
+      if (timezone) setAdvisorTimezone(timezone)
+      setReports((households ?? []) as Report[])
+      setClients(cls ?? [])
       const map: Record<string, string> = {}
-      for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
+      for (const r of (responses ?? [])) map[r.client_id] = r.completed_at
       setCompletedAtMap(map)
     }
-
     setLoading(false)
   }
 
@@ -119,45 +78,28 @@ export default function ReportsPage() {
     setSaving(true)
     setFormError(null)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    const res = await fetch('/api/firm/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: reportName, member1, member2: member2 || undefined }),
+    })
 
-    const { data: advisor } = await supabase.from('advisors').select('id').eq('user_id', user.id).single()
-    if (!advisor) { setSaving(false); return }
-
-    const { data: report, error: hhError } = await supabase
-      .from('households')
-      .insert({ advisor_id: advisor.id, name: reportName })
-      .select()
-      .single()
-
-    if (hhError || !report) {
-      setFormError(hhError?.message ?? 'Failed to create report.')
-      setSaving(false)
-      return
-    }
-
-    const members = [{ household_id: report.id, client_id: member1 }]
-    if (member2) members.push({ household_id: report.id, client_id: member2 })
-
-    const { error: membersError } = await supabase.from('household_members').insert(members)
-
-    if (membersError) {
-      setFormError(membersError.message)
-      await supabase.from('households').delete().eq('id', report.id)
+    const body = await res.json()
+    if (!res.ok) {
+      setFormError(body.error ?? 'Failed to create report.')
       setSaving(false)
       return
     }
 
     setShowModal(false)
     setReportName(''); setMember1(''); setMember2('')
-    window.location.href = `/dashboard/reports/${report.id}`
+    window.location.href = `/dashboard/reports/${body.report.id}`
   }
 
   const handleDeleteReport = async () => {
     if (!reportToDelete) return
     setDeleting(true)
-    await supabase.from('households').delete().eq('id', reportToDelete.id)
+    await fetch(`/api/firm/reports?id=${reportToDelete.id}`, { method: 'DELETE' })
     setReportToDelete(null)
     setDeleting(false)
     loadData()

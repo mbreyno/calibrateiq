@@ -60,6 +60,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    // Exclude static assets, images, and the Stripe webhook endpoint.
+    // The webhook must receive the raw, unmodified request body for signature
+    // verification — running middleware auth checks against it is both wasteful
+    // and risks body-stream issues in certain Next.js edge cases.
+    '/((?!_next/static|_next/image|favicon.ico|public|api/stripe-webhook).*)',
   ],
 }
