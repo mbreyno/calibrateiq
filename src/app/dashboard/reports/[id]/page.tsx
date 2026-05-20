@@ -132,6 +132,13 @@ function ageFromDob(dob: string | null | undefined): string {
   return `${age} years old`
 }
 
+function formatDob(dob: string | null | undefined): string | null {
+  if (!dob) return null
+  const d = new Date(dob)
+  if (isNaN(d.getTime())) return null
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+}
+
 function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireResponse; clientDob?: string | null }) {
   return (
     <div className="space-y-5 print:space-y-2">
@@ -157,8 +164,11 @@ function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireRes
               {q.category === 'capacity' ? 'Risk Capacity' : 'Risk Preference'}
             </div>
             <p className="text-sm print:text-xs font-medium text-forest-900 mb-1.5 print:mb-0.5">{q.question}</p>
-            <p className="text-sm print:text-xs text-forest-700 bg-cream-50 rounded-lg px-3 print:px-2 py-2 print:py-1 border border-cream-200 inline-block">
+            <p className="text-sm print:text-xs text-forest-700 bg-cream-50 rounded-lg px-3 print:px-2 py-2 print:py-1 border border-cream-200 inline-flex items-center gap-2">
               {displayLabel}
+              {q.id === 'q1' && formatDob(clientDob) && (
+                <span className="text-forest-400 print:text-forest-500">· {formatDob(clientDob)}</span>
+              )}
             </p>
           </div>
         )
