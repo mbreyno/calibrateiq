@@ -267,6 +267,7 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isSubUser, setIsSubUser] = useState(false)
+  const [notifyOnCompletion, setNotifyOnCompletion] = useState(true)
 
   // Subscription
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
@@ -321,6 +322,7 @@ export default function SettingsPage() {
         setBrandSurface(advisor.brand_surface ?? '#fefae0')
         setBrandText(advisor.brand_text ?? advisor.brand_color ?? '#1b4332')
         setMasterToken(advisor.master_token ?? null)
+        setNotifyOnCompletion(advisor.notify_on_completion !== false)
         setSubscriptionStatus(advisor.subscription_status ?? 'trialing')
         setTrialEndsAt(advisor.trial_ends_at ?? null)
         setAdvisorPlan(advisor.plan ?? 'solo')
@@ -431,6 +433,12 @@ export default function SettingsPage() {
     setSignatureBlock(checked)
     if (!advisorId) return
     await supabase.from('advisors').update({ signature_block: checked }).eq('id', advisorId)
+  }
+
+  const handleNotifyToggle = async (checked: boolean) => {
+    setNotifyOnCompletion(checked)
+    if (!advisorId) return
+    await supabase.from('advisors').update({ notify_on_completion: checked } as never).eq('id', advisorId)
   }
 
   const handleBrandColorChange = (color: string) => {
@@ -1322,6 +1330,24 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Notifications ───────────────────────────────────────────────────── */}
+      <div className="mt-6">
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="font-semibold text-forest-900 mb-1">Notifications</h2>
+          <p className="text-xs text-forest-500 mb-5">Control which emails you receive from CalibrateIQ.</p>
+          <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+            <div>
+              <div className="text-sm font-medium text-forest-900">Survey completion alerts</div>
+              <div className="text-xs text-forest-500 mt-0.5">Get an email each time a client completes their investment profile questionnaire.</div>
+            </div>
+            <div className="relative flex-shrink-0" onClick={() => handleNotifyToggle(!notifyOnCompletion)}>
+              <div className={`w-10 h-6 rounded-full transition-colors ${notifyOnCompletion ? 'bg-forest-700' : 'bg-cream-300'}`} />
+              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${notifyOnCompletion ? 'translate-x-4' : 'translate-x-0'}`} />
+            </div>
+          </label>
+        </div>
+      </div>
     </div>
   )
 }

@@ -29,26 +29,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
     }
 
-    // ── 1. Look up the advisor ──────────────────────────────────────────────
+    // ── 1. Look up the advisor and their sub-users ─────────────────────────
     const supabase = createAdminClient()
 
-    const { data: advisor, error: advisorError } = await supabase
-      .from('advisors')
-      .select('user_id, firm_name, brand_color, brand_accent, brand_surface, brand_text')
-      .eq('id', advisor_id)
-      .single()
+    const [{ data: advisor, error: advisorError }, { data: subAdvisors }] = await Promise.all([
+      supabase
+        .from('advisors')
+        .select('user_id, firm_name, brand_color, brand_accent, brand_surface, brand_text, notify_on_completion')
+        .eq('id', advisor_id)
+        .single(),
+      supabase
+        .from('advisors')
+        .select('user_id, notify_on_completion')
+        .eq('parent_advisor_id', advisor_id),
+    ])
 
     if (advisorError || !advisor) {
       return NextResponse.json({ error: 'Advisor not found.' }, { status: 404 })
     }
 
-    // ── 2. Resolve the advisor's email from auth.users ──────────────────────
-    const { data: authData, error: authError } = await supabase.auth.admin.getUserById(
-      advisor.user_id,
-    )
+    // ── 2. Collect recipients: admin + sub-users who have notifications on ──
+    const recipientUserIds: string[] = []
 
-    if (authError || !authData?.user?.email) {
-      return NextResponse.json({ error: 'Could not resolve advisor email.' }, { status: 500 })
+    if (advisor.notify_on_completion !== false) {
+      recipientUserIds.push(advisor.user_id)
+    }
+    for (const sub of (subAdvisors ?? [])) {
+      if (sub.notify_on_completion !== false) {
+        recipientUserIds.push(sub.user_id)
+      }
+    }
+
+    if (recipientUserIds.length === 0) {
+      return NextResponse.json({ ok: true, skipped: true })
+    }
+
+    // Resolve email addresses in parallel
+    const emailResults = await Promise.all(
+      recipientUserIds.map(uid => supabase.auth.admin.getUserById(uid))
+    )
+    const recipientEmails = emailResults
+      .map(r => r.data?.user?.email)
+      .filter((e): e is string => !!e)
+
+    if (recipientEmails.length === 0) {
+      return NextResponse.json({ error: 'Could not resolve any recipient emails.' }, { status: 500 })
     }
 
     // ── 3. Build the color palette from the advisor's brand settings ────────
@@ -72,7 +97,6 @@ export async function POST(req: NextRequest) {
       accent,
     }
 
-    const advisorEmail  = authData.user.email
     const firmName      = advisor.firm_name || 'Your Firm'
     const fromEmail     = process.env.NOTIFY_FROM_EMAIL || 'onboarding@resend.dev'
     const appUrl        = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.app'
@@ -179,7 +203,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         from: `${safeDisplayName} via CalibrateIQ <${fromEmail}>`,
-        to: [advisorEmail],
+        to: recipientEmails,
         subject: `New survey completed — ${client_name}`,
         html,
       }),
