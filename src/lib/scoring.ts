@@ -18,9 +18,12 @@ export function calculateAgeScore(dob: string): number {
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-  if (age < 45) return 50
-  if (age > 85) return 10
-  return 95 - age  // 1 point per year: age 45 → 50, 55 → 40, 65 → 30, 75 → 20, 85 → 10
+  // Matches the bracket scoring in QUESTIONS q1
+  if (age < 45)  return 50  // Less than 45
+  if (age <= 55) return 40  // 45 to 55
+  if (age <= 65) return 30  // 56 to 65
+  if (age <= 75) return 20  // 66 to 75
+  return 10                 // Older than 75
 }
 
 // ─────────────────────────────────────────────
