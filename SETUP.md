@@ -22,6 +22,13 @@
 3. Paste the entire contents of `supabase/schema.sql`
 4. Click **Run**
 
+> **Note:** As of May 30, 2026, Supabase no longer auto-exposes `public` tables
+> to the Data API, so new projects require explicit `GRANT`s before `supabase-js`
+> can reach a table. `schema.sql` includes the required grants at the bottom — as
+> long as you run the whole file, the app will work. If you add new tables later,
+> the `ALTER DEFAULT PRIVILEGES` statements at the end of `schema.sql` keep them
+> exposed automatically.
+
 ---
 
 ## Step 3: Create the Logo Storage Bucket

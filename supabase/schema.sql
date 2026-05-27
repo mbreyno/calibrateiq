@@ -239,3 +239,39 @@ CREATE POLICY "Public can read investment preferences"
 -- Store selected preference IDs on responses
 ALTER TABLE questionnaire_responses
   ADD COLUMN IF NOT EXISTS selected_preferences UUID[] DEFAULT '{}';
+
+-- ── DATA API GRANTS ───────────────────────────────────────────
+-- As of 2026, Supabase no longer auto-exposes public-schema tables to the
+-- Data API (PostgREST / GraphQL / supabase-js). Without explicit grants,
+-- supabase-js calls fail with a permission error. Default for new projects
+-- since 2026-05-30; enforced on new tables in existing projects from
+-- 2026-10-30. Grants control table-level access; the RLS policies above
+-- still govern which rows each role can see.
+-- Ref: https://supabase.com/changelog/45329
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+
+-- Authenticated advisors and the server-side service role get full CRUD.
+-- RLS scopes authenticated to their own rows; service_role bypasses RLS.
+GRANT SELECT, INSERT, UPDATE, DELETE
+  ON ALL TABLES IN SCHEMA public
+  TO authenticated, service_role;
+
+-- Anonymous survey respondents: read access (RLS returns only the
+-- token-scoped rows) plus the two writes the public survey performs.
+GRANT SELECT ON ALL TABLES IN SCHEMA public      TO anon;
+GRANT INSERT ON public.questionnaire_responses   TO anon;
+GRANT UPDATE ON public.clients                   TO anon;
+
+-- Sequences (no-op if a table uses none).
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public
+  TO anon, authenticated, service_role;
+
+-- Apply the same grants automatically to any tables/sequences created
+-- later in this schema (future migrations run as the same role).
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO anon, authenticated, service_role;
