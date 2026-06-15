@@ -179,6 +179,11 @@ function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireRes
           <p className="text-sm print:text-xs text-forest-700 leading-relaxed">&ldquo;{responses.comments}&rdquo;</p>
         </div>
       )}
+      {responses.completed_at && (
+        <div className="text-xs text-forest-500 print:text-forest-600">
+          Completed on {new Date(responses.completed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        </div>
+      )}
     </div>
   )
 }

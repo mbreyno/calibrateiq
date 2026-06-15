@@ -372,6 +372,11 @@ export default function ClientDetailPage() {
                   <p className="text-sm text-forest-700 leading-relaxed">"{responses.comments}"</p>
                 </div>
               )}
+              {responses.completed_at && (
+                <div className="mt-5 text-xs text-forest-500">
+                  Completed on {new Date(responses.completed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </div>
+              )}
             </div>
           </div>
         )}
