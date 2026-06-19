@@ -20,12 +20,6 @@ export default function PrivacyPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 rounded-xl border border-gold-500/40 bg-gold-100/40 px-4 py-3 text-sm text-forest-800">
-          <span className="font-semibold">Draft pending legal review.</span>{' '}
-          This is a starting point. Replace bracketed placeholders and have counsel review
-          before publishing.
-        </div>
-
         <h1 className="text-3xl font-bold text-forest-950 mb-2">Privacy Policy</h1>
         <p className="text-sm text-forest-600 mb-10">Effective {EFFECTIVE_DATE}</p>
 
@@ -33,8 +27,8 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-semibold text-forest-950 mb-2">1. Who we are</h2>
             <p>
-              CalibrateIQ (&ldquo;CalibrateIQ,&rdquo; &ldquo;we,&rdquo; or &ldquo;us&rdquo;) is operated by [Legal Entity Name],
-              based in [State, Country]. CalibrateIQ provides software that financial advisors use
+              CalibrateIQ (&ldquo;CalibrateIQ,&rdquo; &ldquo;we,&rdquo; or &ldquo;us&rdquo;) is operated by Michael Reynolds LLC,
+              based in Indiana, United States. CalibrateIQ provides software that financial advisors use
               to send risk-profile surveys to their clients and generate Investment Policy
               Statements. This policy explains how we collect, use, and share information through
               the CalibrateIQ service (the &ldquo;Service&rdquo;).
@@ -162,8 +156,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-forest-950 mb-2">13. Contact</h2>
             <p>
               Questions about this policy? Email{' '}
-              <a href="mailto:support@calibrateiq.app" className="underline hover:text-forest-900">support@calibrateiq.app</a>{' '}
-              or write to [Legal Entity Name], [Mailing Address].
+              <a href="mailto:support@calibrateiq.app" className="underline hover:text-forest-900">support@calibrateiq.app</a>.
             </p>
           </section>
         </div>

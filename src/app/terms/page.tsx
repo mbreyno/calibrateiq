@@ -20,12 +20,6 @@ export default function TermsPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 rounded-xl border border-gold-500/40 bg-gold-100/40 px-4 py-3 text-sm text-forest-800">
-          <span className="font-semibold">Draft pending legal review.</span>{' '}
-          This is a starting point. Replace bracketed placeholders and have counsel review
-          before publishing.
-        </div>
-
         <h1 className="text-3xl font-bold text-forest-950 mb-2">Terms of Service</h1>
         <p className="text-sm text-forest-600 mb-10">Effective {EFFECTIVE_DATE}</p>
 
@@ -33,7 +27,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-forest-950 mb-2">1. Agreement</h2>
             <p>
-              These Terms of Service (&ldquo;Terms&rdquo;) form an agreement between you and [Legal Entity Name]
+              These Terms of Service (&ldquo;Terms&rdquo;) form an agreement between you and Michael Reynolds LLC
               (&ldquo;CalibrateIQ,&rdquo; &ldquo;we,&rdquo; or &ldquo;us&rdquo;) governing your access to and use of the CalibrateIQ
               service (the &ldquo;Service&rdquo;). By creating an account or otherwise using the Service, you
               agree to these Terms and to our{' '}
@@ -169,9 +163,9 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-forest-950 mb-2">13. Governing law and disputes</h2>
             <p>
-              These Terms are governed by the laws of [State], without regard to its conflict-of-laws
+              These Terms are governed by the laws of Indiana, without regard to its conflict-of-laws
               rules. Any dispute will be resolved in the state or federal courts located in
-              [County, State], and you and we consent to the personal jurisdiction of those courts.
+              Hamilton County, Indiana, and you and we consent to the personal jurisdiction of those courts.
             </p>
           </section>
 
@@ -189,8 +183,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-forest-950 mb-2">15. Contact</h2>
             <p>
               Questions about these Terms? Email{' '}
-              <a href="mailto:support@calibrateiq.app" className="underline hover:text-forest-900">support@calibrateiq.app</a>{' '}
-              or write to [Legal Entity Name], [Mailing Address].
+              <a href="mailto:support@calibrateiq.app" className="underline hover:text-forest-900">support@calibrateiq.app</a>.
             </p>
           </section>
         </div>
