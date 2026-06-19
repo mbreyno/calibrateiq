@@ -195,9 +195,9 @@ export default function SignupPage() {
 
           <p className="text-center text-xs text-forest-700/60 mt-4">
             By signing up, you agree to our{' '}
-            <a href="#" className="underline hover:text-forest-800">Terms of Service</a>{' '}
+            <Link href="/terms" className="underline hover:text-forest-800">Terms of Service</Link>{' '}
             and{' '}
-            <a href="#" className="underline hover:text-forest-800">Privacy Policy</a>.
+            <Link href="/privacy" className="underline hover:text-forest-800">Privacy Policy</Link>.
           </p>
 
           <p className="text-center text-sm text-forest-700/70 mt-5">

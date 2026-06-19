@@ -743,8 +743,8 @@ export default function LandingPage() {
             © {new Date().getFullYear()} CalibrateIQ. All rights reserved.
           </p>
           <div className="flex gap-6 text-xs text-forest-500">
-            <a href="#" className="hover:text-forest-300">Privacy</a>
-            <a href="#" className="hover:text-forest-300">Terms</a>
+            <Link href="/privacy" className="hover:text-forest-300">Privacy</Link>
+            <Link href="/terms" className="hover:text-forest-300">Terms</Link>
             <a href="mailto:support@calibrateiq.app" className="hover:text-forest-300">Contact</a>
           </div>
         </div>
