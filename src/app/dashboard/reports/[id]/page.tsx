@@ -197,7 +197,7 @@ function PrintHeader({ advisorLogoUrl, advisorFirmName, reportName, brandColor }
   brandColor: string
 }) {
   return (
-    <div className="print-only mb-5 pb-4 border-b-2" style={{ borderColor: brandColor + '60' }}>
+    <div className="print-only print-running-header pb-3 border-b-2" style={{ borderColor: brandColor + '60' }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {advisorLogoUrl ? (
@@ -613,8 +613,7 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
       <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
 
       {signatureBlock && (
-        <div className="print-only print-sig-page pt-6">
-          <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+        <div className="print-only print-sig-page">
           <SignatureBlock members={[member]} />
         </div>
       )}
@@ -735,8 +734,7 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
       <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
 
       {signatureBlock && (
-        <div className="print-only print-sig-page pt-6">
-          <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+        <div className="print-only print-sig-page">
           <SignatureBlock members={members} />
         </div>
       )}
