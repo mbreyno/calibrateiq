@@ -570,70 +570,50 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
   const bc = brandColor ?? '#1b4332'
 
   return (
-    <div className="space-y-5 print:space-y-0">
+    <div className="space-y-5">
 
-      {/* ══════ RISK PROFILE QUESTIONNAIRE ══════ */}
+      <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+      <SectionHeader title="Investment Policy Statement" accent={bc} />
 
-      {/* ── Print Page 1: RPQ header + Survey Risk Category + scores + prefs ── */}
-      <div className="print-page-1 space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <SectionHeader title="Investment Policy Statement" accent={bc} />
+      <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
+        <div className="text-sm font-semibold opacity-80 mb-1">Survey Risk Category</div>
+        <div className="text-3xl font-bold mb-2">{category}</div>
+        <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+        <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
+      </div>
 
-        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-          <div className="text-sm font-semibold opacity-80 mb-1">Survey Risk Category</div>
-          <div className="text-3xl font-bold mb-2">{category}</div>
-          <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
-          <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
+      <RecommendedCategoryCard
+        surveyCategory={category}
+        recommendedCategory={recommendedCategory}
+        recommendationReason={recommendationReason}
+        onSave={onSaveRecommendation}
+      />
+
+      <div className="flex gap-4">
+        <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color={bc} primary={true} />
+        <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
+      </div>
+
+      {preferences.length > 0 && (
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
+          <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
         </div>
+      )}
 
-        <RecommendedCategoryCard
-          surveyCategory={category}
-          recommendedCategory={recommendedCategory}
-          recommendationReason={recommendationReason}
-          onSave={onSaveRecommendation}
-        />
+      <PortfolioLegend members={[member]} category={category} />
 
-        <div className="flex gap-4">
-          <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color={bc} primary={true} />
-          <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
-        </div>
-
-        {preferences.length > 0 && (
-          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
-            <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
-          </div>
-        )}
+      <div className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
+        <h2 className="font-semibold text-forest-900 mb-5 print:mb-3">Survey Responses</h2>
+        <SurveyResponses responses={responses} clientDob={member.client.date_of_birth} />
       </div>
 
-      {/* ── Print Page 2: RPQ — Portfolio Legend ── */}
-      <div className="print-center-page space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <PortfolioLegend members={[member]} category={category} />
-      </div>
+      <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
+      <InvestorAcceptance html={advisorIpsNotes} />
+      <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
 
-      {/* ── Print Page 3: RPQ — Survey Responses ── */}
-      <div className="print-center-page">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <div className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
-          <h2 className="font-semibold text-forest-900 mb-5 print:mb-3">Survey Responses</h2>
-          <SurveyResponses responses={responses} clientDob={member.client.date_of_birth} />
-        </div>
-      </div>
-
-      {/* ══════ INVESTMENT POLICY STATEMENT ══════ */}
-
-      {/* ── Print Page 4: IPS header + Investor Acceptance + Advisor Notes ── */}
-      <div className="print-center-page space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
-        <InvestorAcceptance html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
-      </div>
-
-      {/* ── Print Page 5 (optional): Signature block ── */}
       {signatureBlock && (
-        <div className="print-only print-sig-page">
+        <div className="print-only print-sig-page pt-6">
           <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
           <SignatureBlock members={[member]} />
         </div>
@@ -666,117 +646,96 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
   const bc = brandColor ?? '#1b4332'
 
   return (
-    <div className="space-y-5 print:space-y-0">
+    <div className="space-y-5">
 
-      {/* ══════ RISK PROFILE QUESTIONNAIRE ══════ */}
+      <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+      <SectionHeader title="Investment Policy Statement" accent={bc} />
 
-      {/* ── Print Page 1: RPQ header + Household Survey Category + member cards + prefs ── */}
-      <div className="print-page-1 space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <SectionHeader title="Investment Policy Statement" accent={bc} />
+      <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
+        <div className="text-sm font-semibold opacity-80 mb-1">Household Survey Risk Category</div>
+        <div className="text-3xl font-bold mb-2">{category}</div>
+        <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+        <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
+      </div>
 
-        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-          <div className="text-sm font-semibold opacity-80 mb-1">Household Survey Risk Category</div>
-          <div className="text-3xl font-bold mb-2">{category}</div>
-          <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
-          <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
-        </div>
+      <RecommendedCategoryCard
+        surveyCategory={category}
+        recommendedCategory={recommendedCategory}
+        recommendationReason={recommendationReason}
+        onSave={onSaveRecommendation}
+      />
 
-        <RecommendedCategoryCard
-          surveyCategory={category}
-          recommendedCategory={recommendedCategory}
-          recommendationReason={recommendationReason}
-          onSave={onSaveRecommendation}
-        />
-
-        {/* Side-by-side member score cards */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {members.map(({ client, profile }) => {
-            const catColor = CATEGORY_COLORS[profile.overall_category]
-            return (
-              <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4 space-y-4 print:space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-forest-200 flex items-center justify-center text-sm font-bold text-forest-800 flex-shrink-0">
-                      {client.first_name[0]}{client.last_name[0]}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-forest-900">{client.first_name} {client.last_name}</div>
-                      <div className="text-xs text-forest-500">{calcAge(client.date_of_birth)}</div>
-                    </div>
+      {/* Side-by-side member score cards */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        {members.map(({ client, profile }) => {
+          const catColor = CATEGORY_COLORS[profile.overall_category]
+          return (
+            <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4 space-y-4 print:space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-forest-200 flex items-center justify-center text-sm font-bold text-forest-800 flex-shrink-0">
+                    {client.first_name[0]}{client.last_name[0]}
                   </div>
-                  <span className="text-xs print:text-[10px] font-bold px-2.5 print:px-2 py-1 rounded-full text-white flex-shrink-0" style={{ backgroundColor: catColor }}>
-                    {profile.overall_category}
-                  </span>
+                  <div>
+                    <div className="font-semibold text-forest-900">{client.first_name} {client.last_name}</div>
+                    <div className="text-xs text-forest-500">{calcAge(client.date_of_birth)}</div>
+                  </div>
                 </div>
-                <div className="flex gap-3 print:gap-2">
-                  <MiniGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" primary={true} brandColor={bc} />
-                  <MiniGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" primary={false} />
-                </div>
+                <span className="text-xs print:text-[10px] font-bold px-2.5 print:px-2 py-1 rounded-full text-white flex-shrink-0" style={{ backgroundColor: catColor }}>
+                  {profile.overall_category}
+                </span>
               </div>
-            )
-          })}
-        </div>
-
-        {/* Investment preferences — per member */}
-        {preferences.length > 0 && (
-          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {members.map(({ client, profile }) => (
-                <div key={client.id} className="bg-cream-50 rounded-xl border border-cream-200 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
-                      {client.first_name[0]}{client.last_name[0]}
-                    </div>
-                    <span className="font-semibold text-forest-900 text-sm">{client.first_name} {client.last_name}</span>
-                  </div>
-                  <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
-                </div>
-              ))}
+              <div className="flex gap-3 print:gap-2">
+                <MiniGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" primary={true} brandColor={bc} />
+                <MiniGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" primary={false} />
+              </div>
             </div>
+          )
+        })}
+      </div>
+
+      {/* Investment preferences — per member */}
+      {preferences.length > 0 && (
+        <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+          <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {members.map(({ client, profile }) => (
+              <div key={client.id} className="bg-cream-50 rounded-xl border border-cream-200 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                    {client.first_name[0]}{client.last_name[0]}
+                  </div>
+                  <span className="font-semibold text-forest-900 text-sm">{client.first_name} {client.last_name}</span>
+                </div>
+                <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
+              </div>
+            ))}
           </div>
-        )}
-
-      </div>
-
-      {/* ── Print Page 2: RPQ — Portfolio Legend ── */}
-      <div className="print-center-page space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <PortfolioLegend members={members} category={category} />
-      </div>
-
-      {/* ── Print Page 3: RPQ — Survey Q&A side-by-side ── */}
-      <div className="print-center-page">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {[m1, m2].map(({ client, responses }) => (
-            <div key={client.id} className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
-              <div className="flex items-center gap-2 mb-5 print:mb-3">
-                <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
-                  {client.first_name[0]}{client.last_name[0]}
-                </div>
-                <h2 className="font-semibold print:text-sm text-forest-900">{client.first_name} {client.last_name} — Survey Responses</h2>
-              </div>
-              <SurveyResponses responses={responses} clientDob={client.date_of_birth} />
-            </div>
-          ))}
         </div>
+      )}
+
+      <PortfolioLegend members={members} category={category} />
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        {[m1, m2].map(({ client, responses }) => (
+          <div key={client.id} className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
+            <div className="flex items-center gap-2 mb-5 print:mb-3">
+              <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                {client.first_name[0]}{client.last_name[0]}
+              </div>
+              <h2 className="font-semibold print:text-sm text-forest-900">{client.first_name} {client.last_name} — Survey Responses</h2>
+            </div>
+            <SurveyResponses responses={responses} clientDob={client.date_of_birth} />
+          </div>
+        ))}
       </div>
 
-      {/* ══════ INVESTMENT POLICY STATEMENT ══════ */}
+      <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
+      <InvestorAcceptance html={advisorIpsNotes} />
+      <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
 
-      {/* ── Print Page 4: IPS header + Investor Acceptance + Advisor Notes ── */}
-      <div className="print-center-page space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
-        <InvestorAcceptance html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
-      </div>
-
-      {/* ── Print Page 5 (optional): Signature block ── */}
       {signatureBlock && (
-        <div className="print-only print-sig-page">
+        <div className="print-only print-sig-page pt-6">
           <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
           <SignatureBlock members={members} />
         </div>

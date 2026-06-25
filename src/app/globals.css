@@ -55,12 +55,11 @@ html {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
 
-  /* Zero @page margins = full-bleed background on every page */
-  @page { margin: 0; size: letter; }
+  /* Standard page margins; content flows naturally page to page */
+  @page { margin: 0.45in 0.5in; size: letter; }
 
-  /* Neutral gray fills the full page surface — avoids cream bleed on partial pages */
   html, body {
-    background: #f3f4f6 !important;
+    background: white !important;
     color: #1b4332 !important;
     font-size: 11pt !important;
     height: auto !important;
@@ -72,7 +71,7 @@ html {
   /* Sidebar gone; main owns all page padding */
   main { margin-left: 0 !important; padding: 0 !important; }
 
-  /* Strip ALL padding/margin from the report page's outer wrapper and any nested containers */
+  /* Strip ALL padding/margin from the report page's outer wrapper */
   main > div:first-child,
   main > div:first-child > div:first-child { padding: 0 !important; margin: 0 !important; }
 
@@ -113,49 +112,9 @@ html {
     break-inside: avoid;
   }
 
-  /* Shared padding for all print pages */
-  .print-page-1,
-  .print-center-page,
-  .print-sig-page,
-  .print-last-page {
-    padding: 0.45in 0.5in;
-    box-sizing: border-box;
-  }
-
-  /* Page 1: no forced break */
-  .print-page-1 {
-    /* inherits shared padding */
-  }
-
-  /* Pages 2+: forced break, fill full sheet, content anchored to top */
-  .print-center-page {
-    break-before: page;
-    min-height: 11in;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 1.5rem;
-  }
-
-  /* Signature page: forced break, top-anchored, fills full sheet */
+  /* Signature block goes on its own final page */
   .print-sig-page {
     break-before: page;
-    min-height: 11in;
-  }
-
-  /* Last page (IPS notes + optional sig): forced break, top-anchored, fills full sheet */
-  .print-last-page {
-    break-before: page;
-    min-height: 11in;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  /* Suppress space-y margins inside flex print pages */
-  .print-center-page > * + *,
-  .print-last-page > * + * {
-    margin-top: 0 !important;
   }
 }
 
