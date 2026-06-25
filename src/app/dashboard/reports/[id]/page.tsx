@@ -577,7 +577,7 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
       {/* ── Print Page 1: RPQ header + Survey Risk Category + scores + prefs ── */}
       <div className="print-page-1 space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <SectionHeader title="Risk Profile Questionnaire" accent={bc} />
+        <SectionHeader title="Investment Policy Statement" accent={bc} />
 
         <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
           <div className="text-sm font-semibold opacity-80 mb-1">Survey Risk Category</div>
@@ -626,7 +626,6 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
       {/* ── Print Page 4: IPS header + Investor Acceptance + Advisor Notes ── */}
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <SectionHeader title="Investment Policy Statement" accent={bc} />
         <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
         <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
@@ -674,7 +673,7 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
       {/* ── Print Page 1: RPQ header + Household Survey Category + member cards + prefs ── */}
       <div className="print-page-1 space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <SectionHeader title="Risk Profile Questionnaire" accent={bc} />
+        <SectionHeader title="Investment Policy Statement" accent={bc} />
 
         <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
           <div className="text-sm font-semibold opacity-80 mb-1">Household Survey Risk Category</div>
@@ -770,7 +769,6 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
       {/* ── Print Page 4: IPS header + Investor Acceptance + Advisor Notes ── */}
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <SectionHeader title="Investment Policy Statement" accent={bc} />
         <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
         <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />

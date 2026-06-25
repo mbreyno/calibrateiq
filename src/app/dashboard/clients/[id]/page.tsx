@@ -304,8 +304,7 @@ export default function ClientDetailPage() {
         {/* ── PROFILE TAB ──────────────────────────────────────── */}
         {tab === 'profile' && profile && responses && (
           <div className="space-y-5">
-            {/* ══════ RISK PROFILE QUESTIONNAIRE ══════ */}
-            <SectionHeader title="Risk Profile Questionnaire" />
+            <SectionHeader title="Investment Policy Statement" />
 
             {/* Category banner — full width */}
             <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: categoryColor }}>
@@ -389,9 +388,6 @@ export default function ClientDetailPage() {
                 </div>
               )}
             </div>
-
-            {/* ══════ INVESTMENT POLICY STATEMENT ══════ */}
-            <SectionHeader title="Investment Policy Statement" />
 
             {/* Advisor Notes */}
             <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
