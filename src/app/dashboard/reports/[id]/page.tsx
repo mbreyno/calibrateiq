@@ -389,11 +389,172 @@ function SectionHeader({ title, accent = '#1b4332' }: { title: string; accent?: 
   )
 }
 
+// ─── Recommended Risk Category card ──────────────────────────────────────────
+
+const RISK_CATEGORIES: RiskCategory[] = ['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income']
+
+function RecommendedCategoryCard({
+  surveyCategory,
+  recommendedCategory,
+  recommendationReason,
+  onSave,
+}: {
+  surveyCategory: RiskCategory
+  recommendedCategory: RiskCategory | null
+  recommendationReason: string
+  onSave: (cat: RiskCategory | null, reason: string) => Promise<void>
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draftCat, setDraftCat] = useState<RiskCategory>(recommendedCategory ?? surveyCategory)
+  const [draftReason, setDraftReason] = useState(recommendationReason)
+  const [saving, setSaving] = useState(false)
+
+  const differs = recommendedCategory !== null && recommendedCategory !== surveyCategory
+  const draftDiffers = draftCat !== surveyCategory
+
+  const startEdit = () => {
+    setDraftCat(recommendedCategory ?? surveyCategory)
+    setDraftReason(recommendationReason)
+    setEditing(true)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    // Persist NULL when the choice matches the survey — preserves
+    // "no explicit choice yet" semantics across reopens.
+    const catToSave = draftCat === surveyCategory ? null : draftCat
+    const reasonToSave = catToSave ? draftReason.trim() : ''
+    await onSave(catToSave, reasonToSave)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <div className="bg-white rounded-2xl border-2 border-forest-300 shadow-card p-6 print:hidden">
+        <h2 className="font-semibold text-forest-900 mb-4">Edit recommended risk category</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-forest-800 mb-2">Category</label>
+            <select
+              value={draftCat}
+              onChange={e => setDraftCat(e.target.value as RiskCategory)}
+              className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+            >
+              {RISK_CATEGORIES.map(c => (
+                <option key={c} value={c}>{c}{c === surveyCategory ? ' — matches survey' : ''}</option>
+              ))}
+            </select>
+          </div>
+
+          {draftDiffers && (
+            <div>
+              <label className="block text-sm font-medium text-forest-800 mb-2">
+                Reason for recommendation
+                <span className="text-forest-500 font-normal text-xs"> · shown on the printed IPS</span>
+              </label>
+              <textarea
+                value={draftReason}
+                onChange={e => setDraftReason(e.target.value)}
+                rows={4}
+                placeholder="e.g. Client has 15+ years to retirement and a stable income, so we agreed to take on more risk than the survey result alone would suggest."
+                className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-forest-700 resize-none"
+              />
+              {!draftReason.trim() && (
+                <p className="text-xs text-gold-700 mt-1.5">
+                  Recommending a different category typically warrants a documented reason. You can save without one, but it will appear blank on the IPS.
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setEditing(false)}
+              className="flex-1 border border-cream-300 text-forest-700 font-medium text-sm py-2.5 rounded-xl hover:bg-cream-50">
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving}
+              className="flex-1 bg-forest-900 text-cream-100 font-semibold text-sm py-2.5 rounded-xl hover:bg-forest-800 disabled:opacity-60">
+              {saving ? 'Saving…' : 'Save recommendation'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!differs) {
+    // Implicitly matches the survey — show a quiet card that hides on print.
+    return (
+      <div className="no-print bg-cream-50 rounded-2xl border border-cream-300 p-5 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1">Recommended Risk Category</div>
+          <p className="text-sm text-forest-700">
+            Matches the survey result: <strong className="text-forest-900">{surveyCategory}</strong>.
+          </p>
+        </div>
+        <button onClick={startEdit}
+          className="text-xs font-semibold text-forest-700 hover:text-forest-900 border border-cream-300 bg-white px-3 py-1.5 rounded-lg hover:bg-cream-100 transition-colors flex-shrink-0">
+          Set a different recommendation
+        </button>
+      </div>
+    )
+  }
+
+  // Explicit deviation — prominent card that shows in print.
+  const color = CATEGORY_COLORS[recommendedCategory as RiskCategory]
+  return (
+    <div className="rounded-2xl p-6 print:p-5 text-white relative" style={{ backgroundColor: color }}>
+      <div className="text-sm font-semibold opacity-80 mb-1">Recommended Risk Category</div>
+      <div className="text-3xl print:text-2xl font-bold mb-2">{recommendedCategory}</div>
+      <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[recommendedCategory as RiskCategory]}</p>
+      <div className="mt-3 pt-3 border-t border-white/25">
+        <div className="text-xs font-semibold opacity-80 uppercase tracking-wider mb-1">Reason</div>
+        <p className="text-sm opacity-95 leading-relaxed whitespace-pre-wrap">
+          {recommendationReason || <span className="italic opacity-70">No reason recorded.</span>}
+        </p>
+      </div>
+      <button onClick={startEdit}
+        className="no-print absolute top-5 right-5 text-xs font-semibold bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-lg transition-colors">
+        Edit
+      </button>
+    </div>
+  )
+}
+
+// ─── IPS body narrative (top of IPS section) ─────────────────────────────────
+
+function IpsRecommendationNarrative({
+  surveyCategory,
+  recommendedCategory,
+}: {
+  surveyCategory: RiskCategory
+  recommendedCategory: RiskCategory | null
+}) {
+  const differs = recommendedCategory !== null && recommendedCategory !== surveyCategory
+  return (
+    <div className="bg-cream-50 rounded-2xl border border-cream-300 p-5 print:p-4">
+      {differs ? (
+        <p className="text-sm print:text-xs text-forest-800 leading-relaxed">
+          Your survey indicated <strong>{surveyCategory}</strong>. After discussion, you and your advisor agreed on <strong>{recommendedCategory}</strong>.
+        </p>
+      ) : (
+        <p className="text-sm print:text-xs text-forest-800 leading-relaxed">
+          Your portfolio category is <strong>{surveyCategory}</strong>.
+        </p>
+      )}
+    </div>
+  )
+}
+
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function SingleClientReport({ member, category, recommendedCategory, recommendationReason, onSaveRecommendation, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   member: MemberData
   category: RiskCategory
+  recommendedCategory: RiskCategory | null
+  recommendationReason: string
+  onSaveRecommendation: (cat: RiskCategory | null, reason: string) => Promise<void>
   advisorNotes: string
   advisorIpsNotes: string
   onSaveNotes: (n: string) => Promise<void>
@@ -424,6 +585,13 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
           <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
           <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
         </div>
+
+        <RecommendedCategoryCard
+          surveyCategory={category}
+          recommendedCategory={recommendedCategory}
+          recommendationReason={recommendationReason}
+          onSave={onSaveRecommendation}
+        />
 
         <div className="flex gap-4">
           <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color={bc} primary={true} />
@@ -459,6 +627,7 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <SectionHeader title="Investment Policy Statement" accent={bc} />
+        <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
         <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
@@ -477,9 +646,12 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function CoupleReport({ members, category, recommendedCategory, recommendationReason, onSaveRecommendation, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   members: MemberData[]
   category: RiskCategory
+  recommendedCategory: RiskCategory | null
+  recommendationReason: string
+  onSaveRecommendation: (cat: RiskCategory | null, reason: string) => Promise<void>
   advisorNotes: string
   advisorIpsNotes: string
   onSaveNotes: (n: string) => Promise<void>
@@ -510,6 +682,13 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
           <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
           <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
         </div>
+
+        <RecommendedCategoryCard
+          surveyCategory={category}
+          recommendedCategory={recommendedCategory}
+          recommendationReason={recommendationReason}
+          onSave={onSaveRecommendation}
+        />
 
         {/* Side-by-side member score cards */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -592,6 +771,7 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <SectionHeader title="Investment Policy Statement" accent={bc} />
+        <IpsRecommendationNarrative surveyCategory={category} recommendedCategory={recommendedCategory} />
         <InvestorAcceptance html={advisorIpsNotes} />
         <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
@@ -618,6 +798,8 @@ export default function ReportDetailPage() {
   const [members, setMembers] = useState<MemberData[]>([])
   const [advisorNotes, setAdvisorNotes] = useState('')
   const [advisorIpsNotes, setAdvisorIpsNotes] = useState('')
+  const [recommendedCategory, setRecommendedCategory] = useState<RiskCategory | null>(null)
+  const [recommendationReason, setRecommendationReason] = useState('')
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [loading, setLoading] = useState(true)
   const [advisorFirmName, setAdvisorFirmName] = useState('')
@@ -644,8 +826,16 @@ export default function ReportDetailPage() {
       .single()
 
     if (!hh) { setLoading(false); return }
-    setReportName(hh.name)
-    setAdvisorNotes((hh as { advisor_notes?: string | null }).advisor_notes ?? '')
+    const hhRow = hh as {
+      name: string
+      advisor_notes?: string | null
+      recommended_risk_category?: string | null
+      recommendation_reason?: string | null
+    }
+    setReportName(hhRow.name)
+    setAdvisorNotes(hhRow.advisor_notes ?? '')
+    setRecommendedCategory((hhRow.recommended_risk_category as RiskCategory | null) ?? null)
+    setRecommendationReason(hhRow.recommendation_reason ?? '')
 
     const advisorId = (hh as { advisor_id: string }).advisor_id
 
@@ -734,6 +924,15 @@ export default function ReportDetailPage() {
   const handleSaveNotes = async (notes: string) => {
     await supabase.from('households').update({ advisor_notes: notes } as never).eq('id', id)
     setAdvisorNotes(notes)
+  }
+
+  const handleSaveRecommendation = async (cat: RiskCategory | null, reason: string) => {
+    await supabase.from('households').update({
+      recommended_risk_category: cat,
+      recommendation_reason: cat ? reason : null,
+    } as never).eq('id', id)
+    setRecommendedCategory(cat)
+    setRecommendationReason(cat ? reason : '')
   }
 
   if (loading) return (
@@ -873,6 +1072,9 @@ export default function ReportDetailPage() {
         <CoupleReport
           members={members}
           category={category}
+          recommendedCategory={recommendedCategory}
+          recommendationReason={recommendationReason}
+          onSaveRecommendation={handleSaveRecommendation}
           advisorNotes={advisorNotes}
           advisorIpsNotes={advisorIpsNotes}
           onSaveNotes={handleSaveNotes}
@@ -887,6 +1089,9 @@ export default function ReportDetailPage() {
         <SingleClientReport
           member={members[0]}
           category={category}
+          recommendedCategory={recommendedCategory}
+          recommendationReason={recommendationReason}
+          onSaveRecommendation={handleSaveRecommendation}
           advisorNotes={advisorNotes}
           advisorIpsNotes={advisorIpsNotes}
           onSaveNotes={handleSaveNotes}

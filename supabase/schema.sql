@@ -215,6 +215,13 @@ CREATE POLICY "Advisors manage household IPS"
 ALTER TABLE clients    ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 
+-- ── RECOMMENDED RISK CATEGORY (Phase 2) ───────────────────────
+-- Lets an advisor record a recommended risk category that differs from the
+-- survey result, with a documented reason. NULL means "matches the survey".
+ALTER TABLE households
+  ADD COLUMN IF NOT EXISTS recommended_risk_category TEXT,
+  ADD COLUMN IF NOT EXISTS recommendation_reason     TEXT;
+
 -- ── INVESTMENT PREFERENCES ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS investment_preferences (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
