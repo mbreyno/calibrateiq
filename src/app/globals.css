@@ -55,21 +55,17 @@ html {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
 
-  /* Larger top margin reserves space for the fixed running header */
-  @page { margin: 0.95in 0.5in 0.5in 0.5in; size: letter; }
+  /* Standard page margins; content flows naturally page to page */
+  @page { margin: 0.45in 0.5in; size: letter; }
 
-  /* Fixed running header — repeats at the top of every printed page.
-     Chrome uses the @page content area (not the paper edge) as the
-     containing block for position:fixed, so a negative top is needed
-     to push the header up into the @page top margin space.            */
-  .print-running-header {
-    position: fixed;
-    top: -0.7in;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: white;
-    margin: 0 !important;
+  /* Each .print-section starts on a fresh printed page (except the
+     first), so the PrintHeader inside it appears at the top of every
+     page without forcing a min-height stretch. */
+  .print-section {
+    break-before: page;
+  }
+  .print-section:first-of-type {
+    break-before: auto;
   }
 
   html, body {
