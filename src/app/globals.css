@@ -58,12 +58,15 @@ html {
   /* Larger top margin reserves space for the fixed running header */
   @page { margin: 0.95in 0.5in 0.5in 0.5in; size: letter; }
 
-  /* Fixed running header — repeats at the top of every printed page */
+  /* Fixed running header — repeats at the top of every printed page.
+     Chrome uses the @page content area (not the paper edge) as the
+     containing block for position:fixed, so a negative top is needed
+     to push the header up into the @page top margin space.            */
   .print-running-header {
     position: fixed;
-    top: 0.25in;
-    left: 0.5in;
-    right: 0.5in;
+    top: -0.7in;
+    left: 0;
+    right: 0;
     z-index: 1000;
     background: white;
     margin: 0 !important;
