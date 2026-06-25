@@ -59,6 +59,19 @@ function ScoreGauge({ score, max, label, color, primary = false }: { score: numb
   )
 }
 
+// ─── Section Header (RPQ vs IPS divisions) ──────────────────────────────────
+
+function SectionHeader({ title, accent = '#1b4332' }: { title: string; accent?: string }) {
+  return (
+    <div className="flex items-center gap-3 pb-1">
+      <div className="h-7 w-1 rounded-full" style={{ backgroundColor: accent }} />
+      <h2 className="text-xl font-bold uppercase tracking-[0.15em] text-forest-900">
+        {title}
+      </h2>
+    </div>
+  )
+}
+
 // ─── Advisor Notes ────────────────────────────────────────────────────────────
 
 function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: (notes: string) => Promise<void> }) {
@@ -291,9 +304,12 @@ export default function ClientDetailPage() {
         {/* ── PROFILE TAB ──────────────────────────────────────── */}
         {tab === 'profile' && profile && responses && (
           <div className="space-y-5">
+            {/* ══════ RISK PROFILE QUESTIONNAIRE ══════ */}
+            <SectionHeader title="Risk Profile Questionnaire" />
+
             {/* Category banner — full width */}
             <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: categoryColor }}>
-              <div className="text-sm font-semibold opacity-80 mb-1">Overall Risk Category</div>
+              <div className="text-sm font-semibold opacity-80 mb-1">Survey Risk Category</div>
               <div className="text-3xl font-bold mb-2">{profile.overall_category}</div>
               <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[profile.overall_category]}</p>
             </div>
@@ -303,11 +319,6 @@ export default function ClientDetailPage() {
               <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color="#1b4332" primary={true} />
               <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
             </div>
-
-            {/* Preferences shown in Reports view */}
-
-            {/* Advisor Notes */}
-            <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
 
             {/* Portfolio Category Legend — full width */}
             <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
@@ -378,6 +389,12 @@ export default function ClientDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* ══════ INVESTMENT POLICY STATEMENT ══════ */}
+            <SectionHeader title="Investment Policy Statement" />
+
+            {/* Advisor Notes */}
+            <AdvisorNotes initialNotes={advisorNotes} onSave={handleSaveNotes} />
           </div>
         )}
       </div>

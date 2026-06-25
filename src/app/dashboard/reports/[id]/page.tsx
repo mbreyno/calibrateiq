@@ -212,7 +212,6 @@ function PrintHeader({ advisorLogoUrl, advisorFirmName, reportName, brandColor }
           )}
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: brandColor }}>{advisorFirmName || 'CalibrateIQ'}</div>
-            <div style={{ fontSize: 11, color: '#6b7d6a' }}>Investment Policy Statement</div>
           </div>
         </div>
         <div style={{ textAlign: 'right', fontSize: 11, color: '#6b7d6a' }}>
@@ -377,6 +376,19 @@ function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: strin
   )
 }
 
+// ─── Section Header (RPQ vs IPS divisions) ──────────────────────────────────
+
+function SectionHeader({ title, accent = '#1b4332' }: { title: string; accent?: string }) {
+  return (
+    <div className="flex items-center gap-3 pb-1 print:pb-0 break-after-avoid-page">
+      <div className="h-7 w-1 rounded-full print:h-5" style={{ backgroundColor: accent }} />
+      <h1 className="text-xl print:text-base font-bold uppercase tracking-[0.15em] text-forest-900">
+        {title}
+      </h1>
+    </div>
+  )
+}
+
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
 function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
@@ -399,12 +411,15 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
   return (
     <div className="space-y-5 print:space-y-0">
 
-      {/* ── Print Page 1: category banner + scores + prefs + notes ── */}
+      {/* ══════ RISK PROFILE QUESTIONNAIRE ══════ */}
+
+      {/* ── Print Page 1: RPQ header + Survey Risk Category + scores + prefs ── */}
       <div className="print-page-1 space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+        <SectionHeader title="Risk Profile Questionnaire" accent={bc} />
 
         <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-          <div className="text-sm font-semibold opacity-80 mb-1">Overall Risk Category</div>
+          <div className="text-sm font-semibold opacity-80 mb-1">Survey Risk Category</div>
           <div className="text-3xl font-bold mb-2">{category}</div>
           <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
           <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
@@ -423,26 +438,29 @@ function SingleClientReport({ member, category, advisorNotes, advisorIpsNotes, o
         )}
       </div>
 
-      {/* ── Print Page 2: IPS Notes + Advisor Notes ── */}
-      <div className="print-center-page space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <InvestorAcceptance html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
-      </div>
-
-      {/* ── Print Page 3: Portfolio Legend ── */}
+      {/* ── Print Page 2: RPQ — Portfolio Legend ── */}
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={[member]} category={category} />
       </div>
 
-      {/* ── Print Page 4: Survey responses ── */}
+      {/* ── Print Page 3: RPQ — Survey Responses ── */}
       <div className="print-center-page">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <div className="survey-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
           <h2 className="font-semibold text-forest-900 mb-5 print:mb-3">Survey Responses</h2>
           <SurveyResponses responses={responses} clientDob={member.client.date_of_birth} />
         </div>
+      </div>
+
+      {/* ══════ INVESTMENT POLICY STATEMENT ══════ */}
+
+      {/* ── Print Page 4: IPS header + Investor Acceptance + Advisor Notes ── */}
+      <div className="print-center-page space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+        <SectionHeader title="Investment Policy Statement" accent={bc} />
+        <InvestorAcceptance html={advisorIpsNotes} />
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 5 (optional): Signature block ── */}
@@ -479,12 +497,15 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
   return (
     <div className="space-y-5 print:space-y-0">
 
-      {/* ── Print Page 1: category banner + member cards + prefs + notes ── */}
+      {/* ══════ RISK PROFILE QUESTIONNAIRE ══════ */}
+
+      {/* ── Print Page 1: RPQ header + Household Survey Category + member cards + prefs ── */}
       <div className="print-page-1 space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+        <SectionHeader title="Risk Profile Questionnaire" accent={bc} />
 
         <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-          <div className="text-sm font-semibold opacity-80 mb-1">Combined Household Category</div>
+          <div className="text-sm font-semibold opacity-80 mb-1">Household Survey Risk Category</div>
           <div className="text-3xl font-bold mb-2">{category}</div>
           <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
           <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
@@ -541,20 +562,13 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
 
       </div>
 
-      {/* ── Print Page 2: IPS Notes + Advisor Notes ── */}
-      <div className="print-center-page space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <InvestorAcceptance html={advisorIpsNotes} />
-        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
-      </div>
-
-      {/* ── Print Page 3: Portfolio Legend ── */}
+      {/* ── Print Page 2: RPQ — Portfolio Legend ── */}
       <div className="print-center-page space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={members} category={category} />
       </div>
 
-      {/* ── Print Page 4: Survey Q&A side-by-side ── */}
+      {/* ── Print Page 3: RPQ — Survey Q&A side-by-side ── */}
       <div className="print-center-page">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -570,6 +584,16 @@ function CoupleReport({ members, category, advisorNotes, advisorIpsNotes, onSave
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ══════ INVESTMENT POLICY STATEMENT ══════ */}
+
+      {/* ── Print Page 4: IPS header + Investor Acceptance + Advisor Notes ── */}
+      <div className="print-center-page space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
+        <SectionHeader title="Investment Policy Statement" accent={bc} />
+        <InvestorAcceptance html={advisorIpsNotes} />
+        <AdvisorNotes initialNotes={advisorNotes} onSave={onSaveNotes} />
       </div>
 
       {/* ── Print Page 5 (optional): Signature block ── */}
