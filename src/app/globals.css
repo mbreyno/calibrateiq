@@ -99,9 +99,32 @@ html {
   .shadow-card, .shadow-elevated { box-shadow: none !important; }
 
   /* Medium-sized cards: avoid splitting across pages */
-  .rounded-2xl:not(.survey-card):not(.portfolio-legend-card) {
+  .rounded-2xl:not(.survey-card) {
     page-break-inside: avoid;
     break-inside: avoid;
+  }
+
+  /* Portfolio Category Legend — compact in print so all five
+     category tiles fit on one page alongside Investment Preferences */
+  .portfolio-legend-card {
+    padding: 1rem !important;
+  }
+  .portfolio-legend-card .grid {
+    gap: 0.5rem !important;
+  }
+  .portfolio-legend-card .rounded-xl {
+    padding: 0.65rem !important;
+  }
+  .portfolio-legend-card h2 {
+    font-size: 11pt !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .portfolio-legend-card p {
+    font-size: 8.5pt !important;
+    line-height: 1.35 !important;
+  }
+  .portfolio-legend-card span {
+    font-size: 8.5pt !important;
   }
 
   /* Small boxes (individual category tiles, gauge boxes): never split */
