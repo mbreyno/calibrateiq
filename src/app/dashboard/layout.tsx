@@ -87,7 +87,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-screen bg-cream-100 flex">
+    <div className="min-h-screen bg-cream-100 print:bg-white flex">
       <DashboardNav advisor={advisorForNav} isSubUser={isSubUser} />
       <main className="flex-1 lg:ml-60 min-h-screen">
         {children}
