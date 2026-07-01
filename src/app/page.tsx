@@ -570,6 +570,48 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── TESTIMONIALS ────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 bg-forest-100 px-3 py-1 rounded-full mb-4">
+              Testimonials
+            </div>
+            <h2 className="text-4xl font-bold text-forest-900">What advisors are saying</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            {[
+              {
+                quote: 'This is by far the IPS tool that has best satisfied our needs and wants for such a tool.',
+                name: 'Martha Kern, CFP®',
+                firm: 'Plan First Wealth',
+              },
+              {
+                quote: 'CalibrateIQ is amazing. It has been the only IPS/Risk tool I have liked. It is simple, clean, and the output is awesome. Also, the questions in the questionnaire are great.',
+                name: 'Hayden Holcomb',
+                firm: 'Holcomb Financial',
+              },
+            ].map((t) => (
+              <figure
+                key={t.name}
+                className="relative bg-cream-50 rounded-2xl border border-cream-300 shadow-card p-8 flex flex-col"
+              >
+                <svg className="w-8 h-8 text-gold-500 mb-4" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+                  <path d="M9 8c-3.87 0-7 3.13-7 7v11h11V15H7c0-2.21 1.79-4 4-4V8H9zm14 0c-3.87 0-7 3.13-7 7v11h11V15h-6c0-2.21 1.79-4 4-4V8h-2z" />
+                </svg>
+                <blockquote className="text-forest-800 text-lg leading-relaxed flex-1">
+                  {t.quote}
+                </blockquote>
+                <figcaption className="mt-6 pt-6 border-t border-cream-300">
+                  <div className="font-semibold text-forest-900">{t.name}</div>
+                  <div className="text-sm text-forest-600">{t.firm}</div>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── FAQ ─────────────────────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-cream-100">
         <div className="max-w-3xl mx-auto">
