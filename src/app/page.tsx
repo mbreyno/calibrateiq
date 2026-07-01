@@ -690,9 +690,9 @@ export default function LandingPage() {
                   {[
                     'Everything in Solo',
                     'Up to 9 additional advisors',
-                    'Each advisor has their own clients',
+                    'Additional advisors share client data with the team',
                     'Shared firm branding across team',
-                    'Admin view-as for any team member',
+                    'Per-user notification preferences',
                   ].map(f => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-forest-800">
                       <CheckIcon />
