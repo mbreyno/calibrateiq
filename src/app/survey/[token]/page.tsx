@@ -213,8 +213,7 @@ export default function MasterSurveyPage() {
             </div>
             <h1 className="text-2xl font-bold text-forest-900 mb-3">Thank you, {firstName}!</h1>
             <p className="text-forest-700 leading-relaxed">
-              Your investment profile questionnaire has been submitted. Your advisor at{' '}
-              <strong>{advisor?.firm_name || 'your advisory firm'}</strong> will review your responses and be in touch shortly.
+              Your investment profile questionnaire has been submitted. Your advisor will review your responses and be in touch shortly.
             </p>
           </div>
         </div>
