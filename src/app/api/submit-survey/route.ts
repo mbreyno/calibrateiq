@@ -83,9 +83,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ── 4. Fire advisor notification email (non-blocking) ─────────────────────
+    // ── 4. Fire advisor notification email ────────────────────────────────────
+    // Must be awaited: Vercel terminates the serverless function on `return`,
+    // which kills unawaited fetches before they open a connection. Errors are
+    // caught so a Resend outage never fails the client's survey submission.
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.app'
-    fetch(`${appUrl}/api/notify-advisor`, {
+    await fetch(`${appUrl}/api/notify-advisor`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -93,7 +96,9 @@ export async function POST(req: NextRequest) {
         client_name: `${first_name.trim()} ${last_name.trim()}`,
         client_email: email.trim(),
       }),
-    }).catch(() => {})
+    }).catch(err => {
+      console.error('submit-survey → notify-advisor failed:', err)
+    })
 
     return NextResponse.json({ ok: true, client_id: newClient.id })
   } catch (err) {
