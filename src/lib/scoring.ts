@@ -9,15 +9,54 @@ import type {
 } from '@/types'
 
 // ─────────────────────────────────────────────
-// AGE SCORE (derived from date of birth)
-// Replaces Q1 — score calculated automatically
+// DATE OF BIRTH parsing + age
 // ─────────────────────────────────────────────
-export function calculateAgeScore(dob: string): number {
-  const birth = new Date(dob)
+
+/**
+ * Parse a stored DOB string into a Date, healing the common failure mode
+ * where a 2-digit year (e.g. "68") got persisted as "0068". Picks the 19XX
+ * or 20XX interpretation that yields a plausible current age (5–105).
+ * Returns null if the input can't be parsed.
+ */
+export function parseDob(dob: string | null | undefined): Date | null {
+  if (!dob) return null
+  const d = new Date(dob)
+  if (isNaN(d.getTime())) return null
+  const year = d.getFullYear()
+  if (year >= 100) return d
+
+  // Year came back as 0–99 → the stored value looks like '00XX'. Recover
+  // the intended century by picking the interpretation with a plausible age.
+  const currentYear = new Date().getFullYear()
+  const nineteenAge = currentYear - (1900 + year)
+  const twentyAge = currentYear - (2000 + year)
+  const nineteenOk = nineteenAge >= 5 && nineteenAge <= 105
+  const twentyOk = twentyAge >= 5 && twentyAge <= 105
+  const chosen = twentyOk ? 2000 + year : nineteenOk ? 1900 + year : null
+  if (chosen === null) return d
+  const fixed = new Date(d)
+  fixed.setFullYear(chosen)
+  return fixed
+}
+
+/** Current age in whole years, or null if DOB can't be parsed. */
+export function calculateAge(dob: string | null | undefined): number | null {
+  const birth = parseDob(dob)
+  if (!birth) return null
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  return age
+}
+
+// ─────────────────────────────────────────────
+// AGE SCORE (derived from date of birth)
+// Replaces Q1 — score calculated automatically
+// ─────────────────────────────────────────────
+export function calculateAgeScore(dob: string): number {
+  const age = calculateAge(dob)
+  if (age === null) return 50  // unparseable DOB → treat as youngest bracket
   if (age < 45) return 50
   if (age > 85) return 10
   return 95 - age  // 1 point per year: age 45 → 50, 55 → 40, 65 → 30, 75 → 20, 85 → 10

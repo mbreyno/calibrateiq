@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   calculateRiskProfile,
+  calculateAge,
+  parseDob,
   CATEGORY_COLORS,
   CATEGORY_DESCRIPTIONS,
   CATEGORY_SCORE_RANGES,
@@ -26,12 +28,8 @@ function formatSurveyDate(ts: string | undefined, tz: string): string {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function calcAge(dob: string | null | undefined): string {
-  if (!dob) return 'Age unknown'
-  const birth = new Date(dob)
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  if (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate())) age--
-  return `Age ${age}`
+  const age = calculateAge(dob)
+  return age === null ? 'Age unknown' : `Age ${age}`
 }
 
 function combinedCategory(members: MemberData[]): RiskCategory {
@@ -123,19 +121,13 @@ function MiniGauge({ score, max, label, primary, brandColor }: { score: number; 
 // ─── Survey Q&A ───────────────────────────────────────────────────────────────
 
 function ageFromDob(dob: string | null | undefined): string {
-  if (!dob) return 'Not provided'
-  const birth = new Date(dob)
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-  return `${age} years old`
+  const age = calculateAge(dob)
+  return age === null ? 'Not provided' : `${age} years old`
 }
 
 function formatDob(dob: string | null | undefined): string | null {
-  if (!dob) return null
-  const d = new Date(dob)
-  if (isNaN(d.getTime())) return null
+  const d = parseDob(dob)
+  if (!d) return null
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 }
 
