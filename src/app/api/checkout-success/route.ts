@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// Never cache: these responses must always reflect the current database.
+export const dynamic = 'force-dynamic'
+
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY!
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.app'
 

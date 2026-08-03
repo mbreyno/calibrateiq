@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// Never cache: these responses must always reflect the current database.
+export const dynamic = 'force-dynamic'
+
 async function getEffectiveAdvisorId(userId: string) {
   const admin = createAdminClient()
   const { data: advisor } = await admin

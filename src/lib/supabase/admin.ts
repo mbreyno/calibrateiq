@@ -17,5 +17,12 @@ export function createAdminClient() {
 
   return createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
+    global: {
+      // Next.js patches global fetch and caches GET responses in route
+      // handlers by default (Data Cache) — which froze stale advisor rows
+      // (e.g. pre-branding snapshots) across requests and deploys.
+      // Force every Supabase query to bypass that cache.
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
   })
 }

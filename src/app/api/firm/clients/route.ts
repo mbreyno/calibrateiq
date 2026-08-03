@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// Never cache: these responses must always reflect the current database.
+export const dynamic = 'force-dynamic'
+
 /** Returns the effective advisor ID for the current user.
  *  Sub-users share the parent admin's data pool. */
 async function getEffectiveAdvisorId(userId: string) {

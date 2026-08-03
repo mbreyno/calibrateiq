@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// Never cache: these responses must always reflect the current database.
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/survey/advisor/[token]
  *
