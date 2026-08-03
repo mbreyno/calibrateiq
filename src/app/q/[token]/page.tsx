@@ -41,23 +41,16 @@ export default function QuestionnairePage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('questionnaire_token', token)
-        .single()
+      // Server-side API route (admin client) — anonymous clients can't read
+      // the advisors table under RLS, which left this page unbranded.
+      const res = await fetch(`/api/survey/client/${token}`)
+      if (!res.ok) { setNotFound(true); setLoading(false); return }
 
+      const { client: clientData, advisor: advisorData } = await res.json()
       if (!clientData) { setNotFound(true); setLoading(false); return }
       if (clientData.status === 'completed') { setAlreadyDone(true); setLoading(false); return }
 
       setClient(clientData)
-
-      const { data: advisorData } = await supabase
-        .from('advisors')
-        .select('*')
-        .eq('id', clientData.advisor_id)
-        .single()
-
       setAdvisor(advisorData)
       if (advisorData) {
         applyBrandColors(
