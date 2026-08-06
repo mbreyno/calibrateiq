@@ -64,30 +64,30 @@ function ScoreGauge({ score, max, label, color, primary = false }: { score: numb
   const pct = Math.round((score / max) * 100)
   if (primary) {
     return (
-      <div className="flex-1 bg-white rounded-2xl border-2 shadow-card p-6" style={{ borderColor: color }}>
-        <div className="flex items-center gap-2 mb-4">
+      <div className="flex-1 bg-white rounded-2xl border-2 shadow-card p-6 print:p-3.5" style={{ borderColor: color }}>
+        <div className="flex items-center gap-2 mb-4 print:mb-1.5">
           <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
             <ShieldIcon />{label}
           </span>
           <span className="text-xs text-forest-500 font-medium">Primary measure</span>
         </div>
-        <div className="flex items-end gap-2 mb-4">
-          <span className="text-6xl font-bold text-forest-900 leading-none">{score}</span>
-          <span className="text-base text-forest-400 mb-1">/ {max}</span>
+        <div className="flex items-end gap-2 mb-4 print:mb-1.5">
+          <span className="text-6xl print:text-3xl font-bold text-forest-900 leading-none">{score}</span>
+          <span className="text-base print:text-sm text-forest-400 mb-1 print:mb-0.5">/ {max}</span>
         </div>
-        <div className="h-3 bg-cream-200 rounded-full overflow-hidden">
+        <div className="h-3 print:h-2 bg-cream-200 rounded-full overflow-hidden">
           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
         </div>
       </div>
     )
   }
   return (
-    <div className="flex-1 bg-cream-50 rounded-2xl border border-cream-300 p-5">
-      <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-forest-400 uppercase tracking-wider mb-3">
+    <div className="flex-1 bg-cream-50 rounded-2xl border border-cream-300 p-5 print:p-3.5">
+      <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-forest-400 uppercase tracking-wider mb-3 print:mb-1.5">
         <SlidersIcon />{label}
       </div>
-      <div className="flex items-end gap-2 mb-3">
-        <span className="text-3xl font-bold text-forest-600">{score}</span>
+      <div className="flex items-end gap-2 mb-3 print:mb-1.5">
+        <span className="text-3xl print:text-2xl font-bold text-forest-600">{score}</span>
         <span className="text-sm text-forest-400 mb-0.5">/ {max}</span>
       </div>
       <div className="h-2 bg-cream-300 rounded-full overflow-hidden">
@@ -496,13 +496,13 @@ function RecommendedCategoryCard({
   // Explicit deviation — prominent card that shows in print.
   const color = CATEGORY_COLORS[recommendedCategory as RiskCategory]
   return (
-    <div className="rounded-2xl p-6 print:p-5 text-white relative" style={{ backgroundColor: color }}>
-      <div className="text-sm font-semibold opacity-80 mb-1">Recommended Risk Category</div>
-      <div className="text-3xl print:text-2xl font-bold mb-2">{recommendedCategory}</div>
-      <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[recommendedCategory as RiskCategory]}</p>
-      <div className="mt-3 pt-3 border-t border-white/25">
-        <div className="text-xs font-semibold opacity-80 uppercase tracking-wider mb-1">Reason</div>
-        <p className="text-sm opacity-95 leading-relaxed whitespace-pre-wrap">
+    <div className="rounded-2xl p-6 print:p-4 text-white relative" style={{ backgroundColor: color }}>
+      <div className="text-sm print:text-xs font-semibold opacity-80 mb-1 print:mb-0.5">Recommended Risk Category</div>
+      <div className="text-3xl print:text-xl font-bold mb-2 print:mb-1">{recommendedCategory}</div>
+      <p className="text-sm print:text-xs opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[recommendedCategory as RiskCategory]}</p>
+      <div className="mt-3 pt-3 print:mt-2 print:pt-2 border-t border-white/25">
+        <div className="text-xs print:text-[10px] font-semibold opacity-80 uppercase tracking-wider mb-1 print:mb-0.5">Reason</div>
+        <p className="text-sm print:text-xs opacity-95 leading-relaxed whitespace-pre-wrap">
           {recommendationReason || <span className="italic opacity-70">No reason recorded.</span>}
         </p>
       </div>
@@ -745,15 +745,15 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
     <div className="space-y-5">
 
       {/* ── Section 1: category + recommendation + scores ───────── */}
-      <div className="print-section space-y-5">
+      <div className="print-section space-y-5 print:space-y-3">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <SectionHeader title="Investment Policy Statement" accent={bc} />
 
-        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-          <div className="text-sm font-semibold opacity-80 mb-1">Survey Risk Category</div>
-          <div className="text-3xl font-bold mb-2">{category}</div>
-          <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
-          <p className="text-xs opacity-70 mt-2">{calcAge(member.client.date_of_birth)}</p>
+        <div className="rounded-2xl p-6 print:p-4 text-white" style={{ backgroundColor: color }}>
+          <div className="text-sm print:text-xs font-semibold opacity-80 mb-1 print:mb-0.5">Survey Risk Category</div>
+          <div className="text-3xl print:text-xl font-bold mb-2 print:mb-1">{category}</div>
+          <p className="text-sm print:text-xs opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="text-xs print:text-[10px] opacity-70 mt-2 print:mt-1">{calcAge(member.client.date_of_birth)}</p>
         </div>
 
         <RecommendedCategoryCard
@@ -841,15 +841,15 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
     <div className="space-y-5">
 
       {/* ── Section 1: category + recommendation + member cards ── */}
-      <div className="print-section space-y-5">
+      <div className="print-section space-y-5 print:space-y-3">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <SectionHeader title="Investment Policy Statement" accent={bc} />
 
-        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: color }}>
-          <div className="text-sm font-semibold opacity-80 mb-1">Household Survey Risk Category</div>
-          <div className="text-3xl font-bold mb-2">{category}</div>
-          <p className="text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
-          <p className="text-xs opacity-70 mt-2">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
+        <div className="rounded-2xl p-6 print:p-4 text-white" style={{ backgroundColor: color }}>
+          <div className="text-sm print:text-xs font-semibold opacity-80 mb-1 print:mb-0.5">Household Survey Risk Category</div>
+          <div className="text-3xl print:text-xl font-bold mb-2 print:mb-1">{category}</div>
+          <p className="text-sm print:text-xs opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="text-xs print:text-[10px] opacity-70 mt-2 print:mt-1">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
         </div>
 
         <RecommendedCategoryCard
@@ -860,11 +860,11 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
         />
 
         {/* Side-by-side member score cards */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 print:gap-3">
           {members.map(({ client, profile }) => {
             const catColor = CATEGORY_COLORS[profile.overall_category]
             return (
-              <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4 space-y-4 print:space-y-3">
+              <div key={client.id} className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-3.5 space-y-4 print:space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-forest-200 flex items-center justify-center text-sm font-bold text-forest-800 flex-shrink-0">
