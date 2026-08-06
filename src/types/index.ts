@@ -13,8 +13,6 @@ export interface Advisor {
   // Multi-tier plan
   plan?: 'solo' | 'team' | 'plus' | null
   parent_advisor_id?: string | null   // set for sub-users; null for admins
-  // Report features
-  list_accounts?: boolean | null      // "List out accounts and individual strategy"
   // Subscription
   stripe_customer_id?: string | null
   stripe_subscription_id?: string | null

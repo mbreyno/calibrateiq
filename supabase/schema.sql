@@ -216,10 +216,9 @@ ALTER TABLE clients    ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 
 -- ── ACCOUNT LIST ("List out accounts and individual strategy") ─
--- Per-firm toggle (off by default) plus JSONB account rows on the
--- household report: { id, label, last_four, tax_treatment, strategy }.
-ALTER TABLE advisors
-  ADD COLUMN IF NOT EXISTS list_accounts BOOLEAN NOT NULL DEFAULT false;
+-- JSONB account rows on the household report, one object per account:
+-- { id, label, last_four, tax_treatment, strategy, purpose }.
+-- Available on every report; prints only when accounts exist.
 ALTER TABLE households
   ADD COLUMN IF NOT EXISTS accounts JSONB NOT NULL DEFAULT '[]'::jsonb;
 

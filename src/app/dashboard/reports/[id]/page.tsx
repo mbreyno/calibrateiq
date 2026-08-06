@@ -719,13 +719,12 @@ function IpsRecommendationNarrative({
 
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, recommendedCategory, recommendationReason, onSaveRecommendation, accountsEnabled, accounts, onSaveAccounts, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function SingleClientReport({ member, category, recommendedCategory, recommendationReason, onSaveRecommendation, accounts, onSaveAccounts, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   member: MemberData
   category: RiskCategory
   recommendedCategory: RiskCategory | null
   recommendationReason: string
   onSaveRecommendation: (cat: RiskCategory | null, reason: string) => Promise<void>
-  accountsEnabled: boolean
   accounts: ClientAccount[]
   onSaveAccounts: (rows: ClientAccount[]) => Promise<void>
   advisorNotes: string
@@ -769,7 +768,7 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
           <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
         </div>
 
-        {accountsEnabled && <AccountsCard accounts={accounts} onSave={onSaveAccounts} />}
+        <AccountsCard accounts={accounts} onSave={onSaveAccounts} />
       </div>
 
       {/* ── Section 2: investment preferences + portfolio legend ── */}
@@ -815,13 +814,12 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, recommendedCategory, recommendationReason, onSaveRecommendation, accountsEnabled, accounts, onSaveAccounts, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function CoupleReport({ members, category, recommendedCategory, recommendationReason, onSaveRecommendation, accounts, onSaveAccounts, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   members: MemberData[]
   category: RiskCategory
   recommendedCategory: RiskCategory | null
   recommendationReason: string
   onSaveRecommendation: (cat: RiskCategory | null, reason: string) => Promise<void>
-  accountsEnabled: boolean
   accounts: ClientAccount[]
   onSaveAccounts: (rows: ClientAccount[]) => Promise<void>
   advisorNotes: string
@@ -889,7 +887,7 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
           })}
         </div>
 
-        {accountsEnabled && <AccountsCard accounts={accounts} onSave={onSaveAccounts} />}
+        <AccountsCard accounts={accounts} onSave={onSaveAccounts} />
       </div>
 
       {/* ── Section 2: investment preferences + portfolio legend ── */}
@@ -966,7 +964,6 @@ export default function ReportDetailPage() {
   const [advisorIpsNotes, setAdvisorIpsNotes] = useState('')
   const [recommendedCategory, setRecommendedCategory] = useState<RiskCategory | null>(null)
   const [recommendationReason, setRecommendationReason] = useState('')
-  const [accountsEnabled, setAccountsEnabled] = useState(false)
   const [accounts, setAccounts] = useState<ClientAccount[]>([])
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [loading, setLoading] = useState(true)
@@ -1012,7 +1009,7 @@ export default function ReportDetailPage() {
     // Load advisor preferences, timezone, and all completed clients in parallel
     const [{ data: prefs }, { data: advisorRow }, { data: allCls }, { data: resps }] = await Promise.all([
       supabase.from('investment_preferences').select('*').eq('advisor_id', advisorId).order('sort_order', { ascending: true }),
-      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color, ips_notes, list_accounts').eq('id', advisorId).single(),
+      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color, ips_notes').eq('id', advisorId).single(),
       supabase.from('clients').select('*').eq('advisor_id', advisorId).eq('status', 'completed').order('first_name'),
       supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
@@ -1023,7 +1020,6 @@ export default function ReportDetailPage() {
     setAdvisorSignatureBlock(advisorRow?.signature_block ?? false)
     setAdvisorBrandColor(advisorRow?.brand_color ?? '#1b4332')
     setAdvisorIpsNotes((advisorRow as { ips_notes?: string | null } | null)?.ips_notes ?? '')
-    setAccountsEnabled((advisorRow as { list_accounts?: boolean | null } | null)?.list_accounts === true)
     setAllClients(allCls ?? [])
     const map: Record<string, string> = {}
     for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
@@ -1251,7 +1247,6 @@ export default function ReportDetailPage() {
           recommendedCategory={recommendedCategory}
           recommendationReason={recommendationReason}
           onSaveRecommendation={handleSaveRecommendation}
-          accountsEnabled={accountsEnabled}
           accounts={accounts}
           onSaveAccounts={handleSaveAccounts}
           advisorNotes={advisorNotes}
@@ -1271,7 +1266,6 @@ export default function ReportDetailPage() {
           recommendedCategory={recommendedCategory}
           recommendationReason={recommendationReason}
           onSaveRecommendation={handleSaveRecommendation}
-          accountsEnabled={accountsEnabled}
           accounts={accounts}
           onSaveAccounts={handleSaveAccounts}
           advisorNotes={advisorNotes}
