@@ -98,8 +98,11 @@ html {
 
   .shadow-card, .shadow-elevated { box-shadow: none !important; }
 
-  /* Medium-sized cards: avoid splitting across pages */
-  .rounded-2xl:not(.survey-card) {
+  /* Medium-sized cards: avoid splitting across pages.
+     survey-card and accounts-card are exempt — they can grow long and
+     should flow across pages (their inner rows stay intact via the
+     .rounded-xl rule below). */
+  .rounded-2xl:not(.survey-card):not(.accounts-card) {
     page-break-inside: avoid;
     break-inside: avoid;
   }

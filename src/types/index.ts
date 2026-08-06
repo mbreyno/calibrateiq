@@ -13,12 +13,25 @@ export interface Advisor {
   // Multi-tier plan
   plan?: 'solo' | 'team' | 'plus' | null
   parent_advisor_id?: string | null   // set for sub-users; null for admins
+  // Report features
+  list_accounts?: boolean | null      // "List out accounts and individual strategy"
   // Subscription
   stripe_customer_id?: string | null
   stripe_subscription_id?: string | null
   subscription_status?: string | null   // 'trialing' | 'active' | 'past_due' | 'canceled'
   trial_ends_at?: string | null
   created_at: string
+}
+
+export type TaxTreatment = 'Taxable' | 'Tax-deferred' | 'Tax-free'
+
+/** One row in the "List out accounts and individual strategy" section. */
+export interface ClientAccount {
+  id: string           // client-generated key for React lists
+  label: string        // e.g. "Bob's Roth IRA"
+  last_four: string    // last 4 digits of the account number
+  tax_treatment: TaxTreatment
+  strategy: string     // advisor free text
 }
 
 export interface Client {

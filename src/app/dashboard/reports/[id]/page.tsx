@@ -14,7 +14,7 @@ import {
   QUESTIONS,
   getOverallCategory,
 } from '@/lib/scoring'
-import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory, InvestmentPreference } from '@/types'
+import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory, InvestmentPreference, ClientAccount, TaxTreatment } from '@/types'
 
 // ─── Date helper ──────────────────────────────────────────────────────────────
 
@@ -514,6 +514,163 @@ function RecommendedCategoryCard({
   )
 }
 
+// ─── Accounts & Strategy ("List out accounts and individual strategy") ───────
+
+const TAX_TREATMENTS: TaxTreatment[] = ['Taxable', 'Tax-deferred', 'Tax-free']
+
+function newAccountRow(): ClientAccount {
+  return { id: crypto.randomUUID(), label: '', last_four: '', tax_treatment: 'Taxable', strategy: '' }
+}
+
+function AccountsCard({ accounts, onSave }: {
+  accounts: ClientAccount[]
+  onSave: (rows: ClientAccount[]) => Promise<void>
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState<ClientAccount[]>([])
+  const [saving, setSaving] = useState(false)
+
+  const startEdit = () => {
+    setDraft(accounts.length > 0 ? accounts.map(a => ({ ...a })) : [newAccountRow()])
+    setEditing(true)
+  }
+
+  const updateRow = (id: string, patch: Partial<ClientAccount>) => {
+    setDraft(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)))
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    const cleaned = draft
+      .map(r => ({ ...r, label: r.label.trim(), last_four: r.last_four.trim(), strategy: r.strategy.trim() }))
+      .filter(r => r.label || r.last_four || r.strategy)
+    await onSave(cleaned)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <div className="bg-white rounded-2xl border-2 border-forest-300 shadow-card p-6 print:hidden">
+        <h2 className="font-semibold text-forest-900 mb-4">Edit accounts &amp; strategy</h2>
+        <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-semibold text-forest-500 uppercase tracking-wider mb-2 pr-9">
+          <div className="col-span-4">Account</div>
+          <div className="col-span-2">Last 4</div>
+          <div className="col-span-3">Tax treatment</div>
+          <div className="col-span-3">Strategy</div>
+        </div>
+        <div className="space-y-2.5">
+          {draft.map(row => (
+            <div key={row.id} className="flex items-center gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 flex-1">
+                <input
+                  type="text"
+                  value={row.label}
+                  onChange={e => updateRow(row.id, { label: e.target.value })}
+                  placeholder={'e.g. Bob’s Roth IRA'}
+                  className="sm:col-span-4 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={row.last_four}
+                  onChange={e => updateRow(row.id, { last_four: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                  placeholder="1234"
+                  className="sm:col-span-2 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-forest-700"
+                />
+                <select
+                  value={row.tax_treatment}
+                  onChange={e => updateRow(row.id, { tax_treatment: e.target.value as TaxTreatment })}
+                  className="sm:col-span-3 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                >
+                  {TAX_TREATMENTS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <input
+                  type="text"
+                  value={row.strategy}
+                  onChange={e => updateRow(row.id, { strategy: e.target.value })}
+                  placeholder="e.g. Growth equities"
+                  className="sm:col-span-3 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                />
+              </div>
+              <button
+                onClick={() => setDraft(prev => prev.filter(r => r.id !== row.id))}
+                title="Remove account"
+                className="flex-shrink-0 w-7 h-7 rounded-lg border border-cream-300 text-forest-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50 transition-colors leading-none"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => setDraft(prev => [...prev, newAccountRow()])}
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-forest-700 hover:text-forest-900 border border-dashed border-cream-400 px-3.5 py-2 rounded-xl hover:bg-cream-50 transition-colors"
+        >
+          <span className="text-base leading-none">+</span> Add account
+        </button>
+        <div className="flex gap-2 mt-5">
+          <button onClick={() => setEditing(false)}
+            className="flex-1 border border-cream-300 text-forest-700 font-medium text-sm py-2.5 rounded-xl hover:bg-cream-50">
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 bg-forest-900 text-cream-100 font-semibold text-sm py-2.5 rounded-xl hover:bg-forest-800 disabled:opacity-60">
+            {saving ? 'Saving…' : 'Save accounts'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (accounts.length === 0) {
+    return (
+      <div className="no-print bg-cream-50 rounded-2xl border border-dashed border-cream-400 p-5 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider mb-1">Accounts &amp; Strategy</div>
+          <p className="text-sm text-forest-600">No accounts listed yet for this report.</p>
+        </div>
+        <button onClick={startEdit}
+          className="text-xs font-semibold text-forest-700 hover:text-forest-900 border border-cream-300 bg-white px-3 py-1.5 rounded-lg hover:bg-cream-100 transition-colors flex-shrink-0">
+          + Add accounts
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="accounts-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
+      <div className="flex items-center justify-between mb-4 print:mb-3">
+        <h2 className="font-semibold text-forest-900">Accounts &amp; Strategy</h2>
+        <button onClick={startEdit}
+          className="no-print text-xs font-semibold text-forest-600 hover:text-forest-900 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
+          Edit
+        </button>
+      </div>
+      <div className="grid grid-cols-12 gap-3 text-xs print:text-[10px] font-semibold text-forest-500 uppercase tracking-wider px-3 mb-1.5">
+        <div className="col-span-4">Account</div>
+        <div className="col-span-2">Last 4</div>
+        <div className="col-span-3">Tax treatment</div>
+        <div className="col-span-3">Strategy</div>
+      </div>
+      <div className="space-y-2 print:space-y-1.5">
+        {accounts.map(a => (
+          <div key={a.id} className="grid grid-cols-12 gap-3 items-center rounded-xl border border-cream-200 bg-cream-50 px-3 py-2.5 print:py-1.5">
+            <div className="col-span-4 text-sm print:text-xs font-medium text-forest-900">{a.label || '—'}</div>
+            <div className="col-span-2 text-sm print:text-xs text-forest-700 tabular-nums">{a.last_four ? `····${a.last_four}` : '—'}</div>
+            <div className="col-span-3">
+              <span className="inline-block text-xs print:text-[10px] font-semibold text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full">
+                {a.tax_treatment}
+              </span>
+            </div>
+            <div className="col-span-3 text-sm print:text-xs text-forest-700 leading-snug">{a.strategy || '—'}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── IPS body narrative (top of IPS section) ─────────────────────────────────
 
 function IpsRecommendationNarrative({
@@ -541,12 +698,15 @@ function IpsRecommendationNarrative({
 
 // ─── Single Client Layout ─────────────────────────────────────────────────────
 
-function SingleClientReport({ member, category, recommendedCategory, recommendationReason, onSaveRecommendation, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function SingleClientReport({ member, category, recommendedCategory, recommendationReason, onSaveRecommendation, accountsEnabled, accounts, onSaveAccounts, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   member: MemberData
   category: RiskCategory
   recommendedCategory: RiskCategory | null
   recommendationReason: string
   onSaveRecommendation: (cat: RiskCategory | null, reason: string) => Promise<void>
+  accountsEnabled: boolean
+  accounts: ClientAccount[]
+  onSaveAccounts: (rows: ClientAccount[]) => Promise<void>
   advisorNotes: string
   advisorIpsNotes: string
   onSaveNotes: (n: string) => Promise<void>
@@ -587,6 +747,8 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
           <ScoreGauge score={profile.risk_capacity_score} max={100} label="Risk Capacity" color={bc} primary={true} />
           <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
         </div>
+
+        {accountsEnabled && <AccountsCard accounts={accounts} onSave={onSaveAccounts} />}
       </div>
 
       {/* ── Section 2: investment preferences + portfolio legend ── */}
@@ -632,12 +794,15 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
 
 // ─── Couple Layout ────────────────────────────────────────────────────────────
 
-function CoupleReport({ members, category, recommendedCategory, recommendationReason, onSaveRecommendation, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
+function CoupleReport({ members, category, recommendedCategory, recommendationReason, onSaveRecommendation, accountsEnabled, accounts, onSaveAccounts, advisorNotes, advisorIpsNotes, onSaveNotes, preferences, advisorFirmName, advisorLogoUrl, reportName, signatureBlock, brandColor }: {
   members: MemberData[]
   category: RiskCategory
   recommendedCategory: RiskCategory | null
   recommendationReason: string
   onSaveRecommendation: (cat: RiskCategory | null, reason: string) => Promise<void>
+  accountsEnabled: boolean
+  accounts: ClientAccount[]
+  onSaveAccounts: (rows: ClientAccount[]) => Promise<void>
   advisorNotes: string
   advisorIpsNotes: string
   onSaveNotes: (n: string) => Promise<void>
@@ -702,6 +867,8 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
             )
           })}
         </div>
+
+        {accountsEnabled && <AccountsCard accounts={accounts} onSave={onSaveAccounts} />}
       </div>
 
       {/* ── Section 2: investment preferences + portfolio legend ── */}
@@ -778,6 +945,8 @@ export default function ReportDetailPage() {
   const [advisorIpsNotes, setAdvisorIpsNotes] = useState('')
   const [recommendedCategory, setRecommendedCategory] = useState<RiskCategory | null>(null)
   const [recommendationReason, setRecommendationReason] = useState('')
+  const [accountsEnabled, setAccountsEnabled] = useState(false)
+  const [accounts, setAccounts] = useState<ClientAccount[]>([])
   const [preferences, setPreferences] = useState<InvestmentPreference[]>([])
   const [loading, setLoading] = useState(true)
   const [advisorFirmName, setAdvisorFirmName] = useState('')
@@ -809,18 +978,20 @@ export default function ReportDetailPage() {
       advisor_notes?: string | null
       recommended_risk_category?: string | null
       recommendation_reason?: string | null
+      accounts?: ClientAccount[] | null
     }
     setReportName(hhRow.name)
     setAdvisorNotes(hhRow.advisor_notes ?? '')
     setRecommendedCategory((hhRow.recommended_risk_category as RiskCategory | null) ?? null)
     setRecommendationReason(hhRow.recommendation_reason ?? '')
+    setAccounts(Array.isArray(hhRow.accounts) ? hhRow.accounts : [])
 
     const advisorId = (hh as { advisor_id: string }).advisor_id
 
     // Load advisor preferences, timezone, and all completed clients in parallel
     const [{ data: prefs }, { data: advisorRow }, { data: allCls }, { data: resps }] = await Promise.all([
       supabase.from('investment_preferences').select('*').eq('advisor_id', advisorId).order('sort_order', { ascending: true }),
-      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color, ips_notes').eq('id', advisorId).single(),
+      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color, ips_notes, list_accounts').eq('id', advisorId).single(),
       supabase.from('clients').select('*').eq('advisor_id', advisorId).eq('status', 'completed').order('first_name'),
       supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
@@ -831,6 +1002,7 @@ export default function ReportDetailPage() {
     setAdvisorSignatureBlock(advisorRow?.signature_block ?? false)
     setAdvisorBrandColor(advisorRow?.brand_color ?? '#1b4332')
     setAdvisorIpsNotes((advisorRow as { ips_notes?: string | null } | null)?.ips_notes ?? '')
+    setAccountsEnabled((advisorRow as { list_accounts?: boolean | null } | null)?.list_accounts === true)
     setAllClients(allCls ?? [])
     const map: Record<string, string> = {}
     for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }
@@ -911,6 +1083,11 @@ export default function ReportDetailPage() {
     } as never).eq('id', id)
     setRecommendedCategory(cat)
     setRecommendationReason(cat ? reason : '')
+  }
+
+  const handleSaveAccounts = async (rows: ClientAccount[]) => {
+    await supabase.from('households').update({ accounts: rows } as never).eq('id', id)
+    setAccounts(rows)
   }
 
   if (loading) return (
@@ -1053,6 +1230,9 @@ export default function ReportDetailPage() {
           recommendedCategory={recommendedCategory}
           recommendationReason={recommendationReason}
           onSaveRecommendation={handleSaveRecommendation}
+          accountsEnabled={accountsEnabled}
+          accounts={accounts}
+          onSaveAccounts={handleSaveAccounts}
           advisorNotes={advisorNotes}
           advisorIpsNotes={advisorIpsNotes}
           onSaveNotes={handleSaveNotes}
@@ -1070,6 +1250,9 @@ export default function ReportDetailPage() {
           recommendedCategory={recommendedCategory}
           recommendationReason={recommendationReason}
           onSaveRecommendation={handleSaveRecommendation}
+          accountsEnabled={accountsEnabled}
+          accounts={accounts}
+          onSaveAccounts={handleSaveAccounts}
           advisorNotes={advisorNotes}
           advisorIpsNotes={advisorIpsNotes}
           onSaveNotes={handleSaveNotes}

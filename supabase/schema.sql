@@ -215,6 +215,14 @@ CREATE POLICY "Advisors manage household IPS"
 ALTER TABLE clients    ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 
+-- ── ACCOUNT LIST ("List out accounts and individual strategy") ─
+-- Per-firm toggle (off by default) plus JSONB account rows on the
+-- household report: { id, label, last_four, tax_treatment, strategy }.
+ALTER TABLE advisors
+  ADD COLUMN IF NOT EXISTS list_accounts BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE households
+  ADD COLUMN IF NOT EXISTS accounts JSONB NOT NULL DEFAULT '[]'::jsonb;
+
 -- ── RECOMMENDED RISK CATEGORY (Phase 2) ───────────────────────
 -- Lets an advisor record a recommended risk category that differs from the
 -- survey result, with a documented reason. NULL means "matches the survey".
