@@ -555,7 +555,7 @@ function AccountsCard({ accounts, onSave }: {
         <h2 className="font-semibold text-forest-900 mb-4">Edit accounts &amp; strategy</h2>
         <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-semibold text-forest-500 uppercase tracking-wider mb-2 pr-9">
           <div className="col-span-3">Account</div>
-          <div className="col-span-2">Account # (last 4 digits)</div>
+          <div className="col-span-2">Account # (last 4)</div>
           <div className="col-span-2">Tax treatment</div>
           <div className="col-span-2">Strategy</div>
           <div className="col-span-3">Investment Purpose</div>
@@ -658,7 +658,7 @@ function AccountsCard({ accounts, onSave }: {
       </div>
       <div className="grid grid-cols-12 gap-3 text-xs print:text-[10px] font-semibold text-forest-500 uppercase tracking-wider px-3 mb-1.5">
         <div className="col-span-3">Account</div>
-        <div className="col-span-2">Account # (last 4 digits)</div>
+        <div className="col-span-2">Account # (last 4)</div>
         <div className="col-span-2">Tax treatment</div>
         <div className="col-span-2">Strategy</div>
         <div className="col-span-3">Investment Purpose</div>
