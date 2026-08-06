@@ -248,6 +248,21 @@ export const CATEGORY_SCORE_RANGES: Record<RiskCategory, string> = {
   'Aggressive Growth':  '80 – 100',
 }
 
+/** One-line versions of the category descriptions for space-constrained
+ *  print layouts (the full text still appears in the Portfolio Legend). */
+export const CATEGORY_DESCRIPTIONS_SHORT: Record<RiskCategory, string> = {
+  'Income':
+    'Current income first — mostly short- and intermediate-term fixed income (bonds), with some equities as inflation protection.',
+  'Conservative Growth':
+    'A balanced mix of current income and capital appreciation — assets balanced between equities (stocks) and bonds.',
+  'Moderate Growth':
+    'Capital appreciation with income secondary — a mix of equities (stocks) and bonds, weighted toward equities.',
+  'Growth':
+    'Long-term capital appreciation — invested primarily (in some cases entirely) in equities (stocks).',
+  'Aggressive Growth':
+    'Maximum long-term capital appreciation — invested entirely (or almost entirely) in equities (stocks).',
+}
+
 export const CATEGORY_DESCRIPTIONS: Record<RiskCategory, string> = {
   'Income':
     'This portfolio is appropriate for investors whose primary objective is current income. The majority of assets in this portfolio are allocated to short-term and intermediate-term investments such as fixed-income securities (bonds). A portion of this portfolio may also be invested in equities (stocks), which are subject to price fluctuations, as protection against the erosion to purchasing power caused by inflation.',

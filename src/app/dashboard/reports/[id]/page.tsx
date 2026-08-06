@@ -10,6 +10,7 @@ import {
   parseDob,
   CATEGORY_COLORS,
   CATEGORY_DESCRIPTIONS,
+  CATEGORY_DESCRIPTIONS_SHORT,
   CATEGORY_SCORE_RANGES,
   QUESTIONS,
   getOverallCategory,
@@ -499,7 +500,8 @@ function RecommendedCategoryCard({
     <div className="rounded-2xl p-6 print:p-4 text-white relative" style={{ backgroundColor: color }}>
       <div className="text-sm print:text-xs font-semibold opacity-80 mb-1 print:mb-0.5">Recommended Risk Category</div>
       <div className="text-3xl print:text-xl font-bold mb-2 print:mb-1">{recommendedCategory}</div>
-      <p className="text-sm print:text-xs opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[recommendedCategory as RiskCategory]}</p>
+      <p className="print:hidden text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[recommendedCategory as RiskCategory]}</p>
+      <p className="hidden print:block text-xs opacity-85 leading-snug max-w-2xl">{CATEGORY_DESCRIPTIONS_SHORT[recommendedCategory as RiskCategory]}</p>
       <div className="mt-3 pt-3 print:mt-2 print:pt-2 border-t border-white/25">
         <div className="text-xs print:text-[10px] font-semibold opacity-80 uppercase tracking-wider mb-1 print:mb-0.5">Reason</div>
         <p className="text-sm print:text-xs opacity-95 leading-relaxed whitespace-pre-wrap">
@@ -752,7 +754,8 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
         <div className="rounded-2xl p-6 print:p-4 text-white" style={{ backgroundColor: color }}>
           <div className="text-sm print:text-xs font-semibold opacity-80 mb-1 print:mb-0.5">Survey Risk Category</div>
           <div className="text-3xl print:text-xl font-bold mb-2 print:mb-1">{category}</div>
-          <p className="text-sm print:text-xs opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="print:hidden text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="hidden print:block text-xs opacity-85 leading-snug max-w-2xl">{CATEGORY_DESCRIPTIONS_SHORT[category]}</p>
           <p className="text-xs print:text-[10px] opacity-70 mt-2 print:mt-1">{calcAge(member.client.date_of_birth)}</p>
         </div>
 
@@ -848,7 +851,8 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
         <div className="rounded-2xl p-6 print:p-4 text-white" style={{ backgroundColor: color }}>
           <div className="text-sm print:text-xs font-semibold opacity-80 mb-1 print:mb-0.5">Household Survey Risk Category</div>
           <div className="text-3xl print:text-xl font-bold mb-2 print:mb-1">{category}</div>
-          <p className="text-sm print:text-xs opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="print:hidden text-sm opacity-85 leading-relaxed max-w-2xl">{CATEGORY_DESCRIPTIONS[category]}</p>
+          <p className="hidden print:block text-xs opacity-85 leading-snug max-w-2xl">{CATEGORY_DESCRIPTIONS_SHORT[category]}</p>
           <p className="text-xs print:text-[10px] opacity-70 mt-2 print:mt-1">Determined by averaging both members&apos; Risk Capacity scores. Risk Preference is shown for reference only.</p>
         </div>
 

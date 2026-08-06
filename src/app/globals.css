@@ -68,10 +68,12 @@ html {
     break-before: auto;
   }
 
+  /* 10pt root: Tailwind text and spacing utilities are rem-based, so this
+     scales the entire printed document (text, padding, gaps) down ~9%. */
   html, body {
     background: white !important;
     color: #1b4332 !important;
-    font-size: 11pt !important;
+    font-size: 10pt !important;
     height: auto !important;
     min-height: 0 !important;
   }
