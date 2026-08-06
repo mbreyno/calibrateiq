@@ -31,7 +31,8 @@ export interface ClientAccount {
   label: string        // e.g. "Bob's Roth IRA"
   last_four: string    // last 4 digits of the account number
   tax_treatment: TaxTreatment
-  strategy: string     // advisor free text
+  strategy: string     // one of the risk categories (e.g. "Growth"), '' if unset
+  purpose: string      // "Investment Purpose" — advisor free text, e.g. "Retirement"
 }
 
 export interface Client {

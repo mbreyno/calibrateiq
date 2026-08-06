@@ -519,7 +519,7 @@ function RecommendedCategoryCard({
 const TAX_TREATMENTS: TaxTreatment[] = ['Taxable', 'Tax-deferred', 'Tax-free']
 
 function newAccountRow(): ClientAccount {
-  return { id: crypto.randomUUID(), label: '', last_four: '', tax_treatment: 'Taxable', strategy: '' }
+  return { id: crypto.randomUUID(), label: '', last_four: '', tax_treatment: 'Taxable', strategy: '', purpose: '' }
 }
 
 function AccountsCard({ accounts, onSave }: {
@@ -542,8 +542,8 @@ function AccountsCard({ accounts, onSave }: {
   const handleSave = async () => {
     setSaving(true)
     const cleaned = draft
-      .map(r => ({ ...r, label: r.label.trim(), last_four: r.last_four.trim(), strategy: r.strategy.trim() }))
-      .filter(r => r.label || r.last_four || r.strategy)
+      .map(r => ({ ...r, label: r.label.trim(), last_four: r.last_four.trim(), purpose: r.purpose.trim() }))
+      .filter(r => r.label || r.last_four || r.strategy || r.purpose)
     await onSave(cleaned)
     setSaving(false)
     setEditing(false)
@@ -554,10 +554,11 @@ function AccountsCard({ accounts, onSave }: {
       <div className="bg-white rounded-2xl border-2 border-forest-300 shadow-card p-6 print:hidden">
         <h2 className="font-semibold text-forest-900 mb-4">Edit accounts &amp; strategy</h2>
         <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-semibold text-forest-500 uppercase tracking-wider mb-2 pr-9">
-          <div className="col-span-4">Account</div>
+          <div className="col-span-3">Account</div>
           <div className="col-span-2">Account # (last 4 digits)</div>
-          <div className="col-span-3">Tax treatment</div>
-          <div className="col-span-3">Strategy</div>
+          <div className="col-span-2">Tax treatment</div>
+          <div className="col-span-2">Strategy</div>
+          <div className="col-span-3">Investment Purpose</div>
         </div>
         <div className="space-y-2.5">
           {draft.map(row => (
@@ -568,7 +569,7 @@ function AccountsCard({ accounts, onSave }: {
                   value={row.label}
                   onChange={e => updateRow(row.id, { label: e.target.value })}
                   placeholder={'e.g. Bob’s Roth IRA'}
-                  className="sm:col-span-4 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                  className="sm:col-span-3 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
                 />
                 <input
                   type="text"
@@ -581,14 +582,22 @@ function AccountsCard({ accounts, onSave }: {
                 <select
                   value={row.tax_treatment}
                   onChange={e => updateRow(row.id, { tax_treatment: e.target.value as TaxTreatment })}
-                  className="sm:col-span-3 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                  className="sm:col-span-2 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
                 >
                   {TAX_TREATMENTS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
-                <input
-                  type="text"
+                <select
                   value={row.strategy}
                   onChange={e => updateRow(row.id, { strategy: e.target.value })}
+                  className="sm:col-span-2 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                >
+                  <option value="">Select…</option>
+                  {RISK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <input
+                  type="text"
+                  value={row.purpose}
+                  onChange={e => updateRow(row.id, { purpose: e.target.value })}
                   placeholder="e.g. Retirement"
                   className="sm:col-span-3 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
                 />
@@ -648,24 +657,36 @@ function AccountsCard({ accounts, onSave }: {
         </button>
       </div>
       <div className="grid grid-cols-12 gap-3 text-xs print:text-[10px] font-semibold text-forest-500 uppercase tracking-wider px-3 mb-1.5">
-        <div className="col-span-4">Account</div>
+        <div className="col-span-3">Account</div>
         <div className="col-span-2">Account # (last 4 digits)</div>
-        <div className="col-span-3">Tax treatment</div>
-        <div className="col-span-3">Strategy</div>
+        <div className="col-span-2">Tax treatment</div>
+        <div className="col-span-2">Strategy</div>
+        <div className="col-span-3">Investment Purpose</div>
       </div>
       <div className="space-y-2 print:space-y-1.5">
-        {accounts.map(a => (
-          <div key={a.id} className="grid grid-cols-12 gap-3 items-center rounded-xl border border-cream-200 bg-cream-50 px-3 py-2.5 print:py-1.5">
-            <div className="col-span-4 text-sm print:text-xs font-medium text-forest-900">{a.label || '—'}</div>
-            <div className="col-span-2 text-sm print:text-xs text-forest-700 tabular-nums">{a.last_four ? `····${a.last_four}` : '—'}</div>
-            <div className="col-span-3">
-              <span className="inline-block text-xs print:text-[10px] font-semibold text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full">
-                {a.tax_treatment}
-              </span>
+        {accounts.map(a => {
+          const strategyColor = RISK_CATEGORIES.includes(a.strategy as RiskCategory)
+            ? CATEGORY_COLORS[a.strategy as RiskCategory]
+            : null
+          return (
+            <div key={a.id} className="grid grid-cols-12 gap-3 items-center rounded-xl border border-cream-200 bg-cream-50 px-3 py-2.5 print:py-1.5">
+              <div className="col-span-3 text-sm print:text-xs font-medium text-forest-900">{a.label || '—'}</div>
+              <div className="col-span-2 text-sm print:text-xs text-forest-700 tabular-nums">{a.last_four ? `····${a.last_four}` : '—'}</div>
+              <div className="col-span-2">
+                <span className="inline-block text-xs print:text-[10px] font-semibold text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full">
+                  {a.tax_treatment}
+                </span>
+              </div>
+              <div className="col-span-2 text-sm print:text-xs font-medium text-forest-900 leading-snug">
+                {strategyColor && (
+                  <span className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle" style={{ backgroundColor: strategyColor }} />
+                )}
+                {a.strategy || '—'}
+              </div>
+              <div className="col-span-3 text-sm print:text-xs text-forest-700 leading-snug">{a.purpose || '—'}</div>
             </div>
-            <div className="col-span-3 text-sm print:text-xs text-forest-700 leading-snug">{a.strategy || '—'}</div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
