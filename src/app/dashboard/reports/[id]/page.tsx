@@ -359,9 +359,9 @@ function PreferenceBadges({ selectedIds, allPreferences }: { selectedIds?: strin
     return <p className="text-sm text-forest-400 italic">No investment preferences indicated.</p>
   }
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-2 print:gap-1.5 flex-wrap">
       {selected.map(p => (
-        <span key={p.id} className="bg-forest-100 text-forest-800 text-sm font-medium px-3 py-1.5 rounded-full">
+        <span key={p.id} className="bg-forest-100 text-forest-800 text-sm print:text-xs font-medium px-3 py-1.5 print:px-2 print:py-0.5 rounded-full">
           {p.icon} {p.label}
         </span>
       ))}
@@ -650,38 +650,38 @@ function AccountsCard({ accounts, onSave }: {
   }
 
   return (
-    <div className="accounts-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-4">
-      <div className="flex items-center justify-between mb-4 print:mb-3">
-        <h2 className="font-semibold text-forest-900">Accounts &amp; Strategy</h2>
+    <div className="accounts-card bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-3">
+      <div className="flex items-center justify-between mb-4 print:mb-1.5">
+        <h2 className="font-semibold text-forest-900 print:text-sm">Accounts &amp; Strategy</h2>
         <button onClick={startEdit}
           className="no-print text-xs font-semibold text-forest-600 hover:text-forest-900 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
           Edit
         </button>
       </div>
-      <div className="grid grid-cols-12 gap-3 text-xs print:text-[10px] font-semibold text-forest-500 uppercase tracking-wider px-3 mb-1.5">
+      <div className="grid grid-cols-12 gap-3 print:gap-2 text-xs print:text-[9px] font-semibold text-forest-500 uppercase tracking-wider px-3 print:px-2 mb-1.5 print:mb-1">
         <div className="col-span-3">Account</div>
         <div className="col-span-2">Account # (last 4)</div>
         <div className="col-span-2">Tax treatment</div>
         <div className="col-span-2">Strategy</div>
         <div className="col-span-3">Investment Purpose</div>
       </div>
-      <div className="space-y-2 print:space-y-1.5">
+      <div className="space-y-2 print:space-y-1">
         {accounts.map(a => {
           const strategyColor = RISK_CATEGORIES.includes(a.strategy as RiskCategory)
             ? CATEGORY_COLORS[a.strategy as RiskCategory]
             : null
           return (
-            <div key={a.id} className="grid grid-cols-12 gap-3 items-center rounded-xl border border-cream-200 bg-cream-50 px-3 py-2.5 print:py-1.5">
+            <div key={a.id} className="grid grid-cols-12 gap-3 print:gap-2 items-center rounded-xl border border-cream-200 bg-cream-50 px-3 py-2.5 print:px-2 print:py-1">
               <div className="col-span-3 text-sm print:text-xs font-medium text-forest-900">{a.label || '—'}</div>
               <div className="col-span-2 text-sm print:text-xs text-forest-700 tabular-nums">{a.last_four ? `····${a.last_four}` : '—'}</div>
               <div className="col-span-2">
-                <span className="inline-block text-xs print:text-[10px] font-semibold text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full">
+                <span className="inline-block text-xs print:text-[10px] font-semibold text-forest-700 bg-forest-100 px-2 py-0.5 print:px-1.5 print:py-0 rounded-full">
                   {a.tax_treatment}
                 </span>
               </div>
               <div className="col-span-2 text-sm print:text-xs font-medium text-forest-900 leading-snug">
                 {strategyColor && (
-                  <span className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle" style={{ backgroundColor: strategyColor }} />
+                  <span className="inline-block w-2 h-2 print:w-1.5 print:h-1.5 rounded-full mr-1.5 print:mr-1 align-middle" style={{ backgroundColor: strategyColor }} />
                 )}
                 {a.strategy || '—'}
               </div>
@@ -772,8 +772,8 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
         </div>
 
         {preferences.length > 0 && (
-          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-3">
+            <h2 className="font-semibold text-forest-900 mb-3 print:mb-1.5 print:text-sm">Investment Preferences</h2>
             <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
           </div>
         )}
@@ -893,16 +893,16 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
         </div>
 
         {preferences.length > 0 && (
-          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6 print:p-3">
+            <h2 className="font-semibold text-forest-900 mb-4 print:mb-1.5 print:text-sm">Investment Preferences</h2>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 print:gap-2">
               {members.map(({ client, profile }) => (
-                <div key={client.id} className="bg-cream-50 rounded-xl border border-cream-200 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
+                <div key={client.id} className="bg-cream-50 rounded-xl border border-cream-200 p-4 print:p-2">
+                  <div className="flex items-center gap-2 mb-3 print:mb-1.5">
+                    <div className="print:hidden w-7 h-7 rounded-full bg-forest-200 flex items-center justify-center text-xs font-bold text-forest-800 flex-shrink-0">
                       {client.first_name[0]}{client.last_name[0]}
                     </div>
-                    <span className="font-semibold text-forest-900 text-sm">{client.first_name} {client.last_name}</span>
+                    <span className="font-semibold text-forest-900 text-sm print:text-xs">{client.first_name} {client.last_name}</span>
                   </div>
                   <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
                 </div>
