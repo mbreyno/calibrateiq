@@ -555,7 +555,7 @@ function AccountsCard({ accounts, onSave }: {
         <h2 className="font-semibold text-forest-900 mb-4">Edit accounts &amp; strategy</h2>
         <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-semibold text-forest-500 uppercase tracking-wider mb-2 pr-9">
           <div className="col-span-4">Account</div>
-          <div className="col-span-2">Last 4</div>
+          <div className="col-span-2">Account # (last 4 digits)</div>
           <div className="col-span-3">Tax treatment</div>
           <div className="col-span-3">Strategy</div>
         </div>
@@ -589,7 +589,7 @@ function AccountsCard({ accounts, onSave }: {
                   type="text"
                   value={row.strategy}
                   onChange={e => updateRow(row.id, { strategy: e.target.value })}
-                  placeholder="e.g. Growth equities"
+                  placeholder="e.g. Retirement"
                   className="sm:col-span-3 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
                 />
               </div>
@@ -649,7 +649,7 @@ function AccountsCard({ accounts, onSave }: {
       </div>
       <div className="grid grid-cols-12 gap-3 text-xs print:text-[10px] font-semibold text-forest-500 uppercase tracking-wider px-3 mb-1.5">
         <div className="col-span-4">Account</div>
-        <div className="col-span-2">Last 4</div>
+        <div className="col-span-2">Account # (last 4 digits)</div>
         <div className="col-span-3">Tax treatment</div>
         <div className="col-span-3">Strategy</div>
       </div>
