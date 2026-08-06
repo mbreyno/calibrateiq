@@ -768,18 +768,19 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
           <ScoreGauge score={profile.risk_tolerance_score} max={100} label="Risk Preference" color="#74c69d" />
         </div>
 
-        <AccountsCard accounts={accounts} onSave={onSaveAccounts} />
-      </div>
-
-      {/* ── Section 2: investment preferences + portfolio legend ── */}
-      <div className="print-section space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         {preferences.length > 0 && (
           <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
             <h2 className="font-semibold text-forest-900 mb-3">Investment Preferences</h2>
             <PreferenceBadges selectedIds={profile.selected_preferences} allPreferences={preferences} />
           </div>
         )}
+
+        <AccountsCard accounts={accounts} onSave={onSaveAccounts} />
+      </div>
+
+      {/* ── Section 2: portfolio legend ── */}
+      <div className="print-section space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={[member]} category={category} />
       </div>
 
@@ -887,12 +888,6 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
           })}
         </div>
 
-        <AccountsCard accounts={accounts} onSave={onSaveAccounts} />
-      </div>
-
-      {/* ── Section 2: investment preferences + portfolio legend ── */}
-      <div className="print-section space-y-5">
-        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         {preferences.length > 0 && (
           <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
             <h2 className="font-semibold text-forest-900 mb-4">Investment Preferences</h2>
@@ -911,6 +906,13 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
             </div>
           </div>
         )}
+
+        <AccountsCard accounts={accounts} onSave={onSaveAccounts} />
+      </div>
+
+      {/* ── Section 2: portfolio legend ── */}
+      <div className="print-section space-y-5">
+        <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
         <PortfolioLegend members={members} category={category} />
       </div>
 
