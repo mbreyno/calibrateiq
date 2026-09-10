@@ -1,7 +1,7 @@
 -- "List out accounts and individual strategy" feature.
 --
 -- households.accounts: JSONB array of account rows, each
--- { id, label, last_four, tax_treatment, strategy, purpose }.
+-- { id, label, last_four, tax_treatment, strategy, purpose, managed, considerations }.
 -- strategy holds one of the five risk categories ('' if unset);
 -- purpose ("Investment Purpose") is advisor free text.
 --

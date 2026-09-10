@@ -217,7 +217,7 @@ ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 
 -- ── ACCOUNT LIST ("List out accounts and individual strategy") ─
 -- JSONB account rows on the household report, one object per account:
--- { id, label, last_four, tax_treatment, strategy, purpose }.
+-- { id, label, last_four, tax_treatment, strategy, purpose, managed, considerations }.
 -- Available on every report; prints only when accounts exist.
 ALTER TABLE households
   ADD COLUMN IF NOT EXISTS accounts JSONB NOT NULL DEFAULT '[]'::jsonb;

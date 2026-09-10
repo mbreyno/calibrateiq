@@ -503,7 +503,7 @@ function RecommendedCategoryCard({
 const TAX_TREATMENTS: TaxTreatment[] = ['Taxable', 'Tax-deferred', 'Tax-free']
 
 function newAccountRow(): ClientAccount {
-  return { id: crypto.randomUUID(), label: '', last_four: '', tax_treatment: 'Taxable', strategy: '', purpose: '' }
+  return { id: crypto.randomUUID(), label: '', last_four: '', tax_treatment: 'Taxable', strategy: '', purpose: '', managed: true, considerations: '' }
 }
 
 function AccountsCard({ accounts, onSave }: {
@@ -526,8 +526,15 @@ function AccountsCard({ accounts, onSave }: {
   const handleSave = async () => {
     setSaving(true)
     const cleaned = draft
-      .map(r => ({ ...r, label: r.label.trim(), last_four: r.last_four.trim(), purpose: r.purpose.trim() }))
-      .filter(r => r.label || r.last_four || r.strategy || r.purpose)
+      .map(r => ({
+        ...r,
+        label: r.label.trim(),
+        last_four: r.last_four.trim(),
+        purpose: r.purpose.trim(),
+        managed: r.managed !== false,
+        considerations: (r.considerations ?? '').trim(),
+      }))
+      .filter(r => r.label || r.last_four || r.strategy || r.purpose || r.considerations)
     await onSave(cleaned)
     setSaving(false)
     setEditing(false)
@@ -544,10 +551,11 @@ function AccountsCard({ accounts, onSave }: {
           <div className="col-span-2">Strategy</div>
           <div className="col-span-3">Investment Purpose</div>
         </div>
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {draft.map(row => (
-            <div key={row.id} className="flex items-center gap-2">
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 flex-1">
+            <div key={row.id} className="flex items-start gap-2 pb-3 border-b border-cream-200 last:border-0 last:pb-0">
+              <div className="flex-1 space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                 <input
                   type="text"
                   value={row.label}
@@ -586,10 +594,29 @@ function AccountsCard({ accounts, onSave }: {
                   className="sm:col-span-3 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
                 />
               </div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 text-sm text-forest-800 select-none cursor-pointer flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={row.managed !== false}
+                    onChange={e => updateRow(row.id, { managed: e.target.checked })}
+                    className="w-4 h-4 accent-forest-700"
+                  />
+                  Managed by us
+                </label>
+                <input
+                  type="text"
+                  value={row.considerations ?? ''}
+                  onChange={e => updateRow(row.id, { considerations: e.target.value })}
+                  placeholder="Additional considerations — e.g. Our ESG portfolio"
+                  className="flex-1 px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                />
+              </div>
+              </div>
               <button
                 onClick={() => setDraft(prev => prev.filter(r => r.id !== row.id))}
                 title="Remove account"
-                className="flex-shrink-0 w-7 h-7 rounded-lg border border-cream-300 text-forest-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50 transition-colors leading-none"
+                className="flex-shrink-0 w-7 h-7 mt-1 rounded-lg border border-cream-300 text-forest-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50 transition-colors leading-none"
               >
                 ×
               </button>
@@ -645,7 +672,8 @@ function AccountsCard({ accounts, onSave }: {
         <div className="col-span-2">Account # (last 4)</div>
         <div className="col-span-2">Tax treatment</div>
         <div className="col-span-2">Strategy</div>
-        <div className="col-span-3">Investment Purpose</div>
+        <div className="col-span-2">Investment Purpose</div>
+        <div className="col-span-1">Managed</div>
       </div>
       <div className="space-y-2 print:space-y-1">
         {accounts.map(a => {
@@ -653,21 +681,38 @@ function AccountsCard({ accounts, onSave }: {
             ? CATEGORY_COLORS[a.strategy as RiskCategory]
             : null
           return (
-            <div key={a.id} className="grid grid-cols-12 gap-3 print:gap-2 items-center rounded-xl border border-cream-200 bg-cream-50 px-3 py-2.5 print:px-2 print:py-1">
-              <div className="col-span-3 text-sm print:text-xs font-medium text-forest-900">{a.label || '—'}</div>
-              <div className="col-span-2 text-sm print:text-xs text-forest-700 tabular-nums">{a.last_four ? `····${a.last_four}` : '—'}</div>
-              <div className="col-span-2">
-                <span className="inline-block text-xs print:text-[10px] font-semibold text-forest-700 bg-forest-100 px-2 py-0.5 print:px-1.5 print:py-0 rounded-full">
-                  {a.tax_treatment}
-                </span>
+            <div key={a.id} className="rounded-xl border border-cream-200 bg-cream-50 px-3 py-2.5 print:px-2 print:py-1">
+              <div className="grid grid-cols-12 gap-3 print:gap-2 items-center">
+                <div className="col-span-3 text-sm print:text-xs font-medium text-forest-900">{a.label || '—'}</div>
+                <div className="col-span-2 text-sm print:text-xs text-forest-700 tabular-nums">{a.last_four ? `····${a.last_four}` : '—'}</div>
+                <div className="col-span-2">
+                  <span className="inline-block text-xs print:text-[10px] font-semibold text-forest-700 bg-forest-100 px-2 py-0.5 print:px-1.5 print:py-0 rounded-full">
+                    {a.tax_treatment}
+                  </span>
+                </div>
+                <div className="col-span-2 text-sm print:text-xs font-medium text-forest-900 leading-snug">
+                  {strategyColor && (
+                    <span className="inline-block w-2 h-2 print:w-1.5 print:h-1.5 rounded-full mr-1.5 print:mr-1 align-middle" style={{ backgroundColor: strategyColor }} />
+                  )}
+                  {a.strategy || '—'}
+                </div>
+                <div className="col-span-2 text-sm print:text-xs text-forest-700 leading-snug">{a.purpose || '—'}</div>
+                <div className="col-span-1 text-sm print:text-xs font-medium">
+                  {a.managed === true ? (
+                    <span className="text-forest-900">Yes</span>
+                  ) : a.managed === false ? (
+                    <span className="text-forest-500">No</span>
+                  ) : (
+                    <span className="text-forest-400">—</span>
+                  )}
+                </div>
               </div>
-              <div className="col-span-2 text-sm print:text-xs font-medium text-forest-900 leading-snug">
-                {strategyColor && (
-                  <span className="inline-block w-2 h-2 print:w-1.5 print:h-1.5 rounded-full mr-1.5 print:mr-1 align-middle" style={{ backgroundColor: strategyColor }} />
-                )}
-                {a.strategy || '—'}
-              </div>
-              <div className="col-span-3 text-sm print:text-xs text-forest-700 leading-snug">{a.purpose || '—'}</div>
+              {a.considerations && (
+                <div className="mt-1.5 pt-1.5 print:mt-1 print:pt-1 border-t border-cream-200 text-xs print:text-[10px]">
+                  <span className="font-semibold text-forest-500 uppercase tracking-wider mr-1.5">Additional considerations</span>
+                  <span className="text-forest-700">{a.considerations}</span>
+                </div>
+              )}
             </div>
           )
         })}

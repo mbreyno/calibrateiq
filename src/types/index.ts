@@ -31,6 +31,8 @@ export interface ClientAccount {
   tax_treatment: TaxTreatment
   strategy: string     // one of the risk categories (e.g. "Growth"), '' if unset
   purpose: string      // "Investment Purpose" — advisor free text, e.g. "Retirement"
+  managed?: boolean    // managed by the firm; undefined on rows saved before this field existed
+  considerations?: string // "Additional considerations" — free text, e.g. "Our ESG portfolio"
 }
 
 export interface Client {
