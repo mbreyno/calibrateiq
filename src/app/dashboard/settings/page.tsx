@@ -1122,6 +1122,30 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* ── Survey Questions ────────────────────────────────────────────────── */}
+      {!isSubUser && (
+        <div className="mt-6">
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+            <h2 className="font-semibold text-forest-900 mb-1">Survey Questions</h2>
+            <p className="text-xs text-forest-500 mb-5">Optional questions you can add to the client questionnaire.</p>
+            <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+              <div>
+                <div className="text-sm font-medium text-forest-900">Investment experience questions</div>
+                <div className="text-xs text-forest-500 mt-0.5">
+                  Asks clients how they would describe their investing experience and how often they
+                  check their investments. Documentation only: answers appear on the report under
+                  Other Information and never affect risk scoring.
+                </div>
+              </div>
+              <div className="relative flex-shrink-0" onClick={() => handleAskExperienceToggle(!askExperience)}>
+                <div className={`w-10 h-6 rounded-full transition-colors ${askExperience ? 'bg-forest-700' : 'bg-cream-300'}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${askExperience ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+            </label>
+          </div>
+        </div>
+      )}
+
       {/* ── Subscription ────────────────────────────────────────────────── */}
       {!isSubUser && (
         <div className="mt-6">
@@ -1335,30 +1359,6 @@ export default function SettingsPage() {
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Survey Questions ────────────────────────────────────────────────── */}
-      {!isSubUser && (
-        <div className="mt-6">
-          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
-            <h2 className="font-semibold text-forest-900 mb-1">Survey Questions</h2>
-            <p className="text-xs text-forest-500 mb-5">Optional questions you can add to the client questionnaire.</p>
-            <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
-              <div>
-                <div className="text-sm font-medium text-forest-900">Investment experience questions</div>
-                <div className="text-xs text-forest-500 mt-0.5">
-                  Asks clients how they would describe their investing experience and how often they
-                  check their investments. Documentation only: answers appear on the report under
-                  Other Information and never affect risk scoring.
-                </div>
-              </div>
-              <div className="relative flex-shrink-0" onClick={() => handleAskExperienceToggle(!askExperience)}>
-                <div className={`w-10 h-6 rounded-full transition-colors ${askExperience ? 'bg-forest-700' : 'bg-cream-300'}`} />
-                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${askExperience ? 'translate-x-4' : 'translate-x-0'}`} />
-              </div>
-            </label>
           </div>
         </div>
       )}
