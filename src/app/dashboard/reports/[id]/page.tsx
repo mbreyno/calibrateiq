@@ -287,37 +287,19 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
 
 // ─── Portfolio Legend ─────────────────────────────────────────────────────────
 
-function PortfolioLegend({ members, category }: { members: MemberData[]; category: RiskCategory }) {
-  const isCouple = members.length === 2
+function PortfolioLegend() {
   return (
     <div className="portfolio-legend-card bg-white rounded-2xl border border-cream-300 shadow-card p-6">
       <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         {(['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income'] as RiskCategory[]).map(cat => {
-          const isActive = category === cat
           const color = CATEGORY_COLORS[cat]
-          const isMember1 = members[0]?.profile.overall_category === cat
-          const isMember2 = isCouple && members[1]?.profile.overall_category === cat
           return (
-            <div key={cat} className={`rounded-xl p-4 transition-all ${isActive ? 'border-2' : 'border'}`}
-              style={{ borderColor: isActive ? color : '#e8e0cc', backgroundColor: isActive ? `${color}10` : 'transparent' }}>
+            <div key={cat} className="rounded-xl p-4 border" style={{ borderColor: '#e8e0cc' }}>
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                 <span className="text-xs font-bold text-forest-500 tabular-nums">{CATEGORY_SCORE_RANGES[cat]}</span>
                 <span className="text-sm font-bold text-forest-900 uppercase tracking-wide">{cat}</span>
-                <div className="ml-auto flex gap-1.5">
-                  {isActive && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
-                      {isCouple ? 'Household' : 'This client'}
-                    </span>
-                  )}
-                  {isCouple && isMember1 && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-forest-100 text-forest-700">{members[0].client.first_name}</span>
-                  )}
-                  {isCouple && isMember2 && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-forest-100 text-forest-700">{members[1].client.first_name}</span>
-                  )}
-                </div>
               </div>
               <p className="text-xs text-forest-600 leading-relaxed pl-5">{CATEGORY_DESCRIPTIONS[cat]}</p>
             </div>
@@ -784,7 +766,7 @@ function SingleClientReport({ member, category, recommendedCategory, recommendat
       {/* ── Section 2: portfolio legend ── */}
       <div className="print-section space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <PortfolioLegend members={[member]} category={category} />
+        <PortfolioLegend />
       </div>
 
       {/* ── Section 3: survey responses ─────────────────────────── */}
@@ -917,7 +899,7 @@ function CoupleReport({ members, category, recommendedCategory, recommendationRe
       {/* ── Section 2: portfolio legend ── */}
       <div className="print-section space-y-5">
         <PrintHeader advisorLogoUrl={advisorLogoUrl} advisorFirmName={advisorFirmName} reportName={reportName} brandColor={bc} />
-        <PortfolioLegend members={members} category={category} />
+        <PortfolioLegend />
       </div>
 
       {/* ── Section 3: survey responses ─────────────────────────── */}
