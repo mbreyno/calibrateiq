@@ -22,7 +22,7 @@ export async function GET(
 
   const { data: advisor, error } = await admin
     .from('advisors')
-    .select('id, firm_name, logo_url, brand_color, brand_accent, brand_surface, brand_text, ips_notes, signature_block, parent_advisor_id')
+    .select('id, firm_name, logo_url, brand_color, brand_accent, brand_surface, brand_text, ips_notes, signature_block, ask_experience, parent_advisor_id')
     .eq('master_token', token)
     .single()
 
@@ -35,7 +35,7 @@ export async function GET(
   if (advisor.parent_advisor_id) {
     const { data: parent } = await admin
       .from('advisors')
-      .select('firm_name, logo_url, brand_color, brand_accent, brand_surface, brand_text, ips_notes')
+      .select('firm_name, logo_url, brand_color, brand_accent, brand_surface, brand_text, ips_notes, ask_experience')
       .eq('id', advisor.parent_advisor_id)
       .single()
 

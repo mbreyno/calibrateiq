@@ -12,6 +12,8 @@ export async function POST(req: NextRequest) {
       dob,
       answers,
       selected_preferences,
+      experience_level,
+      check_frequency,
       comments,
     } = await req.json()
 
@@ -70,6 +72,8 @@ export async function POST(req: NextRequest) {
         q6: answers?.q6 ?? null,
         q8: answers?.q8 ?? null,
         selected_preferences: selected_preferences ?? [],
+        experience_level: typeof experience_level === 'string' && experience_level ? experience_level : null,
+        check_frequency: typeof check_frequency === 'string' && check_frequency ? check_frequency : null,
         comments: safeComments || '',
       })
 

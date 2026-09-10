@@ -13,6 +13,7 @@ export interface Advisor {
   // Multi-tier plan
   plan?: 'solo' | 'team' | 'plus' | null
   parent_advisor_id?: string | null   // set for sub-users; null for admins
+  ask_experience?: boolean | null     // opt-in investment-experience survey questions
   // Subscription
   stripe_customer_id?: string | null
   stripe_subscription_id?: string | null
@@ -62,6 +63,9 @@ export interface QuestionnaireResponse {
   selected_preferences?: string[] | null  // array of InvestmentPreference IDs
   // Risk Tolerance continued
   q8: number | null  // 3-month performance attitude
+  // Optional investment-experience answers (documentation only, unscored)
+  experience_level?: string | null
+  check_frequency?: string | null
   comments: string
   completed_at: string
 }

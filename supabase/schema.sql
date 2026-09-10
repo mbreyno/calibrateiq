@@ -222,6 +222,14 @@ ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 ALTER TABLE households
   ADD COLUMN IF NOT EXISTS accounts JSONB NOT NULL DEFAULT '[]'::jsonb;
 
+-- ── INVESTMENT EXPERIENCE QUESTIONS (optional, unscored) ──────
+-- Per-firm opt-in; answers store the literal option text selected.
+ALTER TABLE advisors
+  ADD COLUMN IF NOT EXISTS ask_experience BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE questionnaire_responses
+  ADD COLUMN IF NOT EXISTS experience_level TEXT,
+  ADD COLUMN IF NOT EXISTS check_frequency  TEXT;
+
 -- ── RECOMMENDED RISK CATEGORY (Phase 2) ───────────────────────
 -- Lets an advisor record a recommended risk category that differs from the
 -- survey result, with a documented reason. NULL means "matches the survey".

@@ -15,6 +15,7 @@ import {
   QUESTIONS,
   getOverallCategory,
 } from '@/lib/scoring'
+import { EXPERIENCE_QUESTIONS } from '@/lib/experienceQuestions'
 import type { Client, QuestionnaireResponse, RiskProfile, RiskCategory, InvestmentPreference, ClientAccount, TaxTreatment } from '@/types'
 
 // ─── Date helper ──────────────────────────────────────────────────────────────
@@ -162,6 +163,22 @@ function SurveyResponses({ responses, clientDob }: { responses: QuestionnaireRes
               {q.id === 'q1' && formatDob(clientDob) && (
                 <span className="text-forest-400 print:text-forest-500">· {formatDob(clientDob)}</span>
               )}
+            </p>
+          </div>
+        )
+      })}
+      {EXPERIENCE_QUESTIONS.map(q => {
+        const answer = responses[q.field]
+        if (!answer) return null
+        return (
+          <div key={q.field} className="border-b border-cream-100 pb-5 print:pb-2 last:border-0 last:pb-0">
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-2 print:mb-0.5 text-forest-500">
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-forest-400" />
+              Other Information
+            </div>
+            <p className="text-sm print:text-xs font-medium text-forest-900 mb-1.5 print:mb-0.5">{q.question}</p>
+            <p className="text-sm print:text-xs text-forest-700 bg-cream-50 rounded-lg px-3 print:px-2 py-2 print:py-1 border border-cream-200 inline-flex items-center gap-2">
+              {answer}
             </p>
           </div>
         )

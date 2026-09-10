@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { QUESTIONS } from '@/lib/scoring'
+import { EXPERIENCE_QUESTIONS } from '@/lib/experienceQuestions'
 import { applyBrandColors } from '@/lib/colorUtils'
 import type { Advisor, InvestmentPreference } from '@/types'
 
@@ -68,6 +69,7 @@ export default function MasterSurveyPage() {
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([])
+  const [experienceAnswers, setExperienceAnswers] = useState<Record<string, string>>({})
   const [comments, setComments] = useState('')
 
   useEffect(() => {
@@ -96,6 +98,8 @@ export default function MasterSurveyPage() {
   // Then append the dynamic preferences question at the end if any preferences exist
   const radioQuestions = QUESTIONS.filter(q => q.type === 'radio' && q.id !== 'q1')
 
+  const askExperience = advisor?.ask_experience === true
+
   const questionOrder: Array<{ id: string; category: string; type: string; question: string }> = [
     ...radioQuestions,
     ...(preferences.length > 0 ? [{
@@ -104,6 +108,13 @@ export default function MasterSurveyPage() {
       type: 'preferences',
       question: 'Please select if any of the following areas are important to you:',
     }] : []),
+    // Optional documentation-only questions — last, just before the comments step
+    ...(askExperience ? EXPERIENCE_QUESTIONS.map(q => ({
+      id: q.field,
+      category: 'other',
+      type: 'experience',
+      question: q.question,
+    })) : []),
   ]
 
   const currentQuestion = questionOrder[currentQ]
@@ -133,6 +144,7 @@ export default function MasterSurveyPage() {
 
   const canContinue = () => {
     if (currentQuestion.type === 'preferences') return true // optional
+    if (currentQuestion.type === 'experience') return !!experienceAnswers[currentQuestion.id]
     return answers[currentQuestion.id] !== undefined
   }
 
@@ -153,6 +165,8 @@ export default function MasterSurveyPage() {
           dob,
           answers,
           selected_preferences: selectedPreferences,
+          experience_level: askExperience ? experienceAnswers['experience_level'] ?? null : null,
+          check_frequency: askExperience ? experienceAnswers['check_frequency'] ?? null : null,
           comments,
         }),
       })
@@ -227,7 +241,7 @@ export default function MasterSurveyPage() {
   // ── Personal details step ────────────────────────────────────────
   if (step === 'details') {
     const isValid = firstName.trim() && lastName.trim() && email.trim() && dob
-    const totalQs = radioQuestions.length + (preferences.length > 0 ? 1 : 0)
+    const totalQs = radioQuestions.length + (preferences.length > 0 ? 1 : 0) + (askExperience ? EXPERIENCE_QUESTIONS.length : 0)
     return (
       <div className="min-h-screen bg-cream-100 flex flex-col">
         <BrandHeader advisor={advisor} />
@@ -416,6 +430,7 @@ export default function MasterSurveyPage() {
                 }`} />
                 {currentQuestion.category === 'capacity' ? 'Risk Capacity'
                   : currentQuestion.category === 'tolerance' ? 'Risk Preference'
+                  : currentQuestion.category === 'other' ? 'Other Information'
                   : 'Investment Preferences'}
               </div>
 
@@ -444,6 +459,33 @@ export default function MasterSurveyPage() {
                           {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-forest-900" />}
                         </div>
                         <span className="text-sm font-medium leading-snug">{opt.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Experience question (documentation only, single-select) */}
+              {currentQuestion.type === 'experience' && (
+                <div className="space-y-2.5">
+                  {(EXPERIENCE_QUESTIONS.find(q => q.field === currentQuestion.id)?.options ?? []).map(opt => {
+                    const isSelected = experienceAnswers[currentQuestion.id] === opt
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => setExperienceAnswers(prev => ({ ...prev, [currentQuestion.id]: opt }))}
+                        className={`w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all ${
+                          isSelected
+                            ? 'bg-forest-900 border-forest-900 text-cream-100 shadow-sm'
+                            : 'bg-cream-50 border-cream-300 text-forest-900 hover:border-forest-500 hover:bg-cream-100'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                          isSelected ? 'border-cream-300 bg-cream-300' : 'border-forest-400'
+                        }`}>
+                          {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-forest-900" />}
+                        </div>
+                        <span className="text-sm font-medium leading-snug">{opt}</span>
                       </button>
                     )
                   })}

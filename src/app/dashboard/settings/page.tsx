@@ -268,6 +268,7 @@ export default function SettingsPage() {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isSubUser, setIsSubUser] = useState(false)
   const [notifyOnCompletion, setNotifyOnCompletion] = useState(true)
+  const [askExperience, setAskExperience] = useState(false)
 
   // Subscription
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
@@ -323,6 +324,7 @@ export default function SettingsPage() {
         setBrandText(advisor.brand_text ?? advisor.brand_color ?? '#1b4332')
         setMasterToken(advisor.master_token ?? null)
         setNotifyOnCompletion(advisor.notify_on_completion !== false)
+        setAskExperience(advisor.ask_experience === true)
         setSubscriptionStatus(advisor.subscription_status ?? 'trialing')
         setTrialEndsAt(advisor.trial_ends_at ?? null)
         setAdvisorPlan(advisor.plan ?? 'solo')
@@ -433,6 +435,12 @@ export default function SettingsPage() {
     setSignatureBlock(checked)
     if (!advisorId) return
     await supabase.from('advisors').update({ signature_block: checked }).eq('id', advisorId)
+  }
+
+  const handleAskExperienceToggle = async (checked: boolean) => {
+    setAskExperience(checked)
+    if (!advisorId) return
+    await supabase.from('advisors').update({ ask_experience: checked } as never).eq('id', advisorId)
   }
 
   const handleNotifyToggle = async (checked: boolean) => {
@@ -1327,6 +1335,30 @@ export default function SettingsPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Survey Questions ────────────────────────────────────────────────── */}
+      {!isSubUser && (
+        <div className="mt-6">
+          <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
+            <h2 className="font-semibold text-forest-900 mb-1">Survey Questions</h2>
+            <p className="text-xs text-forest-500 mb-5">Optional questions you can add to the client questionnaire.</p>
+            <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+              <div>
+                <div className="text-sm font-medium text-forest-900">Investment experience questions</div>
+                <div className="text-xs text-forest-500 mt-0.5">
+                  Asks clients how they would describe their investing experience and how often they
+                  check their investments. Documentation only: answers appear on the report under
+                  Other Information and never affect risk scoring.
+                </div>
+              </div>
+              <div className="relative flex-shrink-0" onClick={() => handleAskExperienceToggle(!askExperience)}>
+                <div className={`w-10 h-6 rounded-full transition-colors ${askExperience ? 'bg-forest-700' : 'bg-cream-300'}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${askExperience ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+            </label>
           </div>
         </div>
       )}
