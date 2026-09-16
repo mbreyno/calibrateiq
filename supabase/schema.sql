@@ -222,13 +222,15 @@ ALTER TABLE households ADD COLUMN IF NOT EXISTS advisor_notes TEXT;
 ALTER TABLE households
   ADD COLUMN IF NOT EXISTS accounts JSONB NOT NULL DEFAULT '[]'::jsonb;
 
--- ── INVESTMENT EXPERIENCE QUESTIONS (optional, unscored) ──────
--- Per-firm opt-in; answers store the literal option text selected.
+-- ── CUSTOM SURVEY QUESTIONS (documentation only, unscored) ────
+-- advisors.custom_questions: up to 3 firm-defined questions,
+--   [{ id, question, options: [] }] — empty options = free-text answer.
+-- questionnaire_responses.custom_answers: [{ question, answer }] with the
+--   literal text captured at submission time.
 ALTER TABLE advisors
-  ADD COLUMN IF NOT EXISTS ask_experience BOOLEAN NOT NULL DEFAULT false;
+  ADD COLUMN IF NOT EXISTS custom_questions JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE questionnaire_responses
-  ADD COLUMN IF NOT EXISTS experience_level TEXT,
-  ADD COLUMN IF NOT EXISTS check_frequency  TEXT;
+  ADD COLUMN IF NOT EXISTS custom_answers JSONB NOT NULL DEFAULT '[]'::jsonb;
 
 -- ── RECOMMENDED RISK CATEGORY (Phase 2) ───────────────────────
 -- Lets an advisor record a recommended risk category that differs from the

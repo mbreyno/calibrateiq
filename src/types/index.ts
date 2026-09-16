@@ -13,13 +13,28 @@ export interface Advisor {
   // Multi-tier plan
   plan?: 'solo' | 'team' | 'plus' | null
   parent_advisor_id?: string | null   // set for sub-users; null for admins
-  ask_experience?: boolean | null     // opt-in investment-experience survey questions
+  custom_questions?: CustomQuestion[] | null  // up to 3 documentation-only survey questions
   // Subscription
   stripe_customer_id?: string | null
   stripe_subscription_id?: string | null
   subscription_status?: string | null   // 'trialing' | 'active' | 'past_due' | 'canceled'
   trial_ends_at?: string | null
   created_at: string
+}
+
+/** A firm-defined survey question (documentation only, never scored).
+ *  Empty options array = free-text answer. */
+export interface CustomQuestion {
+  id: string
+  question: string
+  options: string[]
+}
+
+/** Literal question/answer text captured at submission time, so the record
+ *  stays accurate even if the advisor later edits or deletes the question. */
+export interface CustomAnswer {
+  question: string
+  answer: string
 }
 
 export type TaxTreatment = 'Taxable' | 'Tax-deferred' | 'Tax-free'
@@ -63,9 +78,8 @@ export interface QuestionnaireResponse {
   selected_preferences?: string[] | null  // array of InvestmentPreference IDs
   // Risk Tolerance continued
   q8: number | null  // 3-month performance attitude
-  // Optional investment-experience answers (documentation only, unscored)
-  experience_level?: string | null
-  check_frequency?: string | null
+  // Answers to the firm's custom questions (documentation only, unscored)
+  custom_answers?: CustomAnswer[] | null
   comments: string
   completed_at: string
 }

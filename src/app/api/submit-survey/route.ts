@@ -12,8 +12,9 @@ export async function POST(req: NextRequest) {
       dob,
       answers,
       selected_preferences,
-      experience_level,
-      check_frequency,
+      custom_answers,
+      experience_level,   // legacy field, mapped into custom_answers below
+      check_frequency,    // legacy field, mapped into custom_answers below
       comments,
     } = await req.json()
 
@@ -60,6 +61,27 @@ export async function POST(req: NextRequest) {
     // Strip null bytes from comments (PostgreSQL rejects \u0000 in text)
     const safeComments = (comments ?? '').replace(/\u0000/g, '').trim()
 
+    // Sanitize custom-question answers: max 3, literal {question, answer} text.
+    // Legacy clients loaded before the builder shipped may still send
+    // experience_level / check_frequency — fold those in so nothing is lost.
+    const rawAnswers: unknown[] = Array.isArray(custom_answers) ? custom_answers : []
+    if (typeof experience_level === 'string' && experience_level) {
+      rawAnswers.push({ question: 'How would you describe your investing experience today?', answer: experience_level })
+    }
+    if (typeof check_frequency === 'string' && check_frequency) {
+      rawAnswers.push({ question: 'How often do you find yourself checking your investments?', answer: check_frequency })
+    }
+    const safeCustomAnswers = rawAnswers
+      .filter((a): a is { question: string; answer: string } =>
+        !!a && typeof (a as { question?: unknown }).question === 'string'
+        && typeof (a as { answer?: unknown }).answer === 'string')
+      .map(a => ({
+        question: a.question.replace(/\u0000/g, '').trim().slice(0, 500),
+        answer: a.answer.replace(/\u0000/g, '').trim().slice(0, 2000),
+      }))
+      .filter(a => a.question && a.answer)
+      .slice(0, 3)
+
     const { error: respError } = await supabase
       .from('questionnaire_responses')
       .insert({
@@ -72,8 +94,7 @@ export async function POST(req: NextRequest) {
         q6: answers?.q6 ?? null,
         q8: answers?.q8 ?? null,
         selected_preferences: selected_preferences ?? [],
-        experience_level: typeof experience_level === 'string' && experience_level ? experience_level : null,
-        check_frequency: typeof check_frequency === 'string' && check_frequency ? check_frequency : null,
+        custom_answers: safeCustomAnswers,
         comments: safeComments || '',
       })
 

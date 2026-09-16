@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { applyBrandColors } from '@/lib/colorUtils'
-import type { InvestmentPreference } from '@/types'
+import type { InvestmentPreference, CustomQuestion } from '@/types'
 
 // ─── Plan metadata ─────────────────────────────────────────────────────────────
 
@@ -268,7 +268,9 @@ export default function SettingsPage() {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isSubUser, setIsSubUser] = useState(false)
   const [notifyOnCompletion, setNotifyOnCompletion] = useState(true)
-  const [askExperience, setAskExperience] = useState(false)
+  const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([])
+  const [savingQuestions, setSavingQuestions] = useState(false)
+  const [questionsSaved, setQuestionsSaved] = useState(false)
 
   // Subscription
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
@@ -324,7 +326,7 @@ export default function SettingsPage() {
         setBrandText(advisor.brand_text ?? advisor.brand_color ?? '#1b4332')
         setMasterToken(advisor.master_token ?? null)
         setNotifyOnCompletion(advisor.notify_on_completion !== false)
-        setAskExperience(advisor.ask_experience === true)
+        setCustomQuestions(Array.isArray(advisor.custom_questions) ? advisor.custom_questions : [])
         setSubscriptionStatus(advisor.subscription_status ?? 'trialing')
         setTrialEndsAt(advisor.trial_ends_at ?? null)
         setAdvisorPlan(advisor.plan ?? 'solo')
@@ -437,10 +439,22 @@ export default function SettingsPage() {
     await supabase.from('advisors').update({ signature_block: checked }).eq('id', advisorId)
   }
 
-  const handleAskExperienceToggle = async (checked: boolean) => {
-    setAskExperience(checked)
+  const updateCustomQuestion = (id: string, patch: Partial<CustomQuestion>) => {
+    setCustomQuestions(prev => prev.map(q => (q.id === id ? { ...q, ...patch } : q)))
+  }
+
+  const handleSaveCustomQuestions = async () => {
     if (!advisorId) return
-    await supabase.from('advisors').update({ ask_experience: checked } as never).eq('id', advisorId)
+    setSavingQuestions(true)
+    const cleaned = customQuestions
+      .map(q => ({ ...q, question: q.question.trim(), options: q.options.map(o => o.trim()).filter(Boolean) }))
+      .filter(q => q.question)
+      .slice(0, 3)
+    await supabase.from('advisors').update({ custom_questions: cleaned } as never).eq('id', advisorId)
+    setCustomQuestions(cleaned)
+    setSavingQuestions(false)
+    setQuestionsSaved(true)
+    setTimeout(() => setQuestionsSaved(false), 2500)
   }
 
   const handleNotifyToggle = async (checked: boolean) => {
@@ -1127,21 +1141,95 @@ export default function SettingsPage() {
         <div className="mt-6">
           <div className="bg-white rounded-2xl border border-cream-300 shadow-card p-6">
             <h2 className="font-semibold text-forest-900 mb-1">Survey Questions</h2>
-            <p className="text-xs text-forest-500 mb-5">Optional questions you can add to the client questionnaire.</p>
-            <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
-              <div>
-                <div className="text-sm font-medium text-forest-900">Investment experience questions</div>
-                <div className="text-xs text-forest-500 mt-0.5">
-                  Asks clients how they would describe their investing experience and how often they
-                  check their investments. Documentation only: answers appear on the report under
-                  Other Information and never affect risk scoring.
+            <p className="text-xs text-forest-500 mb-5">
+              Add up to three custom questions to the end of the client questionnaire. Documentation
+              only: answers appear on the report under Other Information and never affect risk scoring.
+            </p>
+
+            {customQuestions.length === 0 && (
+              <p className="text-sm text-forest-400 italic mb-4">No custom questions yet.</p>
+            )}
+
+            <div className="space-y-4">
+              {customQuestions.map((q, qi) => (
+                <div key={q.id} className="rounded-xl border border-cream-300 bg-cream-50 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-semibold text-forest-500 uppercase tracking-wider">Question {qi + 1}</div>
+                    <button
+                      onClick={() => setCustomQuestions(prev => prev.filter(x => x.id !== q.id))}
+                      className="text-xs font-semibold text-forest-400 hover:text-red-600 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={q.question}
+                    onChange={e => updateCustomQuestion(q.id, { question: e.target.value })}
+                    placeholder="e.g. How would you describe your investing experience today?"
+                    className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent"
+                  />
+                  <div className="flex items-center gap-2 mt-3">
+                    <label className="text-xs font-medium text-forest-600">Answer format</label>
+                    <select
+                      value={q.options.length > 0 ? 'choice' : 'text'}
+                      onChange={e => updateCustomQuestion(q.id, { options: e.target.value === 'choice' ? ['', ''] : [] })}
+                      className="px-3 py-1.5 rounded-lg border border-cream-300 bg-white text-forest-900 text-xs focus:outline-none focus:ring-2 focus:ring-forest-700"
+                    >
+                      <option value="choice">Multiple choice</option>
+                      <option value="text">Free text</option>
+                    </select>
+                  </div>
+                  {q.options.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {q.options.map((opt, oi) => (
+                        <div key={oi} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={e => updateCustomQuestion(q.id, { options: q.options.map((o, i) => (i === oi ? e.target.value : o)) })}
+                            placeholder={`Option ${oi + 1}`}
+                            className="flex-1 px-3 py-2 rounded-lg border border-cream-300 bg-white text-forest-900 text-sm focus:outline-none focus:ring-2 focus:ring-forest-700"
+                          />
+                          <button
+                            onClick={() => updateCustomQuestion(q.id, { options: q.options.filter((_, i) => i !== oi) })}
+                            title="Remove option"
+                            className="flex-shrink-0 w-6 h-6 rounded-md border border-cream-300 text-forest-400 hover:text-red-600 hover:border-red-300 leading-none text-sm"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => updateCustomQuestion(q.id, { options: [...q.options, ''] })}
+                        className="text-xs font-semibold text-forest-600 hover:text-forest-900 border border-dashed border-cream-400 px-2.5 py-1.5 rounded-lg hover:bg-white transition-colors"
+                      >
+                        + Add option
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="relative flex-shrink-0" onClick={() => handleAskExperienceToggle(!askExperience)}>
-                <div className={`w-10 h-6 rounded-full transition-colors ${askExperience ? 'bg-forest-700' : 'bg-cream-300'}`} />
-                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${askExperience ? 'translate-x-4' : 'translate-x-0'}`} />
-              </div>
-            </label>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 mt-4">
+              {customQuestions.length < 3 && (
+                <button
+                  onClick={() => setCustomQuestions(prev => [...prev, { id: crypto.randomUUID(), question: '', options: ['', ''] }])}
+                  className="text-sm font-semibold text-forest-700 hover:text-forest-900 border border-dashed border-cream-400 px-3.5 py-2 rounded-xl hover:bg-cream-50 transition-colors"
+                >
+                  + Add question
+                </button>
+              )}
+              <button
+                onClick={handleSaveCustomQuestions}
+                disabled={savingQuestions}
+                className="text-sm font-semibold bg-forest-900 text-cream-100 px-4 py-2 rounded-xl hover:bg-forest-800 disabled:opacity-60 transition-colors"
+              >
+                {savingQuestions ? 'Saving…' : 'Save questions'}
+              </button>
+              {questionsSaved && <span className="text-xs text-forest-500">✓ Questions saved</span>}
+            </div>
           </div>
         </div>
       )}

@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateRiskProfile, CATEGORY_COLORS, CATEGORY_DESCRIPTIONS, CATEGORY_SCORE_RANGES, QUESTIONS } from '@/lib/scoring'
-import { EXPERIENCE_QUESTIONS } from '@/lib/experienceQuestions'
 import type { RiskCategory } from '@/types'
 import type { Client, Advisor, QuestionnaireResponse, RiskProfile } from '@/types'
 
@@ -377,17 +376,16 @@ export default function ClientDetailPage() {
                   )
                 })}
               </div>
-              {EXPERIENCE_QUESTIONS.map(q => {
-                const answer = responses[q.field]
-                if (!answer) return null
+              {(responses.custom_answers ?? []).map((ca, i) => {
+                if (!ca?.question || !ca?.answer) return null
                 return (
-                  <div key={q.field} className="mt-5 border-t border-cream-100 pt-5">
+                  <div key={i} className="mt-5 border-t border-cream-100 pt-5">
                     <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-2 text-forest-500">
                       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-forest-400" />
                       Other Information
                     </div>
-                    <p className="text-sm font-medium text-forest-900 mb-1.5">{q.question}</p>
-                    <p className="text-sm text-forest-700 bg-cream-50 rounded-lg px-3 py-2 border border-cream-200 inline-block">{answer}</p>
+                    <p className="text-sm font-medium text-forest-900 mb-1.5">{ca.question}</p>
+                    <p className="text-sm text-forest-700 bg-cream-50 rounded-lg px-3 py-2 border border-cream-200 inline-block whitespace-pre-wrap">{ca.answer}</p>
                   </div>
                 )
               })}

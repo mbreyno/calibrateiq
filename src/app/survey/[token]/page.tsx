@@ -5,9 +5,8 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { QUESTIONS } from '@/lib/scoring'
-import { EXPERIENCE_QUESTIONS } from '@/lib/experienceQuestions'
 import { applyBrandColors } from '@/lib/colorUtils'
-import type { Advisor, InvestmentPreference } from '@/types'
+import type { Advisor, InvestmentPreference, CustomQuestion } from '@/types'
 
 // ─── Progress bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ current, total }: { current: number; total: number }) {
@@ -69,7 +68,7 @@ export default function MasterSurveyPage() {
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([])
-  const [experienceAnswers, setExperienceAnswers] = useState<Record<string, string>>({})
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({})
   const [comments, setComments] = useState('')
 
   useEffect(() => {
@@ -98,7 +97,10 @@ export default function MasterSurveyPage() {
   // Then append the dynamic preferences question at the end if any preferences exist
   const radioQuestions = QUESTIONS.filter(q => q.type === 'radio' && q.id !== 'q1')
 
-  const askExperience = advisor?.ask_experience === true
+  // Firm-defined documentation-only questions (max 3, never scored)
+  const customQuestions: CustomQuestion[] = (advisor?.custom_questions ?? [])
+    .filter(q => q && typeof q.question === 'string' && q.question.trim())
+    .slice(0, 3)
 
   const questionOrder: Array<{ id: string; category: string; type: string; question: string }> = [
     ...radioQuestions,
@@ -108,13 +110,13 @@ export default function MasterSurveyPage() {
       type: 'preferences',
       question: 'Please select if any of the following areas are important to you:',
     }] : []),
-    // Optional documentation-only questions — last, just before the comments step
-    ...(askExperience ? EXPERIENCE_QUESTIONS.map(q => ({
-      id: q.field,
+    // Custom documentation-only questions — last, just before the comments step
+    ...customQuestions.map(q => ({
+      id: q.id,
       category: 'other',
-      type: 'experience',
+      type: 'custom',
       question: q.question,
-    })) : []),
+    })),
   ]
 
   const currentQuestion = questionOrder[currentQ]
@@ -144,7 +146,7 @@ export default function MasterSurveyPage() {
 
   const canContinue = () => {
     if (currentQuestion.type === 'preferences') return true // optional
-    if (currentQuestion.type === 'experience') return !!experienceAnswers[currentQuestion.id]
+    if (currentQuestion.type === 'custom') return !!customAnswers[currentQuestion.id]?.trim()
     return answers[currentQuestion.id] !== undefined
   }
 
@@ -165,8 +167,9 @@ export default function MasterSurveyPage() {
           dob,
           answers,
           selected_preferences: selectedPreferences,
-          experience_level: askExperience ? experienceAnswers['experience_level'] ?? null : null,
-          check_frequency: askExperience ? experienceAnswers['check_frequency'] ?? null : null,
+          custom_answers: customQuestions
+            .map(q => ({ question: q.question, answer: (customAnswers[q.id] ?? '').trim() }))
+            .filter(a => a.answer),
           comments,
         }),
       })
@@ -241,7 +244,7 @@ export default function MasterSurveyPage() {
   // ── Personal details step ────────────────────────────────────────
   if (step === 'details') {
     const isValid = firstName.trim() && lastName.trim() && email.trim() && dob
-    const totalQs = radioQuestions.length + (preferences.length > 0 ? 1 : 0) + (askExperience ? EXPERIENCE_QUESTIONS.length : 0)
+    const totalQs = radioQuestions.length + (preferences.length > 0 ? 1 : 0) + customQuestions.length
     return (
       <div className="min-h-screen bg-cream-100 flex flex-col">
         <BrandHeader advisor={advisor} />
@@ -465,15 +468,29 @@ export default function MasterSurveyPage() {
                 </div>
               )}
 
-              {/* Experience question (documentation only, single-select) */}
-              {currentQuestion.type === 'experience' && (
+              {/* Custom question (documentation only): single-select or free text */}
+              {currentQuestion.type === 'custom' && (() => {
+                const cq = customQuestions.find(q => q.id === currentQuestion.id)
+                const opts = (cq?.options ?? []).filter(o => o && o.trim())
+                if (opts.length === 0) {
+                  return (
+                    <textarea
+                      value={customAnswers[currentQuestion.id] ?? ''}
+                      onChange={e => setCustomAnswers(prev => ({ ...prev, [currentQuestion.id]: e.target.value }))}
+                      rows={4}
+                      placeholder="Type your answer…"
+                      className="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-forest-900 text-sm leading-relaxed placeholder-forest-700/40 focus:outline-none focus:ring-2 focus:ring-forest-700 focus:border-transparent resize-none"
+                    />
+                  )
+                }
+                return (
                 <div className="space-y-2.5">
-                  {(EXPERIENCE_QUESTIONS.find(q => q.field === currentQuestion.id)?.options ?? []).map(opt => {
-                    const isSelected = experienceAnswers[currentQuestion.id] === opt
+                  {opts.map(opt => {
+                    const isSelected = customAnswers[currentQuestion.id] === opt
                     return (
                       <button
                         key={opt}
-                        onClick={() => setExperienceAnswers(prev => ({ ...prev, [currentQuestion.id]: opt }))}
+                        onClick={() => setCustomAnswers(prev => ({ ...prev, [currentQuestion.id]: opt }))}
                         className={`w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all ${
                           isSelected
                             ? 'bg-forest-900 border-forest-900 text-cream-100 shadow-sm'
@@ -490,7 +507,8 @@ export default function MasterSurveyPage() {
                     )
                   })}
                 </div>
-              )}
+                )
+              })()}
 
               {/* Dynamic preferences question */}
               {isPrefsQuestion && (
