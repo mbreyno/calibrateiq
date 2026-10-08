@@ -36,7 +36,12 @@ function calcAge(dob: string | null | undefined): string {
 function combinedCategory(members: MemberData[]): RiskCategory {
   if (members.length === 1) return members[0].profile.overall_category
   const [p1, p2] = members.map(m => m.profile)
-  return getOverallCategory((p1.capacity_normalized + p2.capacity_normalized) / 2)
+  // Average the RAW capacity scores — the same values displayed as X/100 and
+  // the scale the Portfolio Legend ranges describe. Individual categories were
+  // aligned to the raw score in b011a9ad; averaging the normalized values here
+  // made a couple with displayed scores 50 & 49 (Moderate Growth, 40–60) land
+  // in Conservative Growth because normalization rescales 20–100 down to 0–100.
+  return getOverallCategory((p1.risk_capacity_score + p2.risk_capacity_score) / 2)
 }
 
 interface MemberData {
