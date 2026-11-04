@@ -98,7 +98,7 @@ export interface RiskProfile {
 }
 
 export type RiskCategory =
-  | 'Income'
+  | 'Preservation'
   | 'Conservative Growth'
   | 'Moderate Growth'
   | 'Growth'

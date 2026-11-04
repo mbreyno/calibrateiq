@@ -312,7 +312,7 @@ function PortfolioLegend() {
     <div className="portfolio-legend-card bg-white rounded-2xl border border-cream-300 shadow-card p-6">
       <h2 className="font-semibold text-forest-900 mb-4">Portfolio Category Legend</h2>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-        {(['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income'] as RiskCategory[]).map(cat => {
+        {(['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Preservation'] as RiskCategory[]).map(cat => {
           const color = CATEGORY_COLORS[cat]
           return (
             <div key={cat} className="rounded-xl p-4 border" style={{ borderColor: '#e8e0cc' }}>
@@ -386,7 +386,7 @@ function SectionHeader({ title, accent = '#1b4332' }: { title: string; accent?: 
 
 // ─── Recommended Risk Category card ──────────────────────────────────────────
 
-const RISK_CATEGORIES: RiskCategory[] = ['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Income']
+const RISK_CATEGORIES: RiskCategory[] = ['Aggressive Growth', 'Growth', 'Moderate Growth', 'Conservative Growth', 'Preservation']
 
 function RecommendedCategoryCard({
   surveyCategory,

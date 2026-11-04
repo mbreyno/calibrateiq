@@ -218,14 +218,14 @@ export function getOverallCategory(combined: number): RiskCategory {
   if (combined >= 60) return 'Growth'
   if (combined >= 40) return 'Moderate Growth'
   if (combined >= 20) return 'Conservative Growth'
-  return 'Income'
+  return 'Preservation'
 }
 
 // ─────────────────────────────────────────────
 // ASSET ALLOCATION BY RISK CATEGORY
 // ─────────────────────────────────────────────
 export const ASSET_ALLOCATIONS: Record<RiskCategory, AssetAllocation> = {
-  'Income':             { equities: 15,  fixed_income: 75, alternatives: 5,  cash: 5  },
+  'Preservation':       { equities: 15,  fixed_income: 75, alternatives: 5,  cash: 5  },
   'Conservative Growth':{ equities: 35,  fixed_income: 55, alternatives: 7,  cash: 3  },
   'Moderate Growth':    { equities: 60,  fixed_income: 33, alternatives: 5,  cash: 2  },
   'Growth':             { equities: 80,  fixed_income: 15, alternatives: 4,  cash: 1  },
@@ -233,7 +233,7 @@ export const ASSET_ALLOCATIONS: Record<RiskCategory, AssetAllocation> = {
 }
 
 export const CATEGORY_COLORS: Record<RiskCategory, string> = {
-  'Income':             '#4a7fb5',  // calm steel blue
+  'Preservation':       '#4a7fb5',  // calm steel blue
   'Conservative Growth':'#52b788',  // teal green
   'Moderate Growth':    '#40916c',  // forest green
   'Growth':             '#d4a017',  // amber gold
@@ -241,7 +241,7 @@ export const CATEGORY_COLORS: Record<RiskCategory, string> = {
 }
 
 export const CATEGORY_SCORE_RANGES: Record<RiskCategory, string> = {
-  'Income':             '0 – 20',
+  'Preservation':       '0 – 20',
   'Conservative Growth':'20 – 40',
   'Moderate Growth':    '40 – 60',
   'Growth':             '60 – 80',
@@ -251,8 +251,8 @@ export const CATEGORY_SCORE_RANGES: Record<RiskCategory, string> = {
 /** One-line versions of the category descriptions for space-constrained
  *  print layouts (the full text still appears in the Portfolio Legend). */
 export const CATEGORY_DESCRIPTIONS_SHORT: Record<RiskCategory, string> = {
-  'Income':
-    'Current income first — mostly short- and intermediate-term fixed income (bonds), with some equities as inflation protection.',
+  'Preservation':
+    'Preserving assets and protecting against market volatility — mostly short- and intermediate-term fixed income (bonds).',
   'Conservative Growth':
     'A balanced mix of current income and capital appreciation — assets balanced between equities (stocks) and bonds.',
   'Moderate Growth':
@@ -264,8 +264,8 @@ export const CATEGORY_DESCRIPTIONS_SHORT: Record<RiskCategory, string> = {
 }
 
 export const CATEGORY_DESCRIPTIONS: Record<RiskCategory, string> = {
-  'Income':
-    'This portfolio is appropriate for investors whose primary objective is current income. The majority of assets in this portfolio are allocated to short-term and intermediate-term investments such as fixed-income securities (bonds). A portion of this portfolio may also be invested in equities (stocks), which are subject to price fluctuations, as protection against the erosion to purchasing power caused by inflation.',
+  'Preservation':
+    'This portfolio is appropriate for investors whose primary objective is preserving their assets and protecting them against market volatility. The majority of assets in this portfolio are allocated to short-term and intermediate-term investments such as fixed-income securities (bonds). A small portion may also be invested in equities (stocks) to help protect purchasing power against the erosion caused by inflation.',
   'Conservative Growth':
     'This portfolio is appropriate for investors who prefer a balanced mix of current income and capital appreciation, and are willing to tolerate some short-term price fluctuations associated with equity (stock) investments. The assets in this portfolio are balanced among equities (stocks) and fixed-income securities (bonds).',
   'Moderate Growth':

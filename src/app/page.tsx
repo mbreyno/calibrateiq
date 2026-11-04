@@ -279,7 +279,7 @@ export default function LandingPage() {
             </p>
             <ul className="space-y-3">
               {[
-                '5 risk categories: Income through Aggressive Growth',
+                '5 risk categories: Preservation through Aggressive Growth',
                 'Separate capacity and preference scores, 0–100',
                 'Household reports average both partners\' capacity scores',
                 'Full audit trail of every client response',
