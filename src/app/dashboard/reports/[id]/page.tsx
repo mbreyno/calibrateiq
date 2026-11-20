@@ -1059,20 +1059,29 @@ export default function ReportDetailPage() {
 
     const advisorId = (hh as { advisor_id: string }).advisor_id
 
-    // Load advisor preferences, timezone, and all completed clients in parallel
-    const [{ data: prefs }, { data: advisorRow }, { data: allCls }, { data: resps }] = await Promise.all([
+    // Load preferences, firm settings, and all completed clients in parallel.
+    // Firm settings come from the server: a sub-user's browser client can't
+    // read the parent firm's advisor row under RLS.
+    const [{ data: prefs }, firm, { data: allCls }, { data: resps }] = await Promise.all([
       supabase.from('investment_preferences').select('*').eq('advisor_id', advisorId).order('sort_order', { ascending: true }),
-      supabase.from('advisors').select('timezone, firm_name, logo_url, signature_block, brand_color, ips_notes').eq('id', advisorId).single(),
+      fetch('/api/firm/settings').then(r => (r.ok ? r.json() : null)).catch(() => null) as Promise<{
+        timezone: string | null
+        firm_name: string
+        logo_url: string | null
+        signature_block: boolean
+        brand_color: string | null
+        ips_notes: string
+      } | null>,
       supabase.from('clients').select('*').eq('advisor_id', advisorId).eq('status', 'completed').order('first_name'),
       supabase.from('questionnaire_responses').select('client_id, completed_at'),
     ])
     setPreferences(prefs ?? [])
-    if (advisorRow?.timezone) setAdvisorTimezone(advisorRow.timezone)
-    if (advisorRow?.firm_name) setAdvisorFirmName(advisorRow.firm_name)
-    setAdvisorLogoUrl(advisorRow?.logo_url ?? null)
-    setAdvisorSignatureBlock(advisorRow?.signature_block ?? false)
-    setAdvisorBrandColor(advisorRow?.brand_color ?? '#1b4332')
-    setAdvisorIpsNotes((advisorRow as { ips_notes?: string | null } | null)?.ips_notes ?? '')
+    if (firm?.timezone) setAdvisorTimezone(firm.timezone)
+    if (firm?.firm_name) setAdvisorFirmName(firm.firm_name)
+    setAdvisorLogoUrl(firm?.logo_url ?? null)
+    setAdvisorSignatureBlock(firm?.signature_block === true)
+    setAdvisorBrandColor(firm?.brand_color ?? '#1b4332')
+    setAdvisorIpsNotes(firm?.ips_notes ?? '')
     setAllClients(allCls ?? [])
     const map: Record<string, string> = {}
     for (const r of (resps ?? [])) { map[r.client_id] = r.completed_at }

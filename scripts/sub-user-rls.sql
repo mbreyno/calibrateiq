@@ -79,3 +79,23 @@ CREATE POLICY "Users can view their firm investment preferences"
   ON investment_preferences
   FOR SELECT
   USING (advisor_id = get_effective_advisor_id());
+
+-- ── Write policies (added 2026-11-20) ────────────────────────────────────────
+-- The SELECT policies above let sub-users read firm reports, but writes still
+-- fell under own-id-only policies, so a sub-user's edits to advisor notes, the
+-- recommended risk category, accounts, and the Edit Report modal silently
+-- affected 0 rows. Applied to production as "sub_user_firm_report_writes".
+
+DROP POLICY IF EXISTS "Users can update their firm households" ON households;
+CREATE POLICY "Users can update their firm households"
+  ON households
+  FOR UPDATE
+  USING (advisor_id = get_effective_advisor_id())
+  WITH CHECK (advisor_id = get_effective_advisor_id());
+
+DROP POLICY IF EXISTS "Users can manage their firm household members" ON household_members;
+CREATE POLICY "Users can manage their firm household members"
+  ON household_members
+  FOR ALL
+  USING (household_id IN (SELECT id FROM households WHERE advisor_id = get_effective_advisor_id()))
+  WITH CHECK (household_id IN (SELECT id FROM households WHERE advisor_id = get_effective_advisor_id()));
