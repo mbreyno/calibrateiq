@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { requireWrite, saveErrorMessage } from '@/lib/requireWrite'
+import SaveErrorNotice from '@/components/SaveErrorNotice'
 import {
   calculateRiskProfile,
   calculateAge,
@@ -259,14 +261,21 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
   const [value, setValue] = useState(initialNotes)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSave = async () => {
     setSaving(true)
-    await onSave(value)
-    setSaving(false)
-    setSaved(true)
-    setEditing(false)
-    setTimeout(() => setSaved(false), 2500)
+    setError(null)
+    try {
+      await onSave(value)
+      setSaved(true)
+      setEditing(false)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      setError(saveErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -280,7 +289,7 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
           </button>
         ) : (
           <div className="no-print flex gap-2">
-            <button onClick={() => { setEditing(false); setValue(initialNotes) }}
+            <button onClick={() => { setEditing(false); setValue(initialNotes); setError(null) }}
               className="text-xs font-semibold text-forest-500 hover:text-forest-700 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
               Cancel
             </button>
@@ -300,6 +309,7 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
       ) : (
         <p className="text-sm text-forest-400 italic">No notes yet. Click Edit to add advisor notes.</p>
       )}
+      <SaveErrorNotice message={error} className="mt-3" />
       {saved && <p className="text-xs text-forest-500 mt-2">✓ Notes saved</p>}
     </div>
   )
@@ -403,6 +413,7 @@ function RecommendedCategoryCard({
   const [draftCat, setDraftCat] = useState<RiskCategory>(recommendedCategory ?? surveyCategory)
   const [draftReason, setDraftReason] = useState(recommendationReason)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const differs = recommendedCategory !== null && recommendedCategory !== surveyCategory
   const draftDiffers = draftCat !== surveyCategory
@@ -410,18 +421,25 @@ function RecommendedCategoryCard({
   const startEdit = () => {
     setDraftCat(recommendedCategory ?? surveyCategory)
     setDraftReason(recommendationReason)
+    setError(null)
     setEditing(true)
   }
 
   const handleSave = async () => {
     setSaving(true)
+    setError(null)
     // Persist NULL when the choice matches the survey — preserves
     // "no explicit choice yet" semantics across reopens.
     const catToSave = draftCat === surveyCategory ? null : draftCat
     const reasonToSave = catToSave ? draftReason.trim() : ''
-    await onSave(catToSave, reasonToSave)
-    setSaving(false)
-    setEditing(false)
+    try {
+      await onSave(catToSave, reasonToSave)
+      setEditing(false)
+    } catch (err) {
+      setError(saveErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (editing) {
@@ -462,6 +480,8 @@ function RecommendedCategoryCard({
               )}
             </div>
           )}
+
+          <SaveErrorNotice message={error} />
 
           <div className="flex gap-2 pt-1">
             <button onClick={() => setEditing(false)}
@@ -533,9 +553,11 @@ function AccountsCard({ accounts, onSave }: {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<ClientAccount[]>([])
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const startEdit = () => {
     setDraft(accounts.length > 0 ? accounts.map(a => ({ ...a })) : [newAccountRow()])
+    setError(null)
     setEditing(true)
   }
 
@@ -545,6 +567,7 @@ function AccountsCard({ accounts, onSave }: {
 
   const handleSave = async () => {
     setSaving(true)
+    setError(null)
     const cleaned = draft
       .map(r => ({
         ...r,
@@ -555,9 +578,14 @@ function AccountsCard({ accounts, onSave }: {
         considerations: (r.considerations ?? '').trim(),
       }))
       .filter(r => r.label || r.last_four || r.strategy || r.purpose || r.considerations)
-    await onSave(cleaned)
-    setSaving(false)
-    setEditing(false)
+    try {
+      await onSave(cleaned)
+      setEditing(false)
+    } catch (err) {
+      setError(saveErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (editing) {
@@ -649,6 +677,7 @@ function AccountsCard({ accounts, onSave }: {
         >
           <span className="text-base leading-none">+</span> Add account
         </button>
+        <SaveErrorNotice message={error} className="mt-5" />
         <div className="flex gap-2 mt-5">
           <button onClick={() => setEditing(false)}
             className="flex-1 border border-cream-300 text-forest-700 font-medium text-sm py-2.5 rounded-xl hover:bg-cream-50">
@@ -1127,45 +1156,53 @@ export default function ReportDetailPage() {
     setEditSaving(true)
     setEditError(null)
 
-    // Update report name
-    const { error: nameErr } = await supabase
-      .from('households')
-      .update({ name: editName })
-      .eq('id', id)
+    try {
+      await updateHousehold({ name: editName })
 
-    if (nameErr) { setEditError(nameErr.message); setEditSaving(false); return }
+      // Replace members: delete existing, insert new
+      const previousMembers = await requireWrite(
+        supabase.from('household_members').delete().eq('household_id', id).select('household_id, client_id')
+      )
 
-    // Replace members: delete existing, insert new
-    await supabase.from('household_members').delete().eq('household_id', id)
+      const newMembers = [{ household_id: id, client_id: editMember1 }]
+      if (editMember2) newMembers.push({ household_id: id, client_id: editMember2 })
 
-    const newMembers = [{ household_id: id, client_id: editMember1 }]
-    if (editMember2) newMembers.push({ household_id: id, client_id: editMember2 })
+      try {
+        await requireWrite(supabase.from('household_members').insert(newMembers).select('client_id'))
+      } catch (err) {
+        // Put the original members back so a failed swap can't leave the report empty.
+        await supabase.from('household_members').insert(previousMembers)
+        throw err
+      }
 
-    const { error: membersErr } = await supabase.from('household_members').insert(newMembers)
-
-    if (membersErr) { setEditError(membersErr.message); setEditSaving(false); return }
-
-    setShowEditModal(false)
-    setEditSaving(false)
-    loadData()
+      setShowEditModal(false)
+      loadData()
+    } catch (err) {
+      setEditError(saveErrorMessage(err))
+    } finally {
+      setEditSaving(false)
+    }
   }
 
+  const updateHousehold = (patch: Record<string, unknown>) =>
+    requireWrite(supabase.from('households').update(patch as never).eq('id', id).select('id'))
+
   const handleSaveNotes = async (notes: string) => {
-    await supabase.from('households').update({ advisor_notes: notes } as never).eq('id', id)
+    await updateHousehold({ advisor_notes: notes })
     setAdvisorNotes(notes)
   }
 
   const handleSaveRecommendation = async (cat: RiskCategory | null, reason: string) => {
-    await supabase.from('households').update({
+    await updateHousehold({
       recommended_risk_category: cat,
       recommendation_reason: cat ? reason : null,
-    } as never).eq('id', id)
+    })
     setRecommendedCategory(cat)
     setRecommendationReason(cat ? reason : '')
   }
 
   const handleSaveAccounts = async (rows: ClientAccount[]) => {
-    await supabase.from('households').update({ accounts: rows } as never).eq('id', id)
+    await updateHousehold({ accounts: rows })
     setAccounts(rows)
   }
 

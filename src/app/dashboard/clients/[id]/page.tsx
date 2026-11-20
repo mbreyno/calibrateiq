@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { requireWrite, saveErrorMessage } from '@/lib/requireWrite'
+import SaveErrorNotice from '@/components/SaveErrorNotice'
 import { calculateRiskProfile, CATEGORY_COLORS, CATEGORY_DESCRIPTIONS, CATEGORY_SCORE_RANGES, QUESTIONS } from '@/lib/scoring'
 import type { RiskCategory } from '@/types'
 import type { Client, Advisor, QuestionnaireResponse, RiskProfile } from '@/types'
@@ -79,14 +81,21 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
   const [value, setValue] = useState(initialNotes)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSave = async () => {
     setSaving(true)
-    await onSave(value)
-    setSaving(false)
-    setSaved(true)
-    setEditing(false)
-    setTimeout(() => setSaved(false), 2500)
+    setError(null)
+    try {
+      await onSave(value)
+      setSaved(true)
+      setEditing(false)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      setError(saveErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -100,7 +109,7 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
           </button>
         ) : (
           <div className="flex gap-2">
-            <button onClick={() => { setEditing(false); setValue(initialNotes) }}
+            <button onClick={() => { setEditing(false); setValue(initialNotes); setError(null) }}
               className="text-xs font-semibold text-forest-500 hover:text-forest-700 border border-cream-300 px-3 py-1.5 rounded-lg hover:bg-cream-50 transition-colors">
               Cancel
             </button>
@@ -124,6 +133,7 @@ function AdvisorNotes({ initialNotes, onSave }: { initialNotes: string; onSave: 
       ) : (
         <p className="text-sm text-forest-400 italic">No notes yet. Click Edit to add advisor notes.</p>
       )}
+      <SaveErrorNotice message={error} className="mt-3" />
       {saved && <p className="text-xs text-forest-500 mt-2">✓ Notes saved</p>}
     </div>
   )
@@ -209,7 +219,7 @@ export default function ClientDetailPage() {
   const categoryColor = profile ? CATEGORY_COLORS[profile.overall_category] : '#52b788'
 
   const handleSaveNotes = async (notes: string) => {
-    await supabase.from('clients').update({ advisor_notes: notes } as never).eq('id', id)
+    await requireWrite(supabase.from('clients').update({ advisor_notes: notes } as never).eq('id', id).select('id'))
     setAdvisorNotes(notes)
   }
 

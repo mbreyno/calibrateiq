@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { applyBrandColors } from '@/lib/colorUtils'
+import { requireWrite, saveErrorMessage, type WriteResult } from '@/lib/requireWrite'
+import SaveErrorNotice from '@/components/SaveErrorNotice'
 import type { InvestmentPreference, CustomQuestion } from '@/types'
 
 // ─── Plan metadata ─────────────────────────────────────────────────────────────
@@ -271,6 +273,7 @@ export default function SettingsPage() {
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([])
   const [savingQuestions, setSavingQuestions] = useState(false)
   const [questionsSaved, setQuestionsSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   // Subscription
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
@@ -406,20 +409,37 @@ export default function SettingsPage() {
 
   // ── Auto-save handlers ────────────────────────────────────────────────────
 
+  /** Runs one write; on failure shows the page-wide notice and returns false. */
+  const save = async (query: PromiseLike<WriteResult<unknown>>): Promise<boolean> => {
+    try {
+      await requireWrite(query)
+      setSaveError(null)
+      return true
+    } catch (err) {
+      setSaveError(saveErrorMessage(err))
+      return false
+    }
+  }
+
+  const updateAdvisor = (patch: Record<string, unknown>) =>
+    save(supabase.from('advisors').update(patch as never).eq('id', advisorId!).select('id'))
+
   const handleSaveFirmName = async () => {
     if (!advisorId || firmName === savedFirmName) return
     setFirmNameSaving(true)
-    await supabase.from('advisors').update({ firm_name: firmName }).eq('id', advisorId)
-    setSavedFirmName(firmName)
+    const ok = await updateAdvisor({ firm_name: firmName })
     setFirmNameSaving(false)
+    if (!ok) return
+    setSavedFirmName(firmName)
     setFirmNameSaved(true)
     setTimeout(() => setFirmNameSaved(false), 2000)
   }
 
   const handleTimezoneChange = async (newTz: string) => {
+    const previous = timezone
     setTimezone(newTz)
     if (!advisorId) return
-    await supabase.from('advisors').update({ timezone: newTz }).eq('id', advisorId)
+    if (!(await updateAdvisor({ timezone: newTz }))) { setTimezone(previous); return }
     setTimezoneSaved(true)
     setTimeout(() => setTimezoneSaved(false), 2000)
   }
@@ -427,8 +447,9 @@ export default function SettingsPage() {
   const handleSaveIpsNotes = async () => {
     if (!advisorId) return
     setIpsNotesSaving(true)
-    await supabase.from('advisors').update({ ips_notes: ipsNotes } as never).eq('id', advisorId)
+    const ok = await updateAdvisor({ ips_notes: ipsNotes })
     setIpsNotesSaving(false)
+    if (!ok) return
     setIpsNotesSaved(true)
     setTimeout(() => setIpsNotesSaved(false), 2500)
   }
@@ -436,7 +457,7 @@ export default function SettingsPage() {
   const handleSignatureBlockChange = async (checked: boolean) => {
     setSignatureBlock(checked)
     if (!advisorId) return
-    await supabase.from('advisors').update({ signature_block: checked }).eq('id', advisorId)
+    if (!(await updateAdvisor({ signature_block: checked }))) setSignatureBlock(!checked)
   }
 
   const updateCustomQuestion = (id: string, patch: Partial<CustomQuestion>) => {
@@ -450,9 +471,10 @@ export default function SettingsPage() {
       .map(q => ({ ...q, question: q.question.trim(), options: q.options.map(o => o.trim()).filter(Boolean) }))
       .filter(q => q.question)
       .slice(0, 3)
-    await supabase.from('advisors').update({ custom_questions: cleaned } as never).eq('id', advisorId)
-    setCustomQuestions(cleaned)
+    const ok = await updateAdvisor({ custom_questions: cleaned })
     setSavingQuestions(false)
+    if (!ok) return
+    setCustomQuestions(cleaned)
     setQuestionsSaved(true)
     setTimeout(() => setQuestionsSaved(false), 2500)
   }
@@ -460,7 +482,7 @@ export default function SettingsPage() {
   const handleNotifyToggle = async (checked: boolean) => {
     setNotifyOnCompletion(checked)
     if (!advisorId) return
-    await supabase.from('advisors').update({ notify_on_completion: checked } as never).eq('id', advisorId)
+    if (!(await updateAdvisor({ notify_on_completion: checked }))) setNotifyOnCompletion(!checked)
   }
 
   const handleBrandColorChange = (color: string) => {
@@ -469,7 +491,7 @@ export default function SettingsPage() {
     if (brandColorDebounce.current) clearTimeout(brandColorDebounce.current)
     brandColorDebounce.current = setTimeout(async () => {
       if (!advisorId) return
-      await supabase.from('advisors').update({ brand_color: color }).eq('id', advisorId)
+      await updateAdvisor({ brand_color: color })
     }, 500)
   }
 
@@ -479,7 +501,7 @@ export default function SettingsPage() {
     if (brandAccentDebounce.current) clearTimeout(brandAccentDebounce.current)
     brandAccentDebounce.current = setTimeout(async () => {
       if (!advisorId) return
-      await supabase.from('advisors').update({ brand_accent: accent }).eq('id', advisorId)
+      await updateAdvisor({ brand_accent: accent })
     }, 500)
   }
 
@@ -489,7 +511,7 @@ export default function SettingsPage() {
     if (brandSurfaceDebounce.current) clearTimeout(brandSurfaceDebounce.current)
     brandSurfaceDebounce.current = setTimeout(async () => {
       if (!advisorId) return
-      await supabase.from('advisors').update({ brand_surface: surface }).eq('id', advisorId)
+      await updateAdvisor({ brand_surface: surface })
     }, 500)
   }
 
@@ -499,7 +521,7 @@ export default function SettingsPage() {
     if (brandTextDebounce.current) clearTimeout(brandTextDebounce.current)
     brandTextDebounce.current = setTimeout(async () => {
       if (!advisorId) return
-      await supabase.from('advisors').update({ brand_text: text }).eq('id', advisorId)
+      await updateAdvisor({ brand_text: text })
     }, 500)
   }
 
@@ -514,11 +536,12 @@ export default function SettingsPage() {
       ? Math.max(...preferences.map(p => p.sort_order)) + 1
       : 0
 
-    const { error: insertError } = await supabase
+    const ok = await save(supabase
       .from('investment_preferences')
       .insert({ advisor_id: advisorId, label: newPrefLabel.trim(), icon: newPrefIcon, sort_order: nextOrder })
+      .select('id'))
 
-    if (!insertError) {
+    if (ok) {
       setNewPrefLabel('')
       setNewPrefIcon('⭐')
       setShowAddPref(false)
@@ -538,42 +561,43 @@ export default function SettingsPage() {
     if (!editingPref || !advisorId) return
     setSavingPref(true)
 
-    await supabase
+    const ok = await save(supabase
       .from('investment_preferences')
       .update({ label: editLabel.trim(), icon: editIcon })
       .eq('id', editingPref.id)
+      .select('id'))
 
-    setEditingPref(null)
     setSavingPref(false)
+    if (!ok) return
+    setEditingPref(null)
     loadPreferences(advisorId)
   }
 
   const handleDeletePreference = async (prefId: string) => {
     if (!advisorId) return
     setDeletingPrefId(prefId)
-    await supabase.from('investment_preferences').delete().eq('id', prefId)
+    await save(supabase.from('investment_preferences').delete().eq('id', prefId).select('id'))
     setDeletingPrefId(null)
     loadPreferences(advisorId)
   }
 
-  const handleMoveUp = async (pref: InvestmentPreference, idx: number) => {
-    if (idx === 0 || !advisorId) return
-    const above = preferences[idx - 1]
+  const swapPreferenceOrder = async (a: InvestmentPreference, b: InvestmentPreference) => {
+    if (!advisorId) return
     await Promise.all([
-      supabase.from('investment_preferences').update({ sort_order: above.sort_order }).eq('id', pref.id),
-      supabase.from('investment_preferences').update({ sort_order: pref.sort_order }).eq('id', above.id),
+      save(supabase.from('investment_preferences').update({ sort_order: b.sort_order }).eq('id', a.id).select('id')),
+      save(supabase.from('investment_preferences').update({ sort_order: a.sort_order }).eq('id', b.id).select('id')),
     ])
     loadPreferences(advisorId)
   }
 
+  const handleMoveUp = async (pref: InvestmentPreference, idx: number) => {
+    if (idx === 0) return
+    await swapPreferenceOrder(pref, preferences[idx - 1])
+  }
+
   const handleMoveDown = async (pref: InvestmentPreference, idx: number) => {
-    if (idx === preferences.length - 1 || !advisorId) return
-    const below = preferences[idx + 1]
-    await Promise.all([
-      supabase.from('investment_preferences').update({ sort_order: below.sort_order }).eq('id', pref.id),
-      supabase.from('investment_preferences').update({ sort_order: pref.sort_order }).eq('id', below.id),
-    ])
-    loadPreferences(advisorId)
+    if (idx === preferences.length - 1) return
+    await swapPreferenceOrder(pref, preferences[idx + 1])
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -604,22 +628,22 @@ export default function SettingsPage() {
     const { data: urlData } = supabase.storage.from('logos').getPublicUrl(path)
     const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`
 
-    await supabase.from('advisors').update({ logo_url: publicUrl }).eq('id', advisorId)
-
-    setLogoUrl(publicUrl)
+    const ok = await updateAdvisor({ logo_url: publicUrl })
     setUploading(false)
+    if (ok) setLogoUrl(publicUrl)
   }
 
   const handleRemoveLogo = async () => {
     if (!advisorId) return
-    await supabase.from('advisors').update({ logo_url: null }).eq('id', advisorId)
-    setLogoUrl(null)
+    if (await updateAdvisor({ logo_url: null })) setLogoUrl(null)
   }
 
   const firmNameDirty = firmName !== savedFirmName
 
   return (
     <div className="p-6 lg:p-8 pt-20 lg:pt-8 max-w-4xl">
+      <SaveErrorNotice message={saveError} onDismiss={() => setSaveError(null)}
+        className="fixed bottom-4 left-4 right-4 sm:left-auto sm:max-w-md z-50 shadow-lg" />
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-forest-900 mb-1">Settings</h1>
         <p className="text-forest-600 text-sm">
