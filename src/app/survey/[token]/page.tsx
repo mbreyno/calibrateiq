@@ -160,7 +160,7 @@ export default function MasterSurveyPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          advisor_id: advisor.id,
+          token,
           first_name: firstName,
           last_name: lastName,
           email,

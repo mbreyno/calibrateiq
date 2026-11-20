@@ -11,7 +11,7 @@ const PLAN_LIMITS: Record<string, number> = {
   plus: 24,
 }
 
-// ── Color helpers (same pattern as notify-advisor) ────────────────────────────
+// ── Color helpers (same pattern as lib/notifyAdvisor) ────────────────────────────
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace('#', '')
   return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]

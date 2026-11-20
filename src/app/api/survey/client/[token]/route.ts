@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateAgeScore, QUESTIONS } from '@/lib/scoring'
+import { sendSurveyCompletedEmail } from '@/lib/notifyAdvisor'
 
 // Never cache: these responses must always reflect the current database.
 export const dynamic = 'force-dynamic'
@@ -120,19 +121,12 @@ export async function POST(
 
     await admin.from('clients').update({ status: 'completed' }).eq('id', client.id)
 
-    // Awaited: Vercel terminates the function on return. Errors are caught so a
-    // Resend outage never fails the client's submission.
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.app'
-    await fetch(`${appUrl}/api/notify-advisor`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        advisor_id: client.advisor_id,
-        client_name: `${client.first_name} ${client.last_name}`,
-        client_email: client.email,
-      }),
-    }).catch(err => {
-      console.error('survey/client submit → notify-advisor failed:', err)
+    // Awaited: Vercel terminates the function on return. Never throws, so an
+    // email failure can't fail the client's submission.
+    await sendSurveyCompletedEmail({
+      advisorId: client.advisor_id,
+      clientName: `${client.first_name} ${client.last_name}`,
+      clientEmail: client.email,
     })
 
     return NextResponse.json({ ok: true })

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateAgeScore } from '@/lib/scoring'
+import { sendSurveyCompletedEmail } from '@/lib/notifyAdvisor'
 
 export async function POST(req: NextRequest) {
   try {
     const {
-      advisor_id,
+      token,
       first_name,
       last_name,
       email,
@@ -18,22 +19,25 @@ export async function POST(req: NextRequest) {
       comments,
     } = await req.json()
 
-    if (!advisor_id || !first_name || !last_name || !email || !dob) {
+    if (!token || !first_name || !last_name || !email || !dob) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
     }
 
     const supabase = createAdminClient()
 
-    // ── 1. Verify advisor exists ─────────────────────────────────────────────
+    // ── 1. Resolve the firm from the survey link's token ─────────────────────
+    // Never trust an advisor ID from the browser: requiring the link's token
+    // means only someone holding the firm's survey link can submit to it.
     const { data: advisor, error: advisorError } = await supabase
       .from('advisors')
       .select('id')
-      .eq('id', advisor_id)
+      .eq('master_token', token)
       .single()
 
     if (advisorError || !advisor) {
-      return NextResponse.json({ error: 'Advisor not found.' }, { status: 404 })
+      return NextResponse.json({ error: 'Survey link not found.' }, { status: 404 })
     }
+    const advisor_id = advisor.id
 
     // ── 2. Insert client record ───────────────────────────────────────────────
     const { data: newClient, error: clientError } = await supabase
@@ -108,21 +112,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ── 4. Fire advisor notification email ────────────────────────────────────
-    // Must be awaited: Vercel terminates the serverless function on `return`,
-    // which kills unawaited fetches before they open a connection. Errors are
-    // caught so a Resend outage never fails the client's survey submission.
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.app'
-    await fetch(`${appUrl}/api/notify-advisor`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        advisor_id,
-        client_name: `${first_name.trim()} ${last_name.trim()}`,
-        client_email: email.trim(),
-      }),
-    }).catch(err => {
-      console.error('submit-survey → notify-advisor failed:', err)
+    // ── 4. Notify the firm ─────────────────────────────────────────────────────
+    // Awaited: Vercel terminates the function on `return`. Never throws, so an
+    // email failure can't fail the client's submission.
+    await sendSurveyCompletedEmail({
+      advisorId: advisor_id,
+      clientName: `${first_name.trim()} ${last_name.trim()}`,
+      clientEmail: email.trim(),
     })
 
     return NextResponse.json({ ok: true, client_id: newClient.id })
