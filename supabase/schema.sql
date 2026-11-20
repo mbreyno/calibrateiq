@@ -66,15 +66,9 @@ CREATE POLICY "Advisors can update own clients"
     advisor_id IN (SELECT id FROM advisors WHERE user_id = auth.uid())
   );
 
--- Public (anonymous) read by token — for the questionnaire page
-CREATE POLICY "Public can read client by token"
-  ON clients FOR SELECT
-  USING (true);  -- token uniqueness provides security; tighten if needed
-
--- Public can update status (when submitting questionnaire)
-CREATE POLICY "Public can update client status by token"
-  ON clients FOR UPDATE
-  USING (true);
+-- No public/anonymous policies: survey pages use admin-client server routes.
+-- (USING (true) policies here once exposed every firm's data; see
+-- scripts/lock-down-anon-access.sql.)
 
 -- ── QUESTIONNAIRE RESPONSES ───────────────────────────────────
 CREATE TABLE questionnaire_responses (
@@ -106,10 +100,9 @@ CREATE POLICY "Advisors can view own client responses"
     )
   );
 
--- Public can insert responses (questionnaire submission)
-CREATE POLICY "Public can insert responses"
-  ON questionnaire_responses FOR INSERT
-  WITH CHECK (true);
+-- No public/anonymous policies: survey pages use admin-client server routes.
+-- (USING (true) policies here once exposed every firm's data; see
+-- scripts/lock-down-anon-access.sql.)
 
 -- ── INVESTMENT POLICY STATEMENTS ──────────────────────────────
 CREATE TABLE investment_policy_statements (
@@ -255,10 +248,9 @@ CREATE POLICY "Advisors manage own investment preferences"
   ON investment_preferences FOR ALL
   USING (advisor_id = (SELECT id FROM advisors WHERE user_id = auth.uid()));
 
--- Public read (survey page is unauthenticated)
-CREATE POLICY "Public can read investment preferences"
-  ON investment_preferences FOR SELECT
-  USING (true);
+-- No public/anonymous policies: survey pages use admin-client server routes.
+-- (USING (true) policies here once exposed every firm's data; see
+-- scripts/lock-down-anon-access.sql.)
 
 -- Store selected preference IDs on responses
 ALTER TABLE questionnaire_responses

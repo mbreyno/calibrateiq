@@ -99,3 +99,14 @@ CREATE POLICY "Users can manage their firm household members"
   FOR ALL
   USING (household_id IN (SELECT id FROM households WHERE advisor_id = get_effective_advisor_id()))
   WITH CHECK (household_id IN (SELECT id FROM households WHERE advisor_id = get_effective_advisor_id()));
+
+-- ── clients write policy (added 2026-11-20) ──────────────────────────────────
+-- Sub-users' client-notes edits previously persisted only via the over-broad
+-- "Public can update client status by token" (USING true) policy, removed in
+-- scripts/lock-down-anon-access.sql. Applied as "sub_user_firm_client_updates".
+DROP POLICY IF EXISTS "Users can update their firm clients" ON clients;
+CREATE POLICY "Users can update their firm clients"
+  ON clients
+  FOR UPDATE
+  USING (advisor_id = get_effective_advisor_id())
+  WITH CHECK (advisor_id = get_effective_advisor_id());
