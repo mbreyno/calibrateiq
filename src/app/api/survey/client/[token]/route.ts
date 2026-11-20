@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { calculateAgeScore, QUESTIONS } from '@/lib/scoring'
 
 // Never cache: these responses must always reflect the current database.
 export const dynamic = 'force-dynamic'
@@ -56,4 +57,87 @@ export async function GET(
   }
 
   return NextResponse.json({ client, advisor: brandingAdvisor })
+}
+
+/**
+ * POST /api/survey/client/[token]
+ *
+ * Public endpoint — no auth required. Submits the legacy per-client
+ * questionnaire server-side. Anonymous callers have no direct table access,
+ * so the response insert and status update happen here with the admin
+ * client, scoped to the single client the token identifies.
+ */
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { token: string } }
+) {
+  try {
+    const { token } = params
+    if (!token) return NextResponse.json({ error: 'Token required.' }, { status: 400 })
+
+    const { answers, comments } = await req.json()
+    const admin = createAdminClient()
+
+    const { data: client } = await admin
+      .from('clients')
+      .select('id, advisor_id, first_name, last_name, email, date_of_birth, status')
+      .eq('questionnaire_token', token)
+      .single()
+
+    if (!client) return NextResponse.json({ error: 'Client not found.' }, { status: 404 })
+    if (client.status === 'completed') {
+      return NextResponse.json({ error: 'This questionnaire has already been submitted.' }, { status: 409 })
+    }
+
+    // Only accept scores that are real options for each scored question;
+    // q1 is derived server-side from the date of birth on file.
+    const validScore = (id: string): number | null => {
+      const q = QUESTIONS.find(x => x.id === id)
+      const v = answers?.[id]
+      if (!q || q.type !== 'radio' || typeof v !== 'number') return null
+      return q.options.some(o => o.score === v) ? v : null
+    }
+
+    const { error: respError } = await admin
+      .from('questionnaire_responses')
+      .insert({
+        client_id: client.id,
+        q1: client.date_of_birth ? calculateAgeScore(client.date_of_birth) : null,
+        q2: validScore('q2'),
+        q3: validScore('q3'),
+        q4: validScore('q4'),
+        q5: validScore('q5'),
+        q6: validScore('q6'),
+        q8: validScore('q8'),
+        selected_preferences: [],
+        comments: (typeof comments === 'string' ? comments : '').replace(/\u0000/g, '').trim(),
+      })
+
+    if (respError) {
+      console.error('survey/client submit — response insert error:', respError)
+      return NextResponse.json({ error: 'Failed to save survey responses.' }, { status: 500 })
+    }
+
+    await admin.from('clients').update({ status: 'completed' }).eq('id', client.id)
+
+    // Awaited: Vercel terminates the function on return. Errors are caught so a
+    // Resend outage never fails the client's submission.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.calibrateiq.app'
+    await fetch(`${appUrl}/api/notify-advisor`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        advisor_id: client.advisor_id,
+        client_name: `${client.first_name} ${client.last_name}`,
+        client_email: client.email,
+      }),
+    }).catch(err => {
+      console.error('survey/client submit → notify-advisor failed:', err)
+    })
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('survey/client submit — unexpected error:', err)
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
+  }
 }

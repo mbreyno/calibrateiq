@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/client'
-import { QUESTIONS, calculateAgeScore } from '@/lib/scoring'
+import { QUESTIONS } from '@/lib/scoring'
 import { applyBrandColors } from '@/lib/colorUtils'
 import type { Client, Advisor } from '@/types'
 
@@ -22,7 +21,6 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 
 export default function QuestionnairePage() {
   const { token } = useParams<{ token: string }>()
-  const supabase = createClient()
 
   const [client, setClient] = useState<Client | null>(null)
   const [advisor, setAdvisor] = useState<Advisor | null>(null)
@@ -108,51 +106,27 @@ export default function QuestionnairePage() {
     setSubmitting(true)
     setError(null)
 
-    const payload = {
-      client_id: client.id,
-      q1: client.date_of_birth ? calculateAgeScore(client.date_of_birth) : null,
-      q2: answers['q2'] as number ?? null,
-      q3: answers['q3'] as number ?? null,
-      q4: answers['q4'] as number ?? null,
-      q5: answers['q5'] as number ?? null,
-      q6: answers['q6'] as number ?? null,
-      selected_preferences: [],
-      q8: answers['q8'] as number ?? null,
-      comments,
-    }
-
-    // Insert responses
-    const { error: insertError } = await supabase
-      .from('questionnaire_responses')
-      .insert(payload)
-
-    if (insertError) {
-      setError('Something went wrong. Please try again.')
+    // Submitted server-side (saves answers, marks complete, notifies advisor):
+    // anonymous visitors have no direct database access.
+    try {
+      const res = await fetch(`/api/survey/client/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers, comments }),
+      })
+      if (!res.ok) {
+        setError('Something went wrong. Please try again.')
+        setSubmitting(false)
+        return
+      }
+    } catch {
+      setError('Something went wrong. Please check your connection and try again.')
       setSubmitting(false)
       return
     }
 
-    // Update client status
-    await supabase
-      .from('clients')
-      .update({ status: 'completed' })
-      .eq('id', client.id)
-
     setSubmitted(true)
     setSubmitting(false)
-
-    // Fire-and-forget advisor notification — doesn't block the success screen
-    if (advisor && client) {
-      fetch('/api/notify-advisor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          advisor_id: advisor.id,
-          client_name: `${client.first_name} ${client.last_name}`,
-          client_email: client.email,
-        }),
-      }).catch(() => {})
-    }
   }
 
   // ── Loading ─────────────────────────────────────────────────────
